@@ -1,0 +1,50 @@
+<readviewentries>
+	<viewentries timestamp="20120629T163751,60Z"
+		toplevelentries="45">
+		<viewentry position="1" unid="A4CCE3766D788133C1257A2C005692F7"
+			noteid="9F92" siblings="45"><!-- [unread="true"] -->
+			<entrydata columnnumber="0" name="$86"><!-- type -->
+				<number>211</number>
+			</entrydata>
+			<entrydata columnnumber="1" name="$Importance"><!-- importance -->
+				<number>0</number>
+			</entrydata>
+			<entrydata columnnumber="2" name="$93"><!-- from -->
+				<text>Jean-Francois Ziegelmeyer</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$98"><!-- from -->
+				<text>Jean-Francois Ziegelmeyer</text>
+			</entrydata>
+			<entrydata columnnumber="4" name="$73"><!-- subject -->
+				<text>RE: Remplacement stagiaire</text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$70"><!-- date -->
+				<datetime>20120629T154537,38Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$106"><!-- size -->
+				<number>15190</number>
+			</entrydata>
+			<entrydata columnnumber="7" name="$ToStuff"><!-- recipient -->
+				<number>186</number>
+			</entrydata>
+			<entrydata columnnumber="8" name="$97"><!-- attachement -->
+				<number>9999</number>
+			</entrydata>
+			<entrydata columnnumber="9" name="$109"><!-- answer flag -->
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<!-- additional viewentry's -->
+	</viewentries>
+	<dbquotasize>
+		<dbsize>121938</dbsize>
+		<sizelimit>1280000</sizelimit>
+		<warning>768000</warning>
+		<ignorequota>0</ignorequota>
+		<currentusage>121938</currentusage>
+	</dbquotasize>
+	<unreadinfo>
+		<foldername>($Inbox)</foldername>
+		<unreadcount>32</unreadcount>
+	</unreadinfo>
+</readviewentries>

@@ -1,0 +1,6 @@
+* utility to list (IMAP) folders and their uid
+* POP3 server
+* additional commands (quota size, etc.)
+* mboxcl and mboxcl2 export (fr.cedrik.inotes.mbox)
+* calendar
+* contacts
