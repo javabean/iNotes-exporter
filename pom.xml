@@ -111,7 +111,7 @@
 
 	<organization>
 		<name>Cédrik LIME</name>
-		<url>http://messadmin.sourceforge.net</url>
+		<url>https://github.com/javabean/iNotes-exporter/</url>
 	</organization>
 
 	<!-- - - - - - - -  -->
@@ -124,8 +124,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.6</maven.compiler.source>
 		<maven.compiler.target>1.6</maven.compiler.target>
-		<!-- The following properties will be used for META-INF/MANIFEST.MF -->
-		<manifest.Implementation-URL>${project.url}</manifest.Implementation-URL>
 		<slf4j.version>1.6.6</slf4j.version>
 		<spring.version>3.0.7.RELEASE</spring.version><!-- TODO update to 3.1.x -->
 	</properties>
@@ -148,12 +146,6 @@
 					<debug>true</debug>
 					<source>${maven.compiler.source}</source>
 					<target>${maven.compiler.target}</target>
-					<compilerArguments>
-						<bootclasspath>../lib/rt-${maven.compiler.target}.jar</bootclasspath>
-					</compilerArguments>
-					<!--fork>true</fork>
-					<executable>/usr/java/${maven.compiler.source}/bin/javac</executable>
-					<compilerVersion>${maven.compiler.source}</compilerVersion-->
 				</configuration>
 			</plugin>
 			<plugin>
@@ -165,7 +157,7 @@
 						<addMavenDescriptor>false</addMavenDescriptor>
 						<!--manifestFile>META-INF/MANIFEST.MF</manifestFile-->
 						<manifest>
-							<!--mainClass>com.mycompany.app.App</mainClass-->
+							<mainClass>fr.cedrik.inotes.mbox.MBoxrd</mainClass>
 							<!--packageName>com.mycompany.app</packageName-->
 							<addClasspath>false</addClasspath>
 							<!--addExtensions/-->
@@ -176,7 +168,6 @@
 						</manifest>
 						<manifestEntries>
 							<!--manifest_entry>value</manifest_entry-->
-							<Implementation-URL>${manifest.Implementation-URL}</Implementation-URL>
 							<Sealed>false</Sealed>
 						</manifestEntries>
 					</archive>
@@ -277,50 +268,7 @@
 	<repositories></repositories>
 	<pluginRepositories></pluginRepositories>
 	<distributionManagement></distributionManagement>
-	<!--profiles>
-		<profile>
-			<id>Java5</id>
-			<activation>
-				<jdk>1.5</jdk>
-			</activation>
-			<build>
-				<plugins>
-				</plugins>
-			</build>
-			<modules>
-			</modules>
-			<dependencies>< ! - - Those are included in Java SE 6; add them to Java SE 5 - - >
-				<dependency>
-					<groupId>javax.activation</groupId>
-					<artifactId>activation</artifactId>
-					<version>1.1.1</version>
-					<scope>compile</scope>
-				</dependency>
-				<dependency>
-					<groupId>javax.annotation</groupId>
-					<artifactId>jsr250-api</artifactId>
-					<version>1.0</version>
-					<scope>compile</scope>
-				</dependency>
-				<dependency>
-					<groupId>javax.xml.bind</groupId>
-					<artifactId>jaxb-api</artifactId>
-					<version>2.1</version>
-					<scope>compile</scope>
-				</dependency>
-				<dependency>
-					<groupId>javax.xml.ws</groupId>
-					<artifactId>jaxws-api</artifactId>
-					<version>2.1-1</version>
-					<scope>compile</scope>
-				</dependency>
-				<dependency>
-					<groupId>javax.jws</groupId>
-					<artifactId>jsr181</artifactId>
-					<version>1.0</version>
-					<scope>compile</scope>
-				</dependency>
-			</dependencies>
-		</profile>
-	</profiles-->
+
+	<profiles>
+	</profiles>
 </project>

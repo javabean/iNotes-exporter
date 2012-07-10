@@ -14,7 +14,7 @@ configuration:
 	/src/main/resources/simplelogger.properties
 
 mbox export:
-	java fr.cedrik.inotes.mbox.Mboxrd <output_file>
+	java fr.cedrik.inotes.mbox.MBoxrd <output_file>
 
 pop3 server:
 	TODO!
