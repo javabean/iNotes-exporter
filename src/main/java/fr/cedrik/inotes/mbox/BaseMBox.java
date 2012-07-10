@@ -36,7 +36,6 @@ abstract class BaseMBox {
 	 */
 	private static final Charset US_ASCII = Charset.forName("US-ASCII");//TODO Java 7: replace with StandardCharsets.US_ASCII
 
-    protected Logger logger = LoggerFactory.getLogger(this.getClass());
 	/**
 	 * RFC 5322 datetime format: {@value}
 	 * @see <a href="http://www.ietf.org/rfc/rfc5322.txt">RFC 5322</a>
@@ -55,6 +54,7 @@ abstract class BaseMBox {
 	 */
 	protected static final Format MBOX_DATE_TIME_FORMAT = FastDateFormat.getInstance("EEE MMM dd HH:mm:ss yyyy", Locale.US);//$NON-NLS-1$
 
+	protected Logger logger = LoggerFactory.getLogger(this.getClass());
 	protected Session session;
 	protected Writer mbox;
 
