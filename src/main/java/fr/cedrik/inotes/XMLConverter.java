@@ -28,7 +28,7 @@ import org.xml.sax.SAXException;
 /**
  * @author C&eacute;drik LIME
  */
-public class XMLConverter {
+class XMLConverter {
 	protected static final Logger logger = LoggerFactory.getLogger(XMLConverter.class);
 
 	public XMLConverter() {

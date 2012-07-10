@@ -38,6 +38,8 @@ public class Session {
 	protected final Set<String> toDelete = new HashSet<String>();
 	protected final Set<String> toMarkUnread = new HashSet<String>();
 	protected final Set<String> toMarkRead = new HashSet<String>();
+	protected MessagesMetaData messages = null;
+	protected boolean isLoggedIn = false;
 
 	static {
 //		System.setProperty("java.util.logging.config.file", "logging.properties");//XXX DEBUG
@@ -56,6 +58,13 @@ public class Session {
 			String responseBody = IOUtils.toString(httpResponse.getBody(), context.getCharset(httpResponse));
 			logger.trace(responseBody);
 		}
+	}
+
+	public void setServerAddress(String url) {
+		if (isLoggedIn) {
+			throw new IllegalStateException();
+		}
+		context.iNotes.setServerAddress(url);
 	}
 
 	public boolean login(String username, String password) throws IOException {
@@ -132,9 +141,10 @@ public class Session {
 		}
 
 		// Step 1c: base URL
-		context.setProxyBaseURL(redirectURL.replace("/Mail/", "/Proxy/").replace("&ui=portal", ""));
-		context.setFolderBaseURL(context.getProxyBaseURL().replace("/iNotes/Proxy/?OpenDocument", "/"));
-		context.setMailEditBaseURL(redirectURL.replace("?OpenDocument&ui=portal", "?EditDocument"));
+		String baseURL = redirectURL.substring(0, redirectURL.indexOf(".nsf")+".nsf".length()) + '/';
+		context.setProxyBaseURL(baseURL + "iNotes/Proxy/?OpenDocument");
+		context.setFolderBaseURL(baseURL);
+		context.setMailEditBaseURL(baseURL + "iNotes/Mail/?EditDocument");
 		logger.trace("Proxy base URL for user \"{}\": {}", context.getUserName(), context.getProxyBaseURL());
 		logger.trace("Folder base URL for user \"{}\": {}", context.getUserName(), context.getFolderBaseURL());
 		logger.trace("Mail edit base URL for user \"{}\": {}", context.getUserName(), context.getMailEditBaseURL());
@@ -174,10 +184,23 @@ public class Session {
 				context.getHttpHeaders().put("X-IBM-INOTES-NONCE", xIbmINotesNonce);
 			}
 		}
+
+		isLoggedIn = true;
 		return true;
 	}
 
+	protected void checkLoggedIn() {
+		if (! isLoggedIn) {
+			throw new IllegalStateException();
+		}
+	}
+
+	//FIXME iNotes limits the number of results to 1000. Need to paginate.
 	public MessagesMetaData getMessagesMetaData() throws IOException {
+		checkLoggedIn();
+		if (messages != null) {
+			return messages;
+		}
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
 		params.put("Form", "s_ReadViewEntries");
@@ -190,7 +213,6 @@ public class Session {
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
 //		traceBody(httpResponse);// DEBUG
-		MessagesMetaData messages;
 		try {
 			messages = new XMLConverter().convertXML(httpResponse.getBody());
 		} finally {
@@ -202,6 +224,7 @@ public class Session {
 	}
 
 	public String getMessageMIMEHeaders(MessageMetaData message) throws IOException {
+		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
 		params.put("Form", "l_MailMessageHeader");
@@ -223,6 +246,7 @@ public class Session {
 	}
 
 	public String getMessageMIME(MessageMetaData message) throws IOException {
+		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
 		params.put("Form", "l_MailMessageHeader");
@@ -264,9 +288,15 @@ public class Session {
 	 * @throws IOException
 	 */
 	public void deleteMessage(MessageMetaData... messages) throws IOException {
+		checkLoggedIn();
 		for (MessageMetaData message : messages) {
 			toDelete.add(message.unid);
 		}
+	}
+
+	public void undeleteAllMessages() {
+		checkLoggedIn();
+		toDelete.clear();
 	}
 
 	protected void doDeleteMessages() throws IOException {
@@ -300,6 +330,7 @@ public class Session {
 	 * @throws IOException
 	 */
 	public void markMessagesRead(MessageMetaData... messages) throws IOException {
+		checkLoggedIn();
 		for (MessageMetaData message : messages) {
 			toMarkUnread.remove(message.unid);
 			toMarkRead.add(message.unid);
@@ -336,6 +367,7 @@ public class Session {
 	 * @throws IOException
 	 */
 	public void markMessagesUnread(MessageMetaData... messages) throws IOException {
+		checkLoggedIn();
 		for (MessageMetaData message : messages) {
 			toMarkRead.remove(message.unid);
 			toMarkUnread.add(message.unid);
@@ -368,6 +400,9 @@ public class Session {
 	}
 
 	public boolean logout() throws IOException {
+		if (! isLoggedIn) {
+			return true;
+		}
 		// do mark messages unread
 		doMarkMessagesUnread();
 		// do mark messages read
@@ -394,6 +429,7 @@ public class Session {
 			httpResponse.close();
 		}
 		context.getCookieStore().removeAll();
+		isLoggedIn = false;
 		return true;
 	}
 
