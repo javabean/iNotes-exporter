@@ -33,11 +33,15 @@ import org.springframework.http.client.ClientHttpResponse;
  * @author C&eacute;drik LIME
  */
 public class Session {
+	private static final int META_DATA_LOAD_BATCH_SIZE = 499;
+
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	protected final HttpContext context = new HttpContext();
 	protected final Set<String> toDelete = new HashSet<String>();
 	protected final Set<String> toMarkUnread = new HashSet<String>();
 	protected final Set<String> toMarkRead = new HashSet<String>();
+	protected MessagesMetaData messages = null;
+	protected boolean isLoggedIn = false;
 
 	static {
 //		System.setProperty("java.util.logging.config.file", "logging.properties");//XXX DEBUG
@@ -56,6 +60,13 @@ public class Session {
 			String responseBody = IOUtils.toString(httpResponse.getBody(), context.getCharset(httpResponse));
 			logger.trace(responseBody);
 		}
+	}
+
+	public void setServerAddress(String url) {
+		if (isLoggedIn) {
+			throw new IllegalStateException();
+		}
+		context.iNotes.setServerAddress(url);
 	}
 
 	public boolean login(String username, String password) throws IOException {
@@ -132,9 +143,10 @@ public class Session {
 		}
 
 		// Step 1c: base URL
-		context.setProxyBaseURL(redirectURL.replace("/Mail/", "/Proxy/").replace("&ui=portal", ""));
-		context.setFolderBaseURL(context.getProxyBaseURL().replace("/iNotes/Proxy/?OpenDocument", "/"));
-		context.setMailEditBaseURL(redirectURL.replace("?OpenDocument&ui=portal", "?EditDocument"));
+		String baseURL = redirectURL.substring(0, redirectURL.indexOf(".nsf")+".nsf".length()) + '/';
+		context.setProxyBaseURL(baseURL + "iNotes/Proxy/?OpenDocument");
+		context.setFolderBaseURL(baseURL);
+		context.setMailEditBaseURL(baseURL + "iNotes/Mail/?EditDocument");
 		logger.trace("Proxy base URL for user \"{}\": {}", context.getUserName(), context.getProxyBaseURL());
 		logger.trace("Folder base URL for user \"{}\": {}", context.getUserName(), context.getFolderBaseURL());
 		logger.trace("Mail edit base URL for user \"{}\": {}", context.getUserName(), context.getMailEditBaseURL());
@@ -174,17 +186,48 @@ public class Session {
 				context.getHttpHeaders().put("X-IBM-INOTES-NONCE", xIbmINotesNonce);
 			}
 		}
+
+		isLoggedIn = true;
 		return true;
 	}
 
+	protected void checkLoggedIn() {
+		if (! isLoggedIn) {
+			throw new IllegalStateException();
+		}
+	}
+
 	public MessagesMetaData getMessagesMetaData() throws IOException {
+		checkLoggedIn();
+		if (messages != null) {
+			return messages;
+		}
+		// iNotes limits the number of results to 1000. Need to paginate.
+		int start, end = 0;
+		MessagesMetaData partialMessages;
+		do {
+			start = end + 1;
+			end = start + META_DATA_LOAD_BATCH_SIZE;
+			partialMessages = getMessagesMetaData(start, end);
+			if (messages == null) {
+				messages = partialMessages;
+			} else {
+				messages.entries.addAll(0, partialMessages.entries);
+			}
+		} while (partialMessages.entries.size() >= end - start);
+		logger.trace("Loaded {} messages metadata", Integer.valueOf(messages.entries.size()));
+		return messages;
+	}
+
+	protected MessagesMetaData getMessagesMetaData(int start, int end) throws IOException {
+		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
 		params.put("Form", "s_ReadViewEntries");
 //		params.put("PresetFields", "DBQuotaInfo;1,FolderName;"+context.getNotesFolderName()+",UnreadCountInfo;1,s_UsingHttps;1,hc;$98,noPI;1");
 		params.put("TZType", "UTC");
-		params.put("Start", "1");
-		params.put("Count", Short.toString(Short.MAX_VALUE));
+		params.put("Start", Integer.toString(start));
+		params.put("Count", Integer.toString(end));
 		params.put("resortdescending", "5");
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getProxyBaseURL()+"&PresetFields=DBQuotaInfo;1,FolderName;"+context.getNotesFolderName()+",UnreadCountInfo;1,s_UsingHttps;1,hc;$98,noPI;1"), HttpMethod.GET, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
@@ -197,11 +240,11 @@ public class Session {
 			httpResponse.close();
 		}
 		Collections.reverse(messages.entries);
-		logger.trace("Loaded {} messages metadata", Integer.valueOf(messages.entries.size()));
 		return messages;
 	}
 
 	public String getMessageMIMEHeaders(MessageMetaData message) throws IOException {
+		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
 		params.put("Form", "l_MailMessageHeader");
@@ -223,6 +266,7 @@ public class Session {
 	}
 
 	public String getMessageMIME(MessageMetaData message) throws IOException {
+		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
 		params.put("Form", "l_MailMessageHeader");
@@ -264,9 +308,15 @@ public class Session {
 	 * @throws IOException
 	 */
 	public void deleteMessage(MessageMetaData... messages) throws IOException {
+		checkLoggedIn();
 		for (MessageMetaData message : messages) {
 			toDelete.add(message.unid);
 		}
+	}
+
+	public void undeleteAllMessages() {
+		checkLoggedIn();
+		toDelete.clear();
 	}
 
 	protected void doDeleteMessages() throws IOException {
@@ -300,6 +350,7 @@ public class Session {
 	 * @throws IOException
 	 */
 	public void markMessagesRead(MessageMetaData... messages) throws IOException {
+		checkLoggedIn();
 		for (MessageMetaData message : messages) {
 			toMarkUnread.remove(message.unid);
 			toMarkRead.add(message.unid);
@@ -336,6 +387,7 @@ public class Session {
 	 * @throws IOException
 	 */
 	public void markMessagesUnread(MessageMetaData... messages) throws IOException {
+		checkLoggedIn();
 		for (MessageMetaData message : messages) {
 			toMarkRead.remove(message.unid);
 			toMarkUnread.add(message.unid);
@@ -368,6 +420,9 @@ public class Session {
 	}
 
 	public boolean logout() throws IOException {
+		if (! isLoggedIn) {
+			return true;
+		}
 		// do mark messages unread
 		doMarkMessagesUnread();
 		// do mark messages read
@@ -394,6 +449,8 @@ public class Session {
 			httpResponse.close();
 		}
 		context.getCookieStore().removeAll();
+		isLoggedIn = false;
+		messages = null;
 		return true;
 	}
 

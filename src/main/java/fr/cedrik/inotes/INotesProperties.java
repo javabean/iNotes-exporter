@@ -64,6 +64,10 @@ class INotesProperties extends Properties {
 		return getProperty(SERVER);
 	}
 
+	public void setServerAddress(String url) {
+		setProperty(SERVER, url);
+	}
+
 	public String getUserName() {
 		return getProperty(USERNAME);
 	}

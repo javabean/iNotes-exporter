@@ -1,4 +1,5 @@
 * utility to list (IMAP) folders and their uid
+* performance: replace LineIterator with a List<String> or add another LineIterator constructor
 * POP3 server
 * additional commands (quota size, etc.)
 * mboxcl and mboxcl2 export (fr.cedrik.inotes.mbox)
