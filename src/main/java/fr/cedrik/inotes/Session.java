@@ -33,7 +33,7 @@ import org.springframework.http.client.ClientHttpResponse;
  * @author C&eacute;drik LIME
  */
 public class Session {
-	private static final int META_DATA_LOAD_BATCH_SIZE = 499;
+	private static final int META_DATA_LOAD_BATCH_SIZE = 500;
 
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	protected final HttpContext context = new HttpContext();
@@ -203,23 +203,22 @@ public class Session {
 			return messages;
 		}
 		// iNotes limits the number of results to 1000. Need to paginate.
-		int start, end = 0;
+		int start = 1;
 		MessagesMetaData partialMessages;
 		do {
-			start = end + 1;
-			end = start + META_DATA_LOAD_BATCH_SIZE;
-			partialMessages = getMessagesMetaData(start, end);
+			partialMessages = getMessagesMetaData(start, META_DATA_LOAD_BATCH_SIZE);
 			if (messages == null) {
 				messages = partialMessages;
 			} else {
 				messages.entries.addAll(0, partialMessages.entries);
 			}
-		} while (partialMessages.entries.size() >= end - start);
+			start += META_DATA_LOAD_BATCH_SIZE;
+		} while (partialMessages.entries.size() >= META_DATA_LOAD_BATCH_SIZE);
 		logger.trace("Loaded {} messages metadata", Integer.valueOf(messages.entries.size()));
 		return messages;
 	}
 
-	protected MessagesMetaData getMessagesMetaData(int start, int end) throws IOException {
+	protected MessagesMetaData getMessagesMetaData(int start, int count) throws IOException {
 		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
@@ -227,7 +226,7 @@ public class Session {
 //		params.put("PresetFields", "DBQuotaInfo;1,FolderName;"+context.getNotesFolderName()+",UnreadCountInfo;1,s_UsingHttps;1,hc;$98,noPI;1");
 		params.put("TZType", "UTC");
 		params.put("Start", Integer.toString(start));
-		params.put("Count", Integer.toString(end));
+		params.put("Count", Integer.toString(count));
 		params.put("resortdescending", "5");
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getProxyBaseURL()+"&PresetFields=DBQuotaInfo;1,FolderName;"+context.getNotesFolderName()+",UnreadCountInfo;1,s_UsingHttps;1,hc;$98,noPI;1"), HttpMethod.GET, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
