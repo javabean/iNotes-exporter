@@ -23,6 +23,9 @@ The <action> type attribute can be add,update,fix,remove.
 		<title>Lotus iNotes exporter: POP3 &amp; mbox</title>
 	</properties>
 	<body>
+		<release version="1.0.1" date="" description="">
+			<action type="add"    dev="clime" >[mbox] add iNotes meta-data as X-iNotes- MIME headers</action>
+		</release>
 		<release version="1.0" date="2012-07-11" description="POP3 server">
 			<action type="add"    dev="clime" >[pop3] pop3 server</action>
 			<action type="update" dev="clime" >[mbox] incremental exports</action>

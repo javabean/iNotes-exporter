@@ -55,6 +55,7 @@ public class MBoxo extends BaseMBox {
 	@Override
 	protected void writeMIME(MessageMetaData message, LineIterator mime) throws IOException {
 		writeFromLine(message);
+		writeINotesData(message);
 		while (mime.hasNext()) {
 			String line = mime.nextLine();
 			if (line.startsWith("From ")) {

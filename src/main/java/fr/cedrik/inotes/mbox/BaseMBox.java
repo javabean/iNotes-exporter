@@ -93,7 +93,15 @@ abstract class BaseMBox {
 	protected abstract void writeMIME(MessageMetaData message, LineIterator mime) throws IOException;
 
 	protected void writeFromLine(MessageMetaData message) throws IOException {
-		// FIXME date should be UTC; need to convert it!
+		// date should be UTC, but tests show there is no need to convert it
 		mbox.append("From MAILER-DAEMON ").append(MBOX_DATE_TIME_FORMAT.format(message.date)).append('\n');
+	}
+
+	protected void writeINotesData(MessageMetaData message) throws IOException {
+		mbox.append("X-iNotes-unid: ").append(message.unid).append('\n');
+		mbox.append("X-iNotes-noteid: ").append(message.noteid).append('\n');
+		mbox.append("X-iNotes-unread: ").append(Boolean.toString(message.unread)).append('\n');
+		mbox.append("X-iNotes-date: ").append(RFC2822_DATE_TIME_FORMAT.format(message.date)).append('\n');
+		mbox.append("X-iNotes-size: ").append(Integer.toString(message.size)).append('\n');
 	}
 }
