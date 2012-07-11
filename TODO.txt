@@ -1,10 +1,10 @@
-* mbox: allow to append to a file, instead of overwriting
 * POP3: additional commands (quota size, etc.)
 * POP3: TOP command is incomplete (only TOP n 0 is supported)
 * POP3: DELE, LIST, RETR, UIDL: argument may NOT refer to a message marked as deleted
 * POP3: allow to bind to a specific interface
 * utility to list (IMAP) folders and their uid
 * mboxcl and mboxcl2 export (fr.cedrik.inotes.mbox)
+* maildir (and maildir++ once we can fetch iNotes folders) export
 * re-work configuration (e.g. pop3 server port in jar file name), or at lease externalize conf with a set of default built-in
 * calendar
 * contacts

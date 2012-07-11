@@ -40,16 +40,16 @@ public class MBoxrd extends BaseMBox {
 		Date oldestMessageToFetch = null;
 		if (args.length > 1) {
 			try {
-				oldestMessageToFetch = new SimpleDateFormat(ISO8601_DATE).parse(args[1]);
+				oldestMessageToFetch = new SimpleDateFormat(ISO8601_DATE_SEMITIME).parse(args[1]);
 			} catch (ParseException ignore) {
-				System.out.println("Bad date format. Please use " + ISO8601_DATE);
+				System.out.println("Bad date format. Please use " + ISO8601_DATE_SEMITIME);
 			}
 		}
 		new MBoxrd(out, oldestMessageToFetch).run();
 	}
 
 	protected static void help() {
-		System.out.println("Usage: "+MBoxrd.class.getSimpleName()+" <out_file> [oldest message to fetch date: " + ISO8601_DATE + ']');
+		System.out.println("Usage: "+MBoxrd.class.getSimpleName()+" <out_file> [oldest message to fetch date: " + ISO8601_DATE_SEMITIME + ']');
 	}
 
 	@Override

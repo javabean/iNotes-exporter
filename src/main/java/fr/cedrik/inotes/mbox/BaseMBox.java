@@ -49,6 +49,7 @@ abstract class BaseMBox {
 	 * @see <a href="http://www.ietf.org/rfc/rfc3339.txt">RFC 3399</a>
 	 */
 	protected static final String ISO8601_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ssZZ";//$NON-NLS-1$
+	protected static final String ISO8601_DATE_SEMITIME = "yyyy-MM-dd'T'HH:mm";//$NON-NLS-1$
 	protected static final String ISO8601_DATE = "yyyy-MM-dd";//$NON-NLS-1$
 	protected static final Format ISO8601_DATE_TIME_FORMAT = FastDateFormat.getInstance(ISO8601_DATE_TIME);
 
@@ -65,7 +66,8 @@ abstract class BaseMBox {
 	public BaseMBox(File out, Date oldestMessageToFetch) throws IOException {
 		session = new Session();
 		this.oldestMessageToFetch = oldestMessageToFetch;
-		mbox = new BufferedWriter(new FileWriterWithEncoding(out, US_ASCII), 32*1024);
+		boolean append = oldestMessageToFetch != null;
+		mbox = new BufferedWriter(new FileWriterWithEncoding(out, US_ASCII, append), 32*1024);
 	}
 
 	protected final void run() throws IOException {
