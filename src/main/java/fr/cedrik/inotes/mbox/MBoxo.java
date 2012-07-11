@@ -5,9 +5,10 @@ package fr.cedrik.inotes.mbox;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 
 import fr.cedrik.inotes.MessageMetaData;
@@ -19,8 +20,8 @@ import fr.cedrik.inotes.MessageMetaData;
 @Deprecated
 public class MBoxo extends BaseMBox {
 
-	public MBoxo(File out) throws IOException {
-		super(out);
+	public MBoxo(File out, Date oldestMessageToFetch) throws IOException {
+		super(out, oldestMessageToFetch);
 	}
 
 	/**
@@ -36,19 +37,26 @@ public class MBoxo extends BaseMBox {
 			fileName += ".mboxo";
 		}
 		File out = new File(fileName);
-		new MBoxo(out).run();
+		Date oldestMessageToFetch = null;
+		if (args.length > 1) {
+			try {
+				oldestMessageToFetch = new SimpleDateFormat(ISO8601_DATE).parse(args[1]);
+			} catch (ParseException ignore) {
+				System.out.println("Bad date format. Please use " + ISO8601_DATE);
+			}
+		}
+		new MBoxo(out, oldestMessageToFetch).run();
 	}
 
 	protected static void help() {
-		System.out.println("Usage: "+MBoxo.class.getSimpleName()+" <out_file>");
+		System.out.println("Usage: "+MBoxo.class.getSimpleName()+" <out_file> [oldest message to fetch date: " + ISO8601_DATE + ']');
 	}
 
 	@Override
-	protected void writeMIME(MessageMetaData message, String mime) throws IOException {
+	protected void writeMIME(MessageMetaData message, LineIterator mime) throws IOException {
 		writeFromLine(message);
-		LineIterator lines = IOUtils.lineIterator(new StringReader(mime));
-		while (lines.hasNext()) {
-			String line = lines.nextLine();
+		while (mime.hasNext()) {
+			String line = mime.nextLine();
 			if (line.startsWith("From ")) {
 				logger.trace("Escaping {}", line);
 				mbox.write('>');

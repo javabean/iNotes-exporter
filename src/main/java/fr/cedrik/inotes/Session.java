@@ -4,10 +4,12 @@
 package fr.cedrik.inotes;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpCookie;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -22,6 +24,7 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.text.translate.EntityArrays;
 import org.apache.commons.lang3.text.translate.LookupTranslator;
+import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
@@ -198,27 +201,52 @@ public class Session {
 	}
 
 	public MessagesMetaData getMessagesMetaData() throws IOException {
+		return getMessagesMetaData(null);
+	}
+	public MessagesMetaData getMessagesMetaData(Date oldestMessageToFetch) throws IOException {
 		checkLoggedIn();
 		if (messages != null) {
 			return messages;
 		}
+		if (oldestMessageToFetch == null) {
+			oldestMessageToFetch = new Date(Long.MAX_VALUE - 30*DateUtils.MILLIS_PER_DAY);
+		}
 		// iNotes limits the number of results to 1000. Need to paginate.
 		int start = 1;
 		MessagesMetaData partialMessages;
+		boolean stopLoading = false;
 		do {
-			partialMessages = getMessagesMetaData(start, META_DATA_LOAD_BATCH_SIZE);
+			partialMessages = getMessagesMetaDataNoSort(start, META_DATA_LOAD_BATCH_SIZE);
 			if (messages == null) {
 				messages = partialMessages;
+				// filter on date
+				Iterator<MessageMetaData> iterator = messages.entries.iterator();
+				while (iterator.hasNext()) {
+					MessageMetaData message = iterator.next();
+					if (message.date.before(oldestMessageToFetch)) {
+						iterator.remove();
+					}
+				}
 			} else {
-				messages.entries.addAll(0, partialMessages.entries);
+				for (MessageMetaData message : partialMessages.entries) {
+					if (message.date.before(oldestMessageToFetch)) {
+						stopLoading = true;
+						break;
+					}
+					messages.entries.add(message);
+				}
 			}
 			start += META_DATA_LOAD_BATCH_SIZE;
-		} while (partialMessages.entries.size() >= META_DATA_LOAD_BATCH_SIZE);
+		} while (! stopLoading && partialMessages.entries.size() >= META_DATA_LOAD_BATCH_SIZE);
+		Collections.reverse(messages.entries);
 		logger.trace("Loaded {} messages metadata", Integer.valueOf(messages.entries.size()));
 		return messages;
 	}
 
-	protected MessagesMetaData getMessagesMetaData(int start, int count) throws IOException {
+	/**
+	 * @return set of messages meta-data, in iNotes order (most recent first)
+	 */
+	protected MessagesMetaData getMessagesMetaDataNoSort(int start, int count) throws IOException {
 		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
@@ -238,11 +266,17 @@ public class Session {
 		} finally {
 			httpResponse.close();
 		}
-		Collections.reverse(messages.entries);
 		return messages;
 	}
 
-	public String getMessageMIMEHeaders(MessageMetaData message) throws IOException {
+	/**
+	 * Don't forget to call {@link LineIterator#close()} when done with the response!
+	 *
+	 * @param message
+	 * @return
+	 * @throws IOException
+	 */
+	public LineIterator getMessageMIMEHeaders(MessageMetaData message) throws IOException {
 		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
@@ -250,21 +284,22 @@ public class Session {
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getFolderBaseURL()+message.unid+"/?OpenDocument"), HttpMethod.GET, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
-		LineIterator responseLines = IOUtils.lineIterator(httpResponse.getBody(), context.getCharset(httpResponse));
-		// delete html tags
-		String result = cleanHtml(responseLines);
-		httpResponse.close();
+		LineIterator responseLines = new HttpCleaningLineIterator(httpResponse);
 		if (message.unread) {
 			// exporting (read MIME) marks mail as read. Need to get the read/unread information and set it back!
 			toMarkUnread.add(message.unid);
 		}
-		if (logger.isTraceEnabled()) {
-			logger.trace("Message MIME headers for " + message.unid + '\n' + result);
-		}
-		return result;
+		return responseLines;
 	}
 
-	public String getMessageMIME(MessageMetaData message) throws IOException {
+	/**
+	 * Don't forget to call {@link LineIterator#close()} when done with the response!
+	 *
+	 * @param message
+	 * @return
+	 * @throws IOException
+	 */
+	public LineIterator getMessageMIME(MessageMetaData message) throws IOException {
 		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
@@ -273,32 +308,13 @@ public class Session {
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getFolderBaseURL()+message.unid+"/?OpenDocument&PresetFields=FullMessage;1"), HttpMethod.GET, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
-		LineIterator responseLines = IOUtils.lineIterator(httpResponse.getBody(), context.getCharset(httpResponse));
-		// delete html tags
-		String result = cleanHtml(responseLines);
-		httpResponse.close();
+		LineIterator responseLines = new HttpCleaningLineIterator(httpResponse);
+		//httpResponse.close();// done in HttpLineIterator#close()
 		if (message.unread) {
 			// exporting (read MIME) marks mail as read. Need to get the read/unread information and set it back!
 			toMarkUnread.add(message.unid);
 		}
-		if (logger.isTraceEnabled()) {
-			logger.trace("Message MIME " + message + '\n' + result);
-		}
-		return result;
-	}
-
-	private String cleanHtml(LineIterator lines) {
-		StringBuilder result = new StringBuilder(16*1024);
-		while (lines.hasNext()) {
-			String line = lines.nextLine();
-			if (line.endsWith("<br>")) {
-				line = line.substring(0, line.length()-"<br>".length());
-			}
-			// convert &quot; -> ", &amp; -> &, &lt; -> <, &gt; -> >
-			line = new LookupTranslator(EntityArrays.BASIC_UNESCAPE()).translate(line);
-			result.append(line).append("\r\n");
-		}
-		return result.toString();
+		return responseLines;
 	}
 
 	/**
@@ -472,4 +488,28 @@ public class Session {
 		return sb.toString();
 	}
 
+	private class HttpCleaningLineIterator extends LineIterator {
+		private final ClientHttpResponse httpResponse;
+		public HttpCleaningLineIterator(final ClientHttpResponse httpResponse) throws IOException {
+			super(new InputStreamReader(httpResponse.getBody(), context.getCharset(httpResponse)));
+			this.httpResponse = httpResponse;
+		}
+		@Override
+		public String nextLine() {
+			String line = super.nextLine();
+			// delete html tags
+			StringBuilder result = new StringBuilder(line);
+			if (line.endsWith("<br>")) {
+				result.delete(line.length()-"<br>".length(), line.length());
+			}
+			// convert &quot; -> ", &amp; -> &, &lt; -> <, &gt; -> >
+			line = new LookupTranslator(EntityArrays.BASIC_UNESCAPE()).translate(result);
+			return line;
+		}
+		@Override
+		public void close() {
+			super.close();
+			httpResponse.close();
+		}
+	}
 }

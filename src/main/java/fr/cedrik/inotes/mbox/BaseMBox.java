@@ -9,10 +9,11 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.text.Format;
+import java.util.Date;
 import java.util.Locale;
 
+import org.apache.commons.io.LineIterator;
 import org.apache.commons.io.output.FileWriterWithEncoding;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,9 @@ abstract class BaseMBox {
 	 * @see <a href="http://www.w3.org/TR/NOTE-datetime">ISO 8601 DateTime</a>
 	 * @see <a href="http://www.ietf.org/rfc/rfc3339.txt">RFC 3399</a>
 	 */
-	protected static final Format ISO8601_DATE_TIME_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ssZZ");//$NON-NLS-1$
+	protected static final String ISO8601_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ssZZ";//$NON-NLS-1$
+	protected static final String ISO8601_DATE = "yyyy-MM-dd";//$NON-NLS-1$
+	protected static final Format ISO8601_DATE_TIME_FORMAT = FastDateFormat.getInstance(ISO8601_DATE_TIME);
 
 	/**
 	 * C asctime / ctime: "Tue May 21 13:46:22 1991" "Sat Jan  3 01:05:34 1996"
@@ -57,9 +60,11 @@ abstract class BaseMBox {
 	protected Logger logger = LoggerFactory.getLogger(this.getClass());
 	protected Session session;
 	protected Writer mbox;
+	protected Date oldestMessageToFetch;
 
-	public BaseMBox(File out) throws IOException {
+	public BaseMBox(File out, Date oldestMessageToFetch) throws IOException {
 		session = new Session();
+		this.oldestMessageToFetch = oldestMessageToFetch;
 		mbox = new BufferedWriter(new FileWriterWithEncoding(out, US_ASCII), 32*1024);
 	}
 
@@ -68,23 +73,24 @@ abstract class BaseMBox {
 			logger.error("Can not login!");
 			return;
 		}
-		MessagesMetaData messages = session.getMessagesMetaData();
+		MessagesMetaData messages = session.getMessagesMetaData(oldestMessageToFetch);
 		if (! messages.entries.isEmpty()) {
 			for (MessageMetaData message : messages.entries) {
-				String mime = session.getMessageMIME(message);
-				if (StringUtils.isEmpty(mime)) {
+				LineIterator mime = session.getMessageMIME(message);
+				if (! mime.hasNext()) {
 					logger.warn("Empty MIME message! ({})", message.date);
 					continue;
 				}
 				logger.debug("Writing message {}", message);
 				writeMIME(message, mime);
+				mime.close();
 			}
 		}
 		mbox.close();
 		session.logout();
 	}
 
-	protected abstract void writeMIME(MessageMetaData message, String mime) throws IOException;
+	protected abstract void writeMIME(MessageMetaData message, LineIterator mime) throws IOException;
 
 	protected void writeFromLine(MessageMetaData message) throws IOException {
 		// FIXME date should be UTC; need to convert it!
