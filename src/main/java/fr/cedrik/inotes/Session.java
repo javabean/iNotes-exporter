@@ -209,7 +209,7 @@ public class Session {
 			return messages;
 		}
 		if (oldestMessageToFetch == null) {
-			oldestMessageToFetch = new Date(Long.MAX_VALUE - 30*DateUtils.MILLIS_PER_DAY);
+			oldestMessageToFetch = new Date(0 + 30*DateUtils.MILLIS_PER_DAY);
 		}
 		// iNotes limits the number of results to 1000. Need to paginate.
 		int start = 1;
@@ -355,7 +355,7 @@ public class Session {
 		trace(httpRequest, httpResponse);
 //		traceBody(httpResponse);// DEBUG
 		httpResponse.close();
-		logger.debug("Deleted (moved to Trash) {} messsage(s)", toDelete.size());
+		logger.info("Deleted (moved to Trash) {} messsage(s)", toDelete.size());
 		toDelete.clear();
 	}
 

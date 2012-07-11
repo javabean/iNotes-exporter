@@ -35,7 +35,7 @@ abstract class BaseMBox {
 	 * Seven-bit ASCII, a.k.a. ISO646-US, a.k.a. the Basic Latin block of the
 	 * Unicode character set
 	 */
-	private static final Charset US_ASCII = Charset.forName("US-ASCII");//TODO Java 7: replace with StandardCharsets.US_ASCII
+	private static final Charset US_ASCII = Charset.forName("US-ASCII");// Java 7: replace with StandardCharsets.US_ASCII
 
 	/**
 	 * RFC 5322 datetime format: {@value}
