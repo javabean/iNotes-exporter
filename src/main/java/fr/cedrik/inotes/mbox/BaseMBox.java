@@ -49,6 +49,7 @@ abstract class BaseMBox {
 	 * @see <a href="http://www.ietf.org/rfc/rfc3339.txt">RFC 3399</a>
 	 */
 	protected static final String ISO8601_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ssZZ";//$NON-NLS-1$
+	protected static final String ISO8601_DATE_SEMITIME = "yyyy-MM-dd'T'HH:mm";//$NON-NLS-1$
 	protected static final String ISO8601_DATE = "yyyy-MM-dd";//$NON-NLS-1$
 	protected static final Format ISO8601_DATE_TIME_FORMAT = FastDateFormat.getInstance(ISO8601_DATE_TIME);
 
@@ -65,7 +66,8 @@ abstract class BaseMBox {
 	public BaseMBox(File out, Date oldestMessageToFetch) throws IOException {
 		session = new Session();
 		this.oldestMessageToFetch = oldestMessageToFetch;
-		mbox = new BufferedWriter(new FileWriterWithEncoding(out, US_ASCII), 32*1024);
+		boolean append = oldestMessageToFetch != null;
+		mbox = new BufferedWriter(new FileWriterWithEncoding(out, US_ASCII, append), 32*1024);
 	}
 
 	protected final void run() throws IOException {
@@ -93,7 +95,15 @@ abstract class BaseMBox {
 	protected abstract void writeMIME(MessageMetaData message, LineIterator mime) throws IOException;
 
 	protected void writeFromLine(MessageMetaData message) throws IOException {
-		// FIXME date should be UTC; need to convert it!
+		// date should be UTC, but tests show there is no need to convert it
 		mbox.append("From MAILER-DAEMON ").append(MBOX_DATE_TIME_FORMAT.format(message.date)).append('\n');
+	}
+
+	protected void writeINotesData(MessageMetaData message) throws IOException {
+		mbox.append("X-iNotes-unid: ").append(message.unid).append('\n');
+		mbox.append("X-iNotes-noteid: ").append(message.noteid).append('\n');
+		mbox.append("X-iNotes-unread: ").append(Boolean.toString(message.unread)).append('\n');
+		mbox.append("X-iNotes-date: ").append(RFC2822_DATE_TIME_FORMAT.format(message.date)).append('\n');
+		mbox.append("X-iNotes-size: ").append(Integer.toString(message.size)).append('\n');
 	}
 }
