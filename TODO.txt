@@ -1,5 +1,4 @@
 * POP3 server
-* mbox: incremental export (date-based)
 * POP3: additional commands (quota size, etc.)
 * utility to list (IMAP) folders and their uid
 * mboxcl and mboxcl2 export (fr.cedrik.inotes.mbox)

@@ -5,6 +5,9 @@ package fr.cedrik.inotes.mbox;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,8 +20,8 @@ import fr.cedrik.inotes.MessageMetaData;
  */
 public class MBoxrd extends BaseMBox {
 
-	public MBoxrd(File out) throws IOException {
-		super(out);
+	public MBoxrd(File out, Date oldestMessageToFetch) throws IOException {
+		super(out, oldestMessageToFetch);
 	}
 
 	/**
@@ -34,11 +37,19 @@ public class MBoxrd extends BaseMBox {
 			fileName += ".mboxrd";
 		}
 		File out = new File(fileName);
-		new MBoxrd(out).run();
+		Date oldestMessageToFetch = null;
+		if (args.length > 1) {
+			try {
+				oldestMessageToFetch = new SimpleDateFormat(ISO8601_DATE).parse(args[1]);
+			} catch (ParseException ignore) {
+				System.out.println("Bad date format. Please use " + ISO8601_DATE);
+			}
+		}
+		new MBoxrd(out, oldestMessageToFetch).run();
 	}
 
 	protected static void help() {
-		System.out.println("Usage: "+MBoxrd.class.getSimpleName()+" <out_file>");
+		System.out.println("Usage: "+MBoxrd.class.getSimpleName()+" <out_file> [oldest message to fetch date: " + ISO8601_DATE + ']');
 	}
 
 	@Override

@@ -9,6 +9,7 @@ import java.net.HttpCookie;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -23,6 +24,7 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.text.translate.EntityArrays;
 import org.apache.commons.lang3.text.translate.LookupTranslator;
+import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
@@ -199,27 +201,52 @@ public class Session {
 	}
 
 	public MessagesMetaData getMessagesMetaData() throws IOException {
+		return getMessagesMetaData(null);
+	}
+	public MessagesMetaData getMessagesMetaData(Date oldestMessageToFetch) throws IOException {
 		checkLoggedIn();
 		if (messages != null) {
 			return messages;
 		}
+		if (oldestMessageToFetch == null) {
+			oldestMessageToFetch = new Date(Long.MAX_VALUE - 30*DateUtils.MILLIS_PER_DAY);
+		}
 		// iNotes limits the number of results to 1000. Need to paginate.
 		int start = 1;
 		MessagesMetaData partialMessages;
+		boolean stopLoading = false;
 		do {
-			partialMessages = getMessagesMetaData(start, META_DATA_LOAD_BATCH_SIZE);
+			partialMessages = getMessagesMetaDataNoSort(start, META_DATA_LOAD_BATCH_SIZE);
 			if (messages == null) {
 				messages = partialMessages;
+				// filter on date
+				Iterator<MessageMetaData> iterator = messages.entries.iterator();
+				while (iterator.hasNext()) {
+					MessageMetaData message = iterator.next();
+					if (message.date.before(oldestMessageToFetch)) {
+						iterator.remove();
+					}
+				}
 			} else {
-				messages.entries.addAll(0, partialMessages.entries);
+				for (MessageMetaData message : partialMessages.entries) {
+					if (message.date.before(oldestMessageToFetch)) {
+						stopLoading = true;
+						break;
+					}
+					messages.entries.add(message);
+				}
 			}
 			start += META_DATA_LOAD_BATCH_SIZE;
-		} while (partialMessages.entries.size() >= META_DATA_LOAD_BATCH_SIZE);
+		} while (! stopLoading && partialMessages.entries.size() >= META_DATA_LOAD_BATCH_SIZE);
+		Collections.reverse(messages.entries);
 		logger.trace("Loaded {} messages metadata", Integer.valueOf(messages.entries.size()));
 		return messages;
 	}
 
-	protected MessagesMetaData getMessagesMetaData(int start, int count) throws IOException {
+	/**
+	 * @return set of messages meta-data, in iNotes order (most recent first)
+	 */
+	protected MessagesMetaData getMessagesMetaDataNoSort(int start, int count) throws IOException {
 		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
@@ -239,7 +266,6 @@ public class Session {
 		} finally {
 			httpResponse.close();
 		}
-		Collections.reverse(messages.entries);
 		return messages;
 	}
 
