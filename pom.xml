@@ -44,7 +44,7 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.3</version>
+			<version>2.4</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -150,6 +150,32 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<compress>true</compress>
+						<index>true</index>
+						<addMavenDescriptor>false</addMavenDescriptor>
+						<!--manifestFile>META-INF/MANIFEST.MF</manifestFile-->
+						<manifest>
+							<mainClass>fr.cedrik.inotes.mbox.MBoxrd</mainClass>
+							<!--packageName>com.mycompany.app</packageName-->
+							<addClasspath>false</addClasspath>
+							<!--addExtensions/-->
+							<!--classpathPrefix/--><!-- This gets prefixed to all classpath entries -->
+							<!-- Starting with version 2.1, the maven-jar-plugin no longer creates the Specification and Implementation details in the manifest by default. -->
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+						<manifestEntries>
+							<!--manifest_entry>value</manifest_entry-->
+							<Sealed>false</Sealed>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
 					<archive>
 						<compress>true</compress>

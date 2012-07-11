@@ -13,15 +13,17 @@ configuration:
 	/src/main/resources/iNotes.properties
 	/src/main/resources/simplelogger.properties
 
+Compiling (after configuration!)
+	mvn -Dmaven.test.skip clean package
+	or
+	mvn -Dmaven.test.skip clean assembly:assembly -DdescriptorId=jar-with-dependencies
+
 mbox export:
-	java fr.cedrik.inotes.mbox.MBoxrd <output_file>
+	java -cp iNotes-exporter.jar fr.cedrik.inotes.mbox.MBoxrd <output_file>
 
 pop3 server:
 	TODO!
 	login: username@https://webmail.example.com
-
-
-
 
 
 
