@@ -11,8 +11,8 @@ import java.nio.charset.Charset;
 import java.text.Format;
 import java.util.Locale;
 
+import org.apache.commons.io.LineIterator;
 import org.apache.commons.io.output.FileWriterWithEncoding;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,20 +71,21 @@ abstract class BaseMBox {
 		MessagesMetaData messages = session.getMessagesMetaData();
 		if (! messages.entries.isEmpty()) {
 			for (MessageMetaData message : messages.entries) {
-				String mime = session.getMessageMIME(message);
-				if (StringUtils.isEmpty(mime)) {
+				LineIterator mime = session.getMessageMIME(message);
+				if (! mime.hasNext()) {
 					logger.warn("Empty MIME message! ({})", message.date);
 					continue;
 				}
 				logger.debug("Writing message {}", message);
 				writeMIME(message, mime);
+				mime.close();
 			}
 		}
 		mbox.close();
 		session.logout();
 	}
 
-	protected abstract void writeMIME(MessageMetaData message, String mime) throws IOException;
+	protected abstract void writeMIME(MessageMetaData message, LineIterator mime) throws IOException;
 
 	protected void writeFromLine(MessageMetaData message) throws IOException {
 		// FIXME date should be UTC; need to convert it!

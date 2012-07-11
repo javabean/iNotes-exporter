@@ -1,8 +1,7 @@
-* utility to list (IMAP) folders and their uid
-* performance: replace LineIterator with a List<String> / BufferedReader or add another LineIterator constructor
 * POP3 server
-* additional commands (quota size, etc.)
+* mbox: incremental export (date-based)
+* POP3: additional commands (quota size, etc.)
+* utility to list (IMAP) folders and their uid
 * mboxcl and mboxcl2 export (fr.cedrik.inotes.mbox)
 * calendar
 * contacts
-* mbox: incremental export

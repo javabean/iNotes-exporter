@@ -4,6 +4,7 @@
 package fr.cedrik.inotes;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpCookie;
 import java.net.URL;
 import java.util.Collection;
@@ -242,7 +243,14 @@ public class Session {
 		return messages;
 	}
 
-	public String getMessageMIMEHeaders(MessageMetaData message) throws IOException {
+	/**
+	 * Don't forget to call {@link LineIterator#close()} when done with the response!
+	 *
+	 * @param message
+	 * @return
+	 * @throws IOException
+	 */
+	public LineIterator getMessageMIMEHeaders(MessageMetaData message) throws IOException {
 		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
@@ -250,21 +258,22 @@ public class Session {
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getFolderBaseURL()+message.unid+"/?OpenDocument"), HttpMethod.GET, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
-		LineIterator responseLines = IOUtils.lineIterator(httpResponse.getBody(), context.getCharset(httpResponse));
-		// delete html tags
-		String result = cleanHtml(responseLines);
-		httpResponse.close();
+		LineIterator responseLines = new HttpCleaningLineIterator(httpResponse);
 		if (message.unread) {
 			// exporting (read MIME) marks mail as read. Need to get the read/unread information and set it back!
 			toMarkUnread.add(message.unid);
 		}
-		if (logger.isTraceEnabled()) {
-			logger.trace("Message MIME headers for " + message.unid + '\n' + result);
-		}
-		return result;
+		return responseLines;
 	}
 
-	public String getMessageMIME(MessageMetaData message) throws IOException {
+	/**
+	 * Don't forget to call {@link LineIterator#close()} when done with the response!
+	 *
+	 * @param message
+	 * @return
+	 * @throws IOException
+	 */
+	public LineIterator getMessageMIME(MessageMetaData message) throws IOException {
 		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
@@ -273,32 +282,13 @@ public class Session {
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getFolderBaseURL()+message.unid+"/?OpenDocument&PresetFields=FullMessage;1"), HttpMethod.GET, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
-		LineIterator responseLines = IOUtils.lineIterator(httpResponse.getBody(), context.getCharset(httpResponse));
-		// delete html tags
-		String result = cleanHtml(responseLines);
-		httpResponse.close();
+		LineIterator responseLines = new HttpCleaningLineIterator(httpResponse);
+		//httpResponse.close();// done in HttpLineIterator#close()
 		if (message.unread) {
 			// exporting (read MIME) marks mail as read. Need to get the read/unread information and set it back!
 			toMarkUnread.add(message.unid);
 		}
-		if (logger.isTraceEnabled()) {
-			logger.trace("Message MIME " + message + '\n' + result);
-		}
-		return result;
-	}
-
-	private String cleanHtml(LineIterator lines) {
-		StringBuilder result = new StringBuilder(16*1024);
-		while (lines.hasNext()) {
-			String line = lines.nextLine();
-			if (line.endsWith("<br>")) {
-				line = line.substring(0, line.length()-"<br>".length());
-			}
-			// convert &quot; -> ", &amp; -> &, &lt; -> <, &gt; -> >
-			line = new LookupTranslator(EntityArrays.BASIC_UNESCAPE()).translate(line);
-			result.append(line).append("\r\n");
-		}
-		return result.toString();
+		return responseLines;
 	}
 
 	/**
@@ -472,4 +462,28 @@ public class Session {
 		return sb.toString();
 	}
 
+	private class HttpCleaningLineIterator extends LineIterator {
+		private final ClientHttpResponse httpResponse;
+		public HttpCleaningLineIterator(final ClientHttpResponse httpResponse) throws IOException {
+			super(new InputStreamReader(httpResponse.getBody(), context.getCharset(httpResponse)));
+			this.httpResponse = httpResponse;
+		}
+		@Override
+		public String nextLine() {
+			String line = super.nextLine();
+			// delete html tags
+			StringBuilder result = new StringBuilder(line);
+			if (line.endsWith("<br>")) {
+				result.delete(line.length()-"<br>".length(), line.length());
+			}
+			// convert &quot; -> ", &amp; -> &, &lt; -> <, &gt; -> >
+			line = new LookupTranslator(EntityArrays.BASIC_UNESCAPE()).translate(result);
+			return line;
+		}
+		@Override
+		public void close() {
+			super.close();
+			httpResponse.close();
+		}
+	}
 }
