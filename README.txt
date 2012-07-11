@@ -31,9 +31,9 @@ or
 Running
 =======
 mbox export:
-	java -cp iNotes-exporter.jar fr.cedrik.inotes.mbox.MBoxrd <output_file> [yyyy-MM-dd]
+	java -cp target/iNotes-exporter-1.0-jar-with-dependencies.jar fr.cedrik.inotes.mbox.MBoxrd <output_file> [yyyy-MM-dd]
 		where yyyy-MM-dd is the date of the oldest message to export; if none provided, exports all messages
 
 pop3 server:
-	java -cp iNotes-exporter.jar fr.cedrik.inotes.pop3.POP3Server
+	java -cp target/iNotes-exporter-1.0-jar-with-dependencies.jar fr.cedrik.inotes.pop3.POP3Server
 	login: username@https://webmail.example.com
