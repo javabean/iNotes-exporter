@@ -90,7 +90,9 @@ public class Session {
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getServerAddress() + "/names.nsf?Login"), HttpMethod.POST, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
-//		traceBody(httpResponse);// DEBUG
+		if (logger.isTraceEnabled()) {
+			traceBody(httpResponse);
+		}
 		try {
 			if (httpResponse.getStatusCode().series().equals(HttpStatus.Series.REDIRECTION)) {
 				logger.info("Authentication successful for user \"" + context.getUserName() + '"');
@@ -113,6 +115,9 @@ public class Session {
 		trace(httpRequest, httpResponse);
 		String responseBody = IOUtils.toString(httpResponse.getBody(), context.getCharset(httpResponse));
 		httpResponse.close();
+		if (logger.isTraceEnabled()) {
+			logger.trace(responseBody);
+		}
 		// search for additional cookie
 //		Pattern jsCookie = Pattern.compile("<script language=javascript>document\\.cookie='([^']+)';</script>", Pattern.CASE_INSENSITIVE);
 		Pattern jsCookie = Pattern.compile("script language=javascript>document\\.cookie='([^']+)';</script>", Pattern.CASE_INSENSITIVE);
@@ -159,7 +164,9 @@ public class Session {
 		httpRequest = context.createRequest(new URL(redirectURL), HttpMethod.GET, params);
 		httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
-//		traceBody(httpResponse);// DEBUG
+		if (logger.isTraceEnabled()) {
+			traceBody(httpResponse);
+		}
 		// Apparently we don't need to parse the embeded JS to set the "Shimmer" cookie.
 		httpResponse.close();
 
@@ -285,6 +292,7 @@ public class Session {
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
 		LineIterator responseLines = new HttpCleaningLineIterator(httpResponse);
+		//httpResponse.close();// done in HttpLineIterator#close()
 		if (message.unread) {
 			// exporting (read MIME) marks mail as read. Need to get the read/unread information and set it back!
 			toMarkUnread.add(message.unid);
@@ -353,9 +361,11 @@ public class Session {
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getMailEditBaseURL()), HttpMethod.POST, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
-//		traceBody(httpResponse);// DEBUG
+		if (logger.isTraceEnabled()) {
+			traceBody(httpResponse);
+		}
 		httpResponse.close();
-		logger.info("Deleted (moved to Trash) {} messsage(s)", toDelete.size());
+		logger.info("Deleted (moved to Trash) {} messsage(s): {}", toDelete.size(), collectionToDelimitedString(toDelete, ';'));
 		toDelete.clear();
 	}
 
@@ -390,9 +400,11 @@ public class Session {
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getMailEditBaseURL()), HttpMethod.POST, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
-//		traceBody(httpResponse);// DEBUG
+		if (logger.isTraceEnabled()) {
+			traceBody(httpResponse);
+		}
 		httpResponse.close();
-		logger.debug("Marked {} messsage(s) as read", toMarkRead.size());
+		logger.debug("Marked {} messsage(s) as read: {}", toMarkRead.size(), collectionToDelimitedString(toMarkRead, ';'));
 		toMarkRead.clear();
 	}
 
@@ -428,9 +440,11 @@ public class Session {
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getMailEditBaseURL()+"&PresetFields=s_NoMarkRead;1"), HttpMethod.POST, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
-//		traceBody(httpResponse);// DEBUG
+		if (logger.isTraceEnabled()) {
+			traceBody(httpResponse);
+		}
 		httpResponse.close();
-		logger.debug("Marked {} messsage(s) as unread", toMarkUnread.size());
+		logger.debug("Marked {} messsage(s) as unread: {}", toMarkUnread.size(), collectionToDelimitedString(toMarkUnread, ';'));
 		toMarkUnread.clear();
 	}
 
@@ -451,12 +465,13 @@ public class Session {
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getProxyBaseURL()+"&PresetFields=s_CacheScrubType;0"), HttpMethod.GET, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
-//		traceBody(httpResponse);// DEBUG
+		if (logger.isTraceEnabled()) {
+			traceBody(httpResponse);
+		}
 		try {
 			if (httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
 				logger.info("Logout successful for user \"" + context.getUserName() + '"');
-			} else if (httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-				// body will contain "Invalid username or password was specified."
+			} else {
 				logger.warn("ERROR while logging out user \""+context.getUserName()+"\".");
 				return false;
 			}
