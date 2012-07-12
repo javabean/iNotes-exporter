@@ -34,7 +34,7 @@ public class RETR extends BasePOP3Command implements POP3Command {
 		}
 		// TODO may NOT refer to a message marked as deleted
 		MessageMetaData message = messages.entries.get(requestedMessageNumber-1);
-		return new StatusLineIterator(ResponseStatus.POSITIVE.toString("message follows (" + message.size + " octets)"),
+		return new StatusLineIterator(ResponseStatus.POSITIVE.toString("message " + requestedMessageNumber + " (" + message.unid + ") follows (" + message.size + " octets)"),
 				context.iNotesSession.getMessageMIME(message));
 	}
 

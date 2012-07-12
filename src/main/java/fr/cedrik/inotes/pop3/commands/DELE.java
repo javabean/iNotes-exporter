@@ -35,7 +35,7 @@ public class DELE extends BasePOP3Command implements POP3Command {
 		// TODO may NOT refer to a message marked as deleted: -ERR message 2 already deleted
 		MessageMetaData message = messages.entries.get(requestedMessageNumber - 1);
 		context.iNotesSession.deleteMessage(message);
-		return new StatusLineIterator(ResponseStatus.POSITIVE.toString("message " + requestedMessageNumber + " deleted"), null);
+		return new StatusLineIterator(ResponseStatus.POSITIVE.toString("message " + requestedMessageNumber + " (" + message.unid + ") deleted"), null);
 	}
 
 }

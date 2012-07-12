@@ -55,7 +55,7 @@ public class TOP extends BasePOP3Command implements POP3Command {
 		// TODO may NOT refer to a message marked as deleted
 		MessageMetaData message = messages.entries.get(requestedMessageNumber - 1);
 		List<String> response = new ArrayList<String>(128);
-		response.add(ResponseStatus.POSITIVE.toString("top of message follows"));
+		response.add(ResponseStatus.POSITIVE.toString("top " + requestedLinesNumber + " lines of message " + message.unid + " follows"));
 		Iterator<String> mimeHeaders = context.iNotesSession.getMessageMIMEHeaders(message);
 		while (mimeHeaders.hasNext()) {
 			String mimeHeader = mimeHeaders.next();

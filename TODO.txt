@@ -1,4 +1,5 @@
 * POP3 bug: downloaded emails have an extra "." at the end
+* POP3 bug: downloaded emails are marked as read
 * POP3 bug: sometime deleting a message does not delete it (it is re-fetched on next mail check)
 * main to dispatch between mbox and pop3
 * POP3: append X-iNotes- headers?
