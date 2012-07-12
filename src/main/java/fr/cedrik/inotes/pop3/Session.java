@@ -17,6 +17,11 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.StringTokenizer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import fr.cedrik.inotes.pop3.commands.PASS;
+
 /**
  * @author C&eacute;drik LIME
  */
@@ -24,6 +29,7 @@ public class Session {
 	private static final String CR_LF = "\r\n";//$NON-NLS-1$
 	private static final String END_OF_COMMAND_RESULT = ".";//$NON-NLS-1$
 
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	protected final Socket clientSocket;
 	protected final BufferedReader in;
 	protected final Writer out;
@@ -33,6 +39,7 @@ public class Session {
 	{
 		ServiceLoader<POP3Command> services = ServiceLoader.load(POP3Command.class);
 		for (POP3Command command : services) {
+			logger.trace("Discovered new POP3 command: {}", command.getClass().getSimpleName());
 			commands.put(command.getClass().getSimpleName(), command);
 		}
 	}
@@ -71,6 +78,12 @@ public class Session {
 				out.append(ResponseStatus.NEGATIVE.toString("invalid state")).append(CR_LF).flush();
 				continue;
 			}
+			if (pop3Command instanceof PASS) {
+				// don't echo password in logs!
+				logger.debug(requestedCommand);
+			} else {
+				logger.debug(inputLine);
+			}
 			context.inputArgs = inputLine.substring(requestedCommand.length()).trim();
 			Iterator<String> responseLines = pop3Command.call(context);
 			int nLines = 0;
@@ -78,10 +91,17 @@ public class Session {
 				String line = responseLines.next();
 				assert ! line.contains("\r") : line;
 				assert ! line.contains("\n") : line;
+				if (nLines == 0) {
+					// log only response status
+					logger.debug(line);
+				} else {
+					logger.trace(line);
+				}
 				out.append(filterMultiLineResponseLine(line)).append(CR_LF);
 				++nLines;
 			}
 			if (nLines > 1) {
+				logger.trace(END_OF_COMMAND_RESULT);
 				out.append(END_OF_COMMAND_RESULT).append(CR_LF);
 			}
 			out.flush();
