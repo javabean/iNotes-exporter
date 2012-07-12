@@ -15,11 +15,11 @@ Requirements
 Configuration
 =============
 mbox export:
-	/src/main/resources/iNotes.properties
+	src/main/resources/iNotes.properties
 pop3 server:
-	/src/main/resources/pop3.properties
+	src/main/resources/pop3.properties
 logging:
-	/src/main/resources/simplelogger.properties
+	src/main/resources/simplelogger.properties
 
 Compiling
 =========
