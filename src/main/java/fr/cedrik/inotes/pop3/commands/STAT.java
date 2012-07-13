@@ -11,6 +11,7 @@ import fr.cedrik.inotes.MessagesMetaData;
 import fr.cedrik.inotes.pop3.Context;
 import fr.cedrik.inotes.pop3.POP3Command;
 import fr.cedrik.inotes.pop3.ResponseStatus;
+import fr.cedrik.inotes.util.IteratorChain;
 
 /**
  * @author C&eacute;drik LIME
@@ -27,7 +28,7 @@ public class STAT extends BasePOP3Command implements POP3Command {
 		for (MessageMetaData message : messages.entries) {
 			totalSize += message.size;
 		}
-		return new StatusLineIterator(ResponseStatus.POSITIVE.toString("" + messages.entries.size() + ' ' + totalSize), null);
+		return new IteratorChain<String>(ResponseStatus.POSITIVE.toString("" + messages.entries.size() + ' ' + totalSize));
 	}
 
 }

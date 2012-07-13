@@ -13,6 +13,7 @@ import fr.cedrik.inotes.pop3.Context;
 import fr.cedrik.inotes.pop3.POP3Command;
 import fr.cedrik.inotes.pop3.ResponseStatus;
 import fr.cedrik.inotes.pop3.State;
+import fr.cedrik.inotes.util.IteratorChain;
 
 /**
  * @author C&eacute;drik LIME
@@ -35,16 +36,16 @@ public class USER extends BasePOP3Command implements POP3Command {
 	@Override
 	public Iterator<String> call(Context context) throws IOException {
 		if (StringUtils.isBlank(context.inputArgs)) {
-			return new StatusLineIterator(ResponseStatus.NEGATIVE.toString(), null);
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString());
 		}
 		StringTokenizer tokenizer = new StringTokenizer(context.inputArgs, "@", false);
 		if (tokenizer.countTokens() != 2) {
-			return new StatusLineIterator(ResponseStatus.NEGATIVE.toString("bad user format; should be user@https://webmail.example.com"), null);
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("bad user format; should be user@https://webmail.example.com"));
 		}
 		context.userName = tokenizer.nextToken();
 		String serverURL = tokenizer.nextToken();
 		context.iNotesSession.setServerAddress(serverURL);
-		return new StatusLineIterator(ResponseStatus.POSITIVE.toString(context.userName + '@' + serverURL), null);
+		return new IteratorChain<String>(ResponseStatus.POSITIVE.toString(context.userName + '@' + serverURL));
 	}
 
 }

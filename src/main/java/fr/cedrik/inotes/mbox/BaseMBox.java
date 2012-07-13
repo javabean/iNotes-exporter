@@ -7,24 +7,23 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
-import java.nio.charset.Charset;
-import java.text.Format;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
+import java.util.Iterator;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-import org.apache.commons.io.LineIterator;
 import org.apache.commons.io.output.FileWriterWithEncoding;
-import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.cedrik.inotes.MessageMetaData;
 import fr.cedrik.inotes.MessagesMetaData;
 import fr.cedrik.inotes.Session;
+import fr.cedrik.inotes.util.Charsets;
+import fr.cedrik.inotes.util.DateUtils;
+import fr.cedrik.inotes.util.IteratorChain;
 
 /**
  * @see "http://en.wikipedia.org/wiki/Mbox"
@@ -35,32 +34,7 @@ import fr.cedrik.inotes.Session;
  * @author C&eacute;drik LIME
  */
 abstract class BaseMBox {
-	/**
-	 * Seven-bit ASCII, a.k.a. ISO646-US, a.k.a. the Basic Latin block of the
-	 * Unicode character set
-	 */
-	private static final Charset US_ASCII = Charset.forName("US-ASCII");// Java 7: replace with StandardCharsets.US_ASCII
-
-	/**
-	 * RFC 5322 datetime format: {@value}
-	 * @see <a href="http://www.ietf.org/rfc/rfc5322.txt">RFC 5322</a>
-	 */
-	protected static final Format RFC2822_DATE_TIME_FORMAT = FastDateFormat.getInstance("EEE, d MMM yyyy HH:mm:ss Z", Locale.US);//$NON-NLS-1$
-
-	/**
-	 * Default ISO 8601 datetime format: {@value}
-	 * @see <a href="http://www.w3.org/TR/NOTE-datetime">ISO 8601 DateTime</a>
-	 * @see <a href="http://www.ietf.org/rfc/rfc3339.txt">RFC 3399</a>
-	 */
-	protected static final String ISO8601_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ssZZ";//$NON-NLS-1$
 	protected static final String ISO8601_DATE_SEMITIME = "yyyy-MM-dd'T'HH:mm";//$NON-NLS-1$
-	protected static final String ISO8601_DATE = "yyyy-MM-dd";//$NON-NLS-1$
-	protected static final Format ISO8601_DATE_TIME_FORMAT = FastDateFormat.getInstance(ISO8601_DATE_TIME);
-
-	/**
-	 * C asctime / ctime: "Tue May 21 13:46:22 1991" "Sat Jan  3 01:05:34 1996"
-	 */
-	protected static final Format MBOX_DATE_TIME_FORMAT = FastDateFormat.getInstance("EEE MMM dd HH:mm:ss yyyy", Locale.US);//$NON-NLS-1$
 
 	protected static final String PREF_LAST_EXPORT_DATE = "lastExportDate";//$NON-NLS-1$
 
@@ -104,7 +78,7 @@ abstract class BaseMBox {
 			}
 		}
 		if (this.oldestMessageToFetch != null) {
-			logger.info("Incremental import from " + ISO8601_DATE_TIME_FORMAT.format(this.oldestMessageToFetch));
+			logger.info("Incremental import from " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(this.oldestMessageToFetch));
 		} else {
 			logger.info("Full import");
 		}
@@ -123,7 +97,7 @@ abstract class BaseMBox {
 		openOutputFile();
 		if (! messages.entries.isEmpty()) {
 			for (MessageMetaData message : messages.entries) {
-				LineIterator mime = session.getMessageMIME(message);
+				IteratorChain<String> mime = session.getMessageMIME(message);
 				if (! mime.hasNext()) {
 					logger.warn("Empty MIME message! ({})", message.date);
 					continue;
@@ -140,7 +114,7 @@ abstract class BaseMBox {
 				try {
 					prefs.flush();
 				} catch (BackingStoreException ignore) {
-					logger.warn("Can not store last import date: " + ISO8601_DATE_TIME_FORMAT.format(lastExportDate), ignore);
+					logger.warn("Can not store last import date: " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(lastExportDate), ignore);
 				}
 			}
 		}
@@ -150,21 +124,14 @@ abstract class BaseMBox {
 
 	protected void openOutputFile() throws IOException {
 		boolean append = oldestMessageToFetch != null;
-		mbox = new BufferedWriter(new FileWriterWithEncoding(outFile, US_ASCII, append), 32*1024);
+		mbox = new BufferedWriter(new FileWriterWithEncoding(outFile, Charsets.US_ASCII, append), 32*1024);
 	}
 
-	protected abstract void writeMIME(MessageMetaData message, LineIterator mime) throws IOException;
+	protected abstract void writeMIME(MessageMetaData message, Iterator<String> mime) throws IOException;
 
 	protected void writeFromLine(MessageMetaData message) throws IOException {
 		// date should be UTC, but tests show there is no need to convert it
-		mbox.append("From MAILER-DAEMON ").append(MBOX_DATE_TIME_FORMAT.format(message.date)).append('\n');
+		mbox.append("From MAILER-DAEMON ").append(DateUtils.MBOX_DATE_TIME_FORMAT.format(message.date)).append('\n');
 	}
 
-	protected void writeINotesData(MessageMetaData message) throws IOException {
-		mbox.append("X-iNotes-unid: ").append(message.unid).append('\n');
-		mbox.append("X-iNotes-noteid: ").append(message.noteid).append('\n');
-		mbox.append("X-iNotes-unread: ").append(Boolean.toString(message.unread)).append('\n');
-		mbox.append("X-iNotes-date: ").append(RFC2822_DATE_TIME_FORMAT.format(message.date)).append('\n');
-		mbox.append("X-iNotes-size: ").append(Integer.toString(message.size)).append('\n');
-	}
 }

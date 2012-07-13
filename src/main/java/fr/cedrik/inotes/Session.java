@@ -3,10 +3,12 @@
  */
 package fr.cedrik.inotes;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpCookie;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -31,6 +33,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
+
+import fr.cedrik.inotes.util.IteratorChain;
 
 /**
  * @author C&eacute;drik LIME
@@ -283,7 +287,7 @@ public class Session {
 	 * @return
 	 * @throws IOException
 	 */
-	public LineIterator getMessageMIMEHeaders(MessageMetaData message) throws IOException {
+	public IteratorChain<String> getMessageMIMEHeaders(MessageMetaData message) throws IOException {
 		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
@@ -297,7 +301,7 @@ public class Session {
 			// exporting (read MIME) marks mail as read. Need to get the read/unread information and set it back!
 			toMarkUnread.add(message.unid);
 		}
-		return responseLines;
+		return new IteratorChain<String>(getINotesData(message).iterator(), responseLines);
 	}
 
 	/**
@@ -307,7 +311,7 @@ public class Session {
 	 * @return
 	 * @throws IOException
 	 */
-	public LineIterator getMessageMIME(MessageMetaData message) throws IOException {
+	public IteratorChain<String> getMessageMIME(MessageMetaData message) throws IOException {
 		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
@@ -322,7 +326,17 @@ public class Session {
 			// exporting (read MIME) marks mail as read. Need to get the read/unread information and set it back!
 			toMarkUnread.add(message.unid);
 		}
-		return responseLines;
+		return new IteratorChain<String>(getINotesData(message).iterator(), responseLines);
+	}
+
+	protected List<String> getINotesData(MessageMetaData message) throws IOException {
+		List<String> iNotes = new ArrayList<String>(5);
+		iNotes.add("X-iNotes-unid: " + message.unid);
+		iNotes.add("X-iNotes-noteid: " + message.noteid);
+		iNotes.add("X-iNotes-unread: " + message.unread);
+		iNotes.add("X-iNotes-date: " + fr.cedrik.inotes.util.DateUtils.RFC2822_DATE_TIME_FORMAT.format(message.date));
+		iNotes.add("X-iNotes-size: " + message.size);
+		return Collections.unmodifiableList(iNotes);
 	}
 
 	/**
@@ -503,7 +517,7 @@ public class Session {
 		return sb.toString();
 	}
 
-	private class HttpCleaningLineIterator extends LineIterator {
+	private class HttpCleaningLineIterator extends LineIterator implements Iterator<String>, Closeable {
 		private final ClientHttpResponse httpResponse;
 		public HttpCleaningLineIterator(final ClientHttpResponse httpResponse) throws IOException {
 			super(new InputStreamReader(httpResponse.getBody(), context.getCharset(httpResponse)));

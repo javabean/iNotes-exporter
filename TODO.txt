@@ -2,7 +2,6 @@
 * POP3 bug: downloaded emails are marked as read
 * POP3 bug: sometime deleting a message does not delete it (it is re-fetched on next mail check)
 * main to dispatch between mbox and pop3
-* POP3: append X-iNotes- headers?
 * POP3: additional commands (quota size, logger, etc.)
 * POP3: TOP command is incomplete (only TOP n 0 is supported)
 * POP3: DELE, LIST, RETR, UIDL: argument may NOT refer to a message marked as deleted

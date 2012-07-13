@@ -11,6 +11,7 @@ import fr.cedrik.inotes.pop3.POP3Command;
 import fr.cedrik.inotes.pop3.POP3Properties;
 import fr.cedrik.inotes.pop3.POP3Server;
 import fr.cedrik.inotes.pop3.ResponseStatus;
+import fr.cedrik.inotes.util.IteratorChain;
 
 /**
  * @author C&eacute;drik LIME
@@ -32,7 +33,7 @@ public class SHUTDOWN extends BasePOP3Command implements POP3Command {
 			POP3Server.shutdown();
 		}
 		// no else: we don't want to give any indication of "password" failure...
-		return new StatusLineIterator(ResponseStatus.POSITIVE.toString("good bye!"), null);
+		return new IteratorChain<String>(ResponseStatus.POSITIVE.toString("good bye!"));
 	}
 
 }

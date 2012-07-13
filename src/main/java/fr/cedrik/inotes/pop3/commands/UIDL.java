@@ -13,6 +13,7 @@ import fr.cedrik.inotes.MessagesMetaData;
 import fr.cedrik.inotes.pop3.Context;
 import fr.cedrik.inotes.pop3.POP3Command;
 import fr.cedrik.inotes.pop3.ResponseStatus;
+import fr.cedrik.inotes.util.IteratorChain;
 
 /**
  * @author C&eacute;drik LIME
@@ -31,7 +32,7 @@ public class UIDL extends BasePOP3Command implements POP3Command {
 		}
 		MessagesMetaData messages = context.iNotesSession.getMessagesMetaData();
 		if (requestedMessageNumber > messages.entries.size()) {
-			return new StatusLineIterator(ResponseStatus.NEGATIVE.toString("no such message, only " + messages.entries.size() + " messages in maildrop"), null);
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("no such message, only " + messages.entries.size() + " messages in maildrop"));
 		}
 		// TODO if present, may NOT refer to a message marked as deleted
 		List<MessageMetaData> maildrop;

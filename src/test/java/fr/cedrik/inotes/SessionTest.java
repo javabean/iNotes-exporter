@@ -10,12 +10,13 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.io.LineIterator;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import fr.cedrik.inotes.util.IteratorChain;
 
 /**
  * @author C&eacute;drik LIME
@@ -54,12 +55,14 @@ public class SessionTest {
 				if (! messages.entries.isEmpty()) {
 					checkMessagesOrder(messages.entries);
 					MessageMetaData message = messages.entries.get(0);
-					LineIterator mimeHeaders = session.getMessageMIMEHeaders(message);
+					IteratorChain<String> mimeHeaders = session.getMessageMIMEHeaders(message);
 					assertNotNull("MIME headers", mimeHeaders);
+					assertTrue("MIME", mimeHeaders.hasNext());
 					assertTrue("Empty MIME headers", mimeHeaders.hasNext());
 					mimeHeaders.close();
-					LineIterator mime = session.getMessageMIME(message);
+					IteratorChain<String> mime = session.getMessageMIME(message);
 					assertNotNull("MIME", mime);
+					assertTrue("MIME", mime.hasNext());
 					assertTrue("Empty MIME", mime.hasNext());
 					mime.close();
 				}

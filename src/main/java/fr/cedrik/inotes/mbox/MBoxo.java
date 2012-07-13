@@ -4,8 +4,7 @@
 package fr.cedrik.inotes.mbox;
 
 import java.io.IOException;
-
-import org.apache.commons.io.LineIterator;
+import java.util.Iterator;
 
 import fr.cedrik.inotes.MessageMetaData;
 
@@ -33,11 +32,10 @@ public class MBoxo extends BaseMBox {
 	}
 
 	@Override
-	protected void writeMIME(MessageMetaData message, LineIterator mime) throws IOException {
+	protected void writeMIME(MessageMetaData message, Iterator<String> mime) throws IOException {
 		writeFromLine(message);
-		writeINotesData(message);
 		while (mime.hasNext()) {
-			String line = mime.nextLine();
+			String line = mime.next();
 			if (line.startsWith("From ")) {
 				logger.trace("Escaping {}", line);
 				mbox.write('>');

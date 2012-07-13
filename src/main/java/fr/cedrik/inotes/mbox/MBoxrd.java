@@ -4,10 +4,9 @@
 package fr.cedrik.inotes.mbox;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.io.LineIterator;
 
 import fr.cedrik.inotes.MessageMetaData;
 
@@ -33,11 +32,10 @@ public class MBoxrd extends BaseMBox {
 	}
 
 	@Override
-	protected void writeMIME(MessageMetaData message, LineIterator mime) throws IOException {
+	protected void writeMIME(MessageMetaData message, Iterator<String> mime) throws IOException {
 		writeFromLine(message);
-		writeINotesData(message);
 		while (mime.hasNext()) {
-			String line = mime.nextLine();
+			String line = mime.next();
 			Matcher from_ = FROM_.matcher(line);
 			if (from_.find()) {
 				logger.trace("Escaping {}", from_.group());

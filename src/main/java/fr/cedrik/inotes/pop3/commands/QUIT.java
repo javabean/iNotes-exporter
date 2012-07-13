@@ -10,6 +10,7 @@ import fr.cedrik.inotes.pop3.Context;
 import fr.cedrik.inotes.pop3.POP3Command;
 import fr.cedrik.inotes.pop3.ResponseStatus;
 import fr.cedrik.inotes.pop3.State;
+import fr.cedrik.inotes.util.IteratorChain;
 
 /**
  * @author C&eacute;drik LIME
@@ -34,7 +35,7 @@ public class QUIT extends BasePOP3Command implements POP3Command {
 		switch (context.state) {
 		case AUTHORIZATION:
 			context.inputArgs = null;
-			return new StatusLineIterator(ResponseStatus.POSITIVE.toString("good bye!"), null);
+			return new IteratorChain<String>(ResponseStatus.POSITIVE.toString("good bye!"));
 
 		case TRANSACTION:
 			String message;
@@ -46,11 +47,11 @@ public class QUIT extends BasePOP3Command implements POP3Command {
 			} else {
 				message = ResponseStatus.NEGATIVE.toString(" error while signing off " + context.userName);
 			}
-			return new StatusLineIterator(message, null);
+			return new IteratorChain<String>(message);
 
 		case UPDATE:
 			context.inputArgs = null;
-			return new StatusLineIterator(ResponseStatus.POSITIVE.toString(), null);
+			return new IteratorChain<String>(ResponseStatus.POSITIVE.toString());
 
 		default:
 			throw new IllegalStateException(context.state.toString());
