@@ -3,11 +3,7 @@
  */
 package fr.cedrik.inotes.mbox;
 
-import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,35 +16,19 @@ import fr.cedrik.inotes.MessageMetaData;
  */
 public class MBoxrd extends BaseMBox {
 
-	public MBoxrd(File out, Date oldestMessageToFetch) throws IOException {
-		super(out, oldestMessageToFetch);
+	public MBoxrd() throws IOException {
+		super();
 	}
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) throws IOException {
-		if (args.length == 0) {
-			help();
-			System.exit(-1);
-		}
-		String fileName = args[0];
-		if (! fileName.endsWith(".mboxrd")) {
-			fileName += ".mboxrd";
-		}
-		File out = new File(fileName);
-		Date oldestMessageToFetch = null;
-		if (args.length > 1) {
-			try {
-				oldestMessageToFetch = new SimpleDateFormat(ISO8601_DATE_SEMITIME).parse(args[1]);
-			} catch (ParseException ignore) {
-				System.out.println("Bad date format. Please use " + ISO8601_DATE_SEMITIME);
-			}
-		}
-		new MBoxrd(out, oldestMessageToFetch).run();
+		new MBoxrd().run(args, ".mboxrd");
 	}
 
-	protected static void help() {
+	@Override
+	protected void help() {
 		System.out.println("Usage: "+MBoxrd.class.getSimpleName()+" <out_file> [oldest message to fetch date: " + ISO8601_DATE_SEMITIME + ']');
 	}
 

@@ -32,7 +32,9 @@ Running
 =======
 mbox export:
 	java -cp target/iNotes-exporter-1.0-jar-with-dependencies.jar fr.cedrik.inotes.mbox.MBoxrd <output_file> [yyyy-MM-dd'T'HH:mm]
-		where yyyy-MM-dd is the date of the oldest message to export; if none provided, exports all messages
+		where yyyy-MM-dd is the date of the oldest message to export
+			if none provided, and output_file does not exists, exports all messages
+			if none provided, and output_file exists, do an incremental export since last time this tool was run
 		<output_file> will be overwritten if no start date is given. Otherwise, the newest email data is appended to it.
 	example: java -cp target/iNotes-exporter-1.0-jar-with-dependencies.jar fr.cedrik.inotes.mbox.MBoxrd /tmp/email 2012-01-20T20:00
 

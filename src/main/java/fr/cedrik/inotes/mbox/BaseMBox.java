@@ -9,8 +9,12 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.text.Format;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.io.output.FileWriterWithEncoding;
@@ -58,19 +62,59 @@ abstract class BaseMBox {
 	 */
 	protected static final Format MBOX_DATE_TIME_FORMAT = FastDateFormat.getInstance("EEE MMM dd HH:mm:ss yyyy", Locale.US);//$NON-NLS-1$
 
+	protected static final String PREF_LAST_EXPORT_DATE = "lastExportDate";//$NON-NLS-1$
+
 	protected Logger logger = LoggerFactory.getLogger(this.getClass());
 	protected Session session;
 	protected File outFile;
 	protected Writer mbox;
 	protected Date oldestMessageToFetch;
 
-	public BaseMBox(File out, Date oldestMessageToFetch) throws IOException {
-		this.outFile = out;
-		this.oldestMessageToFetch = oldestMessageToFetch;
-		session = new Session();
+	public BaseMBox() throws IOException {
 	}
 
-	protected final void run() throws IOException {
+	protected void run(String[] args, String extension) throws IOException {
+		if (args.length == 0) {
+			help();
+			System.exit(-1);
+		}
+		String fileName = args[0];
+		if (! fileName.endsWith(extension)) {
+			fileName += extension;
+		}
+		this.outFile = new File(fileName);
+		if (args.length > 1) {
+			try {
+				this.oldestMessageToFetch = new SimpleDateFormat(ISO8601_DATE_SEMITIME).parse(args[1]);
+			} catch (ParseException ignore) {
+				logger.warn("Bad date format. Please use " + ISO8601_DATE_SEMITIME);
+			}
+		} else if (outFile.exists() && outFile.canWrite()) {
+			// set oldestMessageToFetch if file exists, and there is a Preference
+			Preferences prefs = Preferences.userNodeForPackage(this.getClass());
+			try {
+				if (prefs.nodeExists(this.getClass().getSimpleName())) {
+					long lastExportDate = prefs.node(this.getClass().getSimpleName()).getLong(PREF_LAST_EXPORT_DATE, -1);
+					if (lastExportDate != -1) {
+						this.oldestMessageToFetch = new Date(lastExportDate);
+					}
+				}
+			} catch (BackingStoreException ignore) {
+				logger.warn("Can not load last import date:", ignore);
+			}
+		}
+		if (this.oldestMessageToFetch != null) {
+			logger.info("Incremental import from " + ISO8601_DATE_TIME_FORMAT.format(this.oldestMessageToFetch));
+		} else {
+			logger.info("Full import");
+		}
+		session = new Session();
+		this.export();
+	}
+
+	protected abstract void help();
+
+	protected final void export() throws IOException {
 		if (! session.login()) {
 			logger.error("Can not login!");
 			return;
@@ -87,6 +131,17 @@ abstract class BaseMBox {
 				logger.debug("Writing message {}", message);
 				writeMIME(message, mime);
 				mime.close();
+			}
+			// set Preference to oldestMessageToFetch
+			{
+				Preferences prefs = Preferences.userNodeForPackage(this.getClass());
+				Date lastExportDate = messages.entries.get(messages.entries.size()-1).date;
+				prefs.node(this.getClass().getSimpleName()).putLong(PREF_LAST_EXPORT_DATE, lastExportDate.getTime()+1);// +1: don't re-import last imported message next time...
+				try {
+					prefs.flush();
+				} catch (BackingStoreException ignore) {
+					logger.warn("Can not store last import date: " + ISO8601_DATE_TIME_FORMAT.format(lastExportDate), ignore);
+				}
 			}
 		}
 		mbox.close();
