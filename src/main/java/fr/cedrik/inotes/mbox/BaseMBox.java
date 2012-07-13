@@ -60,14 +60,14 @@ abstract class BaseMBox {
 
 	protected Logger logger = LoggerFactory.getLogger(this.getClass());
 	protected Session session;
+	protected File outFile;
 	protected Writer mbox;
 	protected Date oldestMessageToFetch;
 
 	public BaseMBox(File out, Date oldestMessageToFetch) throws IOException {
-		session = new Session();
+		this.outFile = out;
 		this.oldestMessageToFetch = oldestMessageToFetch;
-		boolean append = oldestMessageToFetch != null;
-		mbox = new BufferedWriter(new FileWriterWithEncoding(out, US_ASCII, append), 32*1024);
+		session = new Session();
 	}
 
 	protected final void run() throws IOException {
@@ -76,6 +76,7 @@ abstract class BaseMBox {
 			return;
 		}
 		MessagesMetaData messages = session.getMessagesMetaData(oldestMessageToFetch);
+		openOutputFile();
 		if (! messages.entries.isEmpty()) {
 			for (MessageMetaData message : messages.entries) {
 				LineIterator mime = session.getMessageMIME(message);
@@ -90,6 +91,11 @@ abstract class BaseMBox {
 		}
 		mbox.close();
 		session.logout();
+	}
+
+	protected void openOutputFile() throws IOException {
+		boolean append = oldestMessageToFetch != null;
+		mbox = new BufferedWriter(new FileWriterWithEncoding(outFile, US_ASCII, append), 32*1024);
 	}
 
 	protected abstract void writeMIME(MessageMetaData message, LineIterator mime) throws IOException;

@@ -27,6 +27,7 @@ The <action> type attribute can be add,update,fix,remove.
 			<action type="add"    dev="clime" >[mbox] add iNotes meta-data as X-iNotes- MIME headers</action>
 			<action type="update" dev="clime" >[mbox] out file will be appended in case of partial export (i.e. when specifying a start date)</action>
 			<action type="update" dev="clime" >[mbox] tweak the export optional start date to include hour and minute</action>
+			<action type="update" dev="clime" >[mbox] only open the output file once logged in and meta retrieved</action>
 			<action type="update" dev="clime" >more detailed logs (trace level) in case of need</action>
 		</release>
 		<release version="1.0" date="2012-07-11" description="POP3 server">

@@ -404,7 +404,7 @@ public class Session {
 			traceBody(httpResponse);
 		}
 		httpResponse.close();
-		logger.debug("Marked {} messsage(s) as read: {}", toMarkRead.size(), collectionToDelimitedString(toMarkRead, ';'));
+		logger.info("Marked {} messsage(s) as read: {}", toMarkRead.size(), collectionToDelimitedString(toMarkRead, ';'));
 		toMarkRead.clear();
 	}
 
@@ -444,7 +444,7 @@ public class Session {
 			traceBody(httpResponse);
 		}
 		httpResponse.close();
-		logger.debug("Marked {} messsage(s) as unread: {}", toMarkUnread.size(), collectionToDelimitedString(toMarkUnread, ';'));
+		logger.info("Marked {} messsage(s) as unread: {}", toMarkUnread.size(), collectionToDelimitedString(toMarkUnread, ';'));
 		toMarkUnread.clear();
 	}
 
