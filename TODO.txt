@@ -1,6 +1,6 @@
-* POP3 bug: downloaded emails have an extra "." at the end
-* POP3 bug: downloaded emails are marked as read
+* POP3 bug: sometime downloaded emails are marked as read
 * POP3 bug: sometime deleting a message does not delete it (it is re-fetched on next mail check)
+* POP3 bug: downloaded emails have an extra "." at the end
 * main to dispatch between mbox and pop3
 * POP3: additional commands (quota size, logger, etc.)
 * POP3: TOP command is incomplete (only TOP n 0 is supported)
