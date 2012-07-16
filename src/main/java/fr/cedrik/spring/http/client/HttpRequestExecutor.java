@@ -13,7 +13,6 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.Map;
 
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +21,8 @@ import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.support.HttpAccessor;
+
+import fr.cedrik.inotes.util.Charsets;
 
 
 /**
@@ -108,7 +109,7 @@ public class HttpRequestExecutor extends HttpAccessor {
 				case PUT:
 				// add form parameters in request body
 					StringBuilder postParameters = buildQueryParameters(extraParameters);
-					PrintStream body = new PrintStream(httpRequest.getBody(), true, CharEncoding.UTF_8);
+					PrintStream body = new PrintStream(httpRequest.getBody(), true, Charsets.UTF_8.name());
 					body.append(postParameters.toString());
 					body.flush();
 					break;
@@ -162,9 +163,9 @@ public class HttpRequestExecutor extends HttpAccessor {
 				// Don't append a parameter for a {@code null} value
 				try {
 					extraQuery
-					.append(URLEncoder.encode(entry.getKey(), CharEncoding.UTF_8))
+					.append(URLEncoder.encode(entry.getKey(), Charsets.UTF_8.name()))
 					.append('=')
-					.append(URLEncoder.encode(ObjectUtils.toString(entry.getValue()), CharEncoding.UTF_8))
+					.append(URLEncoder.encode(ObjectUtils.toString(entry.getValue()), Charsets.UTF_8.name()))
 					.append('&');
 				} catch (UnsupportedEncodingException uee) {
 					throw new AssertionError(uee);
@@ -178,7 +179,7 @@ public class HttpRequestExecutor extends HttpAccessor {
 		return extraQuery;
 	}
 
-	private static final Charset DEFAULT_HTTP_ENCODING = Charset.forName(CharEncoding.ISO_8859_1);//TODO Java 7: StandardCharsets.ISO_8859_1;
+	private static final Charset DEFAULT_HTTP_ENCODING = Charsets.ISO_8859_1;
 	/**
 	 * @param httpResponse
 	 * @return encoding of HTTP response body

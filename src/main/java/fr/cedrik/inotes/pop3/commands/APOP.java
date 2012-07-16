@@ -13,6 +13,7 @@ import fr.cedrik.inotes.pop3.Context;
 import fr.cedrik.inotes.pop3.POP3Command;
 import fr.cedrik.inotes.pop3.ResponseStatus;
 import fr.cedrik.inotes.pop3.State;
+import fr.cedrik.inotes.util.IteratorChain;
 
 /**
  * Note: we can not implement APOP, since this requires the (POP3) server to know the user password.
@@ -39,12 +40,12 @@ public class APOP extends BasePOP3Command implements POP3Command {
 	public Iterator<String> call(Context context) throws IOException {
 		StringTokenizer tokenizer = new StringTokenizer(context.inputArgs);
 		if (tokenizer.countTokens() != 2) {
-			return new StatusLineIterator(ResponseStatus.NEGATIVE.toString("APOP name digest"), null);
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("APOP name digest"));
 		}
 		String name = tokenizer.nextToken();
 		String digest = tokenizer.nextToken();
 		//TODO
-		return new StatusLineIterator(ResponseStatus.NEGATIVE.toString("permission denied"), null);
+		return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("permission denied"));
 	}
 
 }

@@ -7,13 +7,16 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.Date;
+import java.util.List;
 
-import org.apache.commons.io.LineIterator;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import fr.cedrik.inotes.util.IteratorChain;
 
 /**
  * @author C&eacute;drik LIME
@@ -45,22 +48,42 @@ public class SessionTest {
 	@Test
 	public void testSessionWorkflow() throws IOException {
 		if (session.login()) {
-			MessagesMetaData messages = session.getMessagesMetaData();
-			assertNotNull("data", messages);
-			if (! messages.entries.isEmpty()) {
-				MessageMetaData message = messages.entries.get(0);
-				LineIterator mimeHeaders = session.getMessageMIMEHeaders(message);
-				assertNotNull("MIME headers", mimeHeaders);
-				assertTrue("Empty MIME headers", mimeHeaders.hasNext());
-				mimeHeaders.close();
-				LineIterator mime = session.getMessageMIME(message);
-				assertNotNull("MIME", mime);
-				assertTrue("Empty MIME", mime.hasNext());
-				mime.close();
+			try {
+				MessagesMetaData messages = session.getMessagesMetaData();
+				assertNotNull("data", messages);
+				assertNotNull("data.entries", messages.entries);
+				if (! messages.entries.isEmpty()) {
+					checkMessagesOrder(messages.entries);
+					MessageMetaData message = messages.entries.get(0);
+					IteratorChain<String> mimeHeaders = session.getMessageMIMEHeaders(message);
+					assertNotNull("MIME headers", mimeHeaders);
+					assertTrue("MIME", mimeHeaders.hasNext());
+					assertTrue("Empty MIME headers", mimeHeaders.hasNext());
+					mimeHeaders.close();
+					IteratorChain<String> mime = session.getMessageMIME(message);
+					assertNotNull("MIME", mime);
+					assertTrue("MIME", mime.hasNext());
+					assertTrue("Empty MIME", mime.hasNext());
+					mime.close();
+				}
+			} finally {
+				boolean logout = session.logout();
+				assertTrue("logout", logout);
 			}
-			boolean logout = session.logout();
-			assertTrue("logout", logout);
 		}
 	}
 
+	/**
+	 * Check messages are in ASCending order
+	 * @param messages
+	 */
+	protected void checkMessagesOrder(List<MessageMetaData> messages) {
+		Date date = new Date(0);
+		for (MessageMetaData message : messages) {
+			if (date.after(message.date)) {
+				throw new IllegalArgumentException(message.toString());
+			}
+			date = message.date;
+		}
+	}
 }

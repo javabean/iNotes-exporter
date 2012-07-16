@@ -3,22 +3,14 @@
  */
 package fr.cedrik.inotes;
 
-import java.text.Format;
 import java.util.Date;
 
-import org.apache.commons.lang3.time.FastDateFormat;
+import fr.cedrik.inotes.util.DateUtils;
 
 /**
  * @author C&eacute;drik LIME
  */
 public class MessageMetaData {
-	/**
-	 * Default ISO 8601 datetime format: {@value}
-	 * @see <a href="http://www.w3.org/TR/NOTE-datetime">ISO 8601 DateTime</a>
-	 * @see <a href="http://www.ietf.org/rfc/rfc3339.txt">RFC 3399</a>
-	 */
-	private static final Format ISO8601_DATE_TIME_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ssZZ");//$NON-NLS-1$
-
 	public String unid;
 	public String noteid;
 	public boolean unread = false;
@@ -42,7 +34,7 @@ public class MessageMetaData {
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() + '[' + "unid:" + this.unid
-				+ ", date:" + ISO8601_DATE_TIME_FORMAT.format(this.date)
+				+ ", date:" + DateUtils.ISO8601_DATE_TIME_FORMAT.format(this.date)
 				+ ", size:" + this.size
 				+ ", unread: " + this.unread + ']';
 	}

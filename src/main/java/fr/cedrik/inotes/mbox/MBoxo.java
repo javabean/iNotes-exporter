@@ -3,13 +3,8 @@
  */
 package fr.cedrik.inotes.mbox;
 
-import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import org.apache.commons.io.LineIterator;
+import java.util.Iterator;
 
 import fr.cedrik.inotes.MessageMetaData;
 
@@ -20,44 +15,27 @@ import fr.cedrik.inotes.MessageMetaData;
 @Deprecated
 public class MBoxo extends BaseMBox {
 
-	public MBoxo(File out, Date oldestMessageToFetch) throws IOException {
-		super(out, oldestMessageToFetch);
+	public MBoxo() throws IOException {
+		super();
 	}
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) throws IOException {
-		if (args.length == 0) {
-			help();
-			System.exit(-1);
-		}
-		String fileName = args[0];
-		if (! fileName.endsWith(".mboxo")) {
-			fileName += ".mboxo";
-		}
-		File out = new File(fileName);
-		Date oldestMessageToFetch = null;
-		if (args.length > 1) {
-			try {
-				oldestMessageToFetch = new SimpleDateFormat(ISO8601_DATE_SEMITIME).parse(args[1]);
-			} catch (ParseException ignore) {
-				System.out.println("Bad date format. Please use " + ISO8601_DATE_SEMITIME);
-			}
-		}
-		new MBoxo(out, oldestMessageToFetch).run();
+		new MBoxo().run(args, ".mboxo");
 	}
 
-	protected static void help() {
+	@Override
+	protected void help() {
 		System.out.println("Usage: "+MBoxo.class.getSimpleName()+" <out_file> [oldest message to fetch date: " + ISO8601_DATE_SEMITIME + ']');
 	}
 
 	@Override
-	protected void writeMIME(MessageMetaData message, LineIterator mime) throws IOException {
+	protected void writeMIME(MessageMetaData message, Iterator<String> mime) throws IOException {
 		writeFromLine(message);
-		writeINotesData(message);
 		while (mime.hasNext()) {
-			String line = mime.nextLine();
+			String line = mime.next();
 			if (line.startsWith("From ")) {
 				logger.trace("Escaping {}", line);
 				mbox.write('>');

@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.cedrik.inotes.pop3.commands.PASS;
+import fr.cedrik.inotes.util.Charsets;
 
 /**
  * @author C&eacute;drik LIME
@@ -49,7 +50,7 @@ public class Session {
 		in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), DEFAULT_ENCODING));
 		out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), DEFAULT_ENCODING));
 	}
-	private static final Charset DEFAULT_ENCODING = Charset.forName("ISO-8859-15");
+	private static final Charset DEFAULT_ENCODING = Charsets.forName("ISO-8859-15");
 
 	protected String filterMultiLineResponseLine(String line) {
 		if (line.startsWith(END_OF_COMMAND_RESULT)) {

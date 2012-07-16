@@ -17,6 +17,7 @@ import fr.cedrik.inotes.MessagesMetaData;
 import fr.cedrik.inotes.pop3.Context;
 import fr.cedrik.inotes.pop3.POP3Command;
 import fr.cedrik.inotes.pop3.ResponseStatus;
+import fr.cedrik.inotes.util.IteratorChain;
 
 /**
  * @author C&eacute;drik LIME
@@ -32,21 +33,21 @@ public class TOP extends BasePOP3Command implements POP3Command {
 		int requestedLinesNumber = -1;
 		StringTokenizer tokenizer = new StringTokenizer(context.inputArgs);
 		if (tokenizer.countTokens() != 2) {
-			return new StatusLineIterator(ResponseStatus.NEGATIVE.toString("TOP msg n"), null);
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("TOP msg n"));
 		}
 		try {
 			requestedMessageNumber = Integer.parseInt(tokenizer.nextToken());
 		} catch (NumberFormatException noInput) {
-			return new StatusLineIterator(ResponseStatus.NEGATIVE.toString("no such message"), null);
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("no such message"));
 		}
 		try {
 			requestedLinesNumber = Integer.parseInt(tokenizer.nextToken());
 		} catch (NumberFormatException noInput) {
-			return new StatusLineIterator(ResponseStatus.NEGATIVE.toString("number of lines must be >= 0"), null);
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("number of lines must be >= 0"));
 		}
 		if (requestedLinesNumber != 0) {
 			//FIXME
-			return new StatusLineIterator(ResponseStatus.NEGATIVE.toString("unimplemented; number of lines must be == 0 for now"), null);
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("unimplemented; number of lines must be == 0 for now"));
 		}
 		MessagesMetaData messages = context.iNotesSession.getMessagesMetaData();
 		if (requestedMessageNumber > messages.entries.size()) {
@@ -54,16 +55,12 @@ public class TOP extends BasePOP3Command implements POP3Command {
 		}
 		// TODO may NOT refer to a message marked as deleted
 		MessageMetaData message = messages.entries.get(requestedMessageNumber - 1);
-		List<String> response = new ArrayList<String>(128);
-		response.add(ResponseStatus.POSITIVE.toString("top of message follows"));
+		String responseStatus = ResponseStatus.POSITIVE.toString("top " + requestedLinesNumber + " lines of message " + message.unid + " follows");
 		Iterator<String> mimeHeaders = context.iNotesSession.getMessageMIMEHeaders(message);
-		while (mimeHeaders.hasNext()) {
-			String mimeHeader = mimeHeaders.next();
-			response.add(mimeHeader);
-		}
-		response.add("");
+		List<String> emptytLine = new ArrayList<String>(1);
+		emptytLine.add("");
 		// TODO requestedLinesNumber lines of body
-		return response.iterator();
+		return new IteratorChain<String>(responseStatus, mimeHeaders, emptytLine.iterator());
 	}
 
 }
