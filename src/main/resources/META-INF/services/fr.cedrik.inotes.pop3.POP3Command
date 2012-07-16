@@ -28,4 +28,4 @@ fr.cedrik.inotes.pop3.commands.UIDL
 # Private extensions
 
 fr.cedrik.inotes.pop3.commands.SHUTDOWN
-#fr.cedrik.inotes.pop3.commands.QUOTA
+fr.cedrik.inotes.pop3.commands.QUOTA

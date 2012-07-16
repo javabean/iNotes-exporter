@@ -94,6 +94,18 @@ abstract class BaseMBox implements fr.cedrik.inotes.MainRunner.Main {
 			return;
 		}
 		MessagesMetaData messages = session.getMessagesMetaData(oldestMessageToFetch);
+		if (messages.ignorequota == 0 && messages.sizelimit > 0) {
+			String quotaDetails = "dbsize: " + messages.dbsize
+					+ " currentusage: " + messages.currentusage
+					+ " warning: " + messages.warning
+					+ " sizelimit: " + messages.sizelimit
+					+ " ignorequota: " + messages.ignorequota;
+			if (messages.dbsize >= messages.sizelimit || messages.currentusage >= messages.sizelimit) {
+				logger.warn("WARNING WARNING: you have exceeded your quota! " + quotaDetails);
+			} else if (messages.dbsize > messages.warning || messages.currentusage > messages.warning) {
+				logger.info("WARNING: you are nearing your quota! " + quotaDetails);
+			}
+		}
 		openOutputFile();
 		if (! messages.entries.isEmpty()) {
 			for (MessageMetaData message : messages.entries) {

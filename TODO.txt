@@ -2,7 +2,7 @@
 * POP3 bug: sometime deleting a message does not delete it (it is re-fetched on next mail check)
 * POP3 bug: downloaded emails have an extra "." at the end
 	-> Thunderbird bug!
-* POP3: additional commands (quota size, logger, etc.)
+* POP3: additional commands (logger, etc.)
 * POP3: TOP command is incomplete (only TOP n 0 is supported)
 * POP3: DELE, LIST, RETR, UIDL: argument may NOT refer to a message marked as deleted
 * POP3: allow to bind to a specific interface

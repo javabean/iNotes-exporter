@@ -49,7 +49,7 @@ public class Session {
 	protected final Set<String> toMarkRead = new HashSet<String>();
 	protected final Set<String> toMarkUnreadAll = new HashSet<String>();
 	protected final Set<String> toMarkReadAll = new HashSet<String>();
-	protected MessagesMetaData messages = null;
+	protected MessagesMetaData allMessagesCache = null;
 	protected boolean isLoggedIn = false;
 
 	static {
@@ -214,19 +214,20 @@ public class Session {
 	}
 
 	public MessagesMetaData getMessagesMetaData() throws IOException {
-		return getMessagesMetaData(null);
+		if (allMessagesCache != null) {
+			return allMessagesCache;
+		}
+		allMessagesCache = getMessagesMetaData(null);
+		return allMessagesCache;
 	}
 	public MessagesMetaData getMessagesMetaData(Date oldestMessageToFetch) throws IOException {
 		checkLoggedIn();
-		if (messages != null) {
-			return messages;
-		}
 		if (oldestMessageToFetch == null) {
 			oldestMessageToFetch = new Date(0 + 30*DateUtils.MILLIS_PER_DAY);
 		}
 		// iNotes limits the number of results to 1000. Need to paginate.
 		int start = 1;
-		MessagesMetaData partialMessages;
+		MessagesMetaData messages = null, partialMessages;
 		boolean stopLoading = false;
 		do {
 			partialMessages = getMessagesMetaDataNoSort(start, META_DATA_LOAD_BATCH_SIZE);
@@ -514,7 +515,7 @@ public class Session {
 		}
 		context.getCookieStore().removeAll();
 		isLoggedIn = false;
-		messages = null;
+		allMessagesCache = null;
 		toDelete.clear();
 		toMarkRead.clear();
 		toMarkReadAll.clear();
