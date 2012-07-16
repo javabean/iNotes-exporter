@@ -33,7 +33,7 @@ import fr.cedrik.inotes.util.IteratorChain;
  *
  * @author C&eacute;drik LIME
  */
-abstract class BaseMBox {
+abstract class BaseMBox implements fr.cedrik.inotes.MainRunner.Main {
 	protected static final String ISO8601_DATE_SEMITIME = "yyyy-MM-dd'T'HH:mm";//$NON-NLS-1$
 
 	protected static final String PREF_LAST_EXPORT_DATE = "lastExportDate";//$NON-NLS-1$

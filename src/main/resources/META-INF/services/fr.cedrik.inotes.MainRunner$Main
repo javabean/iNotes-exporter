@@ -1,0 +1,6 @@
+# POP3 server
+fr.cedrik.inotes.pop3.POP3Server
+
+# mbox export
+fr.cedrik.inotes.mbox.MBoxo
+fr.cedrik.inotes.mbox.MBoxrd
