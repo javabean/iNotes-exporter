@@ -26,6 +26,14 @@ public class MBoxrd extends BaseMBox {
 		new MBoxrd().run(args, ".mboxrd");
 	}
 
+	/**
+	 * @param args
+	 */
+	@Override
+	public void _main(String[] args) throws IOException {
+		main(args);
+	}
+
 	@Override
 	protected void help() {
 		System.out.println("Usage: "+MBoxrd.class.getSimpleName()+" <out_file> [oldest message to fetch date: " + ISO8601_DATE_SEMITIME + ']');

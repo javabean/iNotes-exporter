@@ -26,6 +26,14 @@ public class MBoxo extends BaseMBox {
 		new MBoxo().run(args, ".mboxo");
 	}
 
+	/**
+	 * @param args
+	 */
+	@Override
+	public void _main(String[] args) throws IOException {
+		main(args);
+	}
+
 	@Override
 	protected void help() {
 		System.out.println("Usage: "+MBoxo.class.getSimpleName()+" <out_file> [oldest message to fetch date: " + ISO8601_DATE_SEMITIME + ']');

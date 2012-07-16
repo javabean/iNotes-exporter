@@ -47,6 +47,8 @@ public class Session {
 	protected final Set<String> toDelete = new HashSet<String>();
 	protected final Set<String> toMarkUnread = new HashSet<String>();
 	protected final Set<String> toMarkRead = new HashSet<String>();
+	protected final Set<String> toMarkUnreadAll = new HashSet<String>();
+	protected final Set<String> toMarkReadAll = new HashSet<String>();
 	protected MessagesMetaData messages = null;
 	protected boolean isLoggedIn = false;
 
@@ -348,12 +350,18 @@ public class Session {
 		checkLoggedIn();
 		for (MessageMetaData message : messages) {
 			toDelete.add(message.unid);
+			toMarkRead.remove(message.unid);
+			toMarkUnread.remove(message.unid);
 		}
 	}
 
 	public void undeleteAllMessages() {
 		checkLoggedIn();
 		toDelete.clear();
+		toMarkRead.clear();
+		toMarkRead.addAll(toMarkReadAll);
+		toMarkUnread.clear();
+		toMarkUnread.addAll(toMarkUnreadAll);
 	}
 
 	protected void doDeleteMessages() throws IOException {
@@ -380,6 +388,8 @@ public class Session {
 		}
 		httpResponse.close();
 		logger.info("Deleted (moved to Trash) {} messsage(s): {}", toDelete.size(), collectionToDelimitedString(toDelete, ';'));
+		toMarkReadAll.removeAll(toDelete);
+		toMarkUnreadAll.removeAll(toDelete);
 		toDelete.clear();
 	}
 
@@ -391,8 +401,12 @@ public class Session {
 	public void markMessagesRead(MessageMetaData... messages) throws IOException {
 		checkLoggedIn();
 		for (MessageMetaData message : messages) {
-			toMarkUnread.remove(message.unid);
-			toMarkRead.add(message.unid);
+			toMarkUnreadAll.remove(message.unid);
+			toMarkReadAll.add(message.unid);
+			if (! toDelete.contains(message.unid)) {
+				toMarkUnread.remove(message.unid);
+				toMarkRead.add(message.unid);
+			}
 		}
 	}
 
@@ -419,6 +433,7 @@ public class Session {
 		}
 		httpResponse.close();
 		logger.info("Marked {} messsage(s) as read: {}", toMarkRead.size(), collectionToDelimitedString(toMarkRead, ';'));
+		toMarkReadAll.removeAll(toMarkRead);
 		toMarkRead.clear();
 	}
 
@@ -430,8 +445,12 @@ public class Session {
 	public void markMessagesUnread(MessageMetaData... messages) throws IOException {
 		checkLoggedIn();
 		for (MessageMetaData message : messages) {
-			toMarkRead.remove(message.unid);
-			toMarkUnread.add(message.unid);
+			toMarkReadAll.remove(message.unid);
+			toMarkUnreadAll.add(message.unid);
+			if (! toDelete.contains(message.unid)) {
+				toMarkRead.remove(message.unid);
+				toMarkUnread.add(message.unid);
+			}
 		}
 	}
 
@@ -459,6 +478,7 @@ public class Session {
 		}
 		httpResponse.close();
 		logger.info("Marked {} messsage(s) as unread: {}", toMarkUnread.size(), collectionToDelimitedString(toMarkUnread, ';'));
+		toMarkUnreadAll.removeAll(toMarkUnread);
 		toMarkUnread.clear();
 	}
 
@@ -495,6 +515,11 @@ public class Session {
 		context.getCookieStore().removeAll();
 		isLoggedIn = false;
 		messages = null;
+		toDelete.clear();
+		toMarkRead.clear();
+		toMarkReadAll.clear();
+		toMarkUnread.clear();
+		toMarkUnreadAll.clear();
 		return true;
 	}
 

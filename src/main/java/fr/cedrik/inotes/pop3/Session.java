@@ -65,6 +65,11 @@ public class Session {
 		context.inputArgs = "";
 		while (context.inputArgs != null) {
 			String inputLine = in.readLine();
+			if (inputLine == null) {
+				// POP3 client has broken the socket connection
+				context.inputArgs = null;
+				continue;
+			}
 			StringTokenizer tokenizer = new StringTokenizer(inputLine.trim());
 			if (tokenizer.countTokens() == 0) {
 				continue;

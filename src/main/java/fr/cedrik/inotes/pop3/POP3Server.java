@@ -13,15 +13,23 @@ import org.slf4j.LoggerFactory;
 /**
  * @author C&eacute;drik LIME
  */
-public class POP3Server {
+public class POP3Server implements fr.cedrik.inotes.MainRunner.Main {
 	private static final Logger logger = LoggerFactory.getLogger(POP3Server.class);
-	public static boolean shutdown = false;
+	public static volatile boolean shutdown = false;
 
 	public POP3Server() {
 	}
 
 	public static void shutdown() {
 		shutdown = true;
+	}
+
+	/**
+	 * @param args
+	 */
+	@Override
+	public void _main(String[] args) throws IOException {
+		main(args);
 	}
 
 	/**
