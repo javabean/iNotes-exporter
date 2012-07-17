@@ -34,7 +34,7 @@ public class MessageMetaData {
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() + '[' + "unid:" + this.unid
-				+ ", date:" + DateUtils.ISO8601_DATE_TIME_FORMAT.format(this.date)
+				+ ", date:" + (this.date != null ? DateUtils.ISO8601_DATE_TIME_FORMAT.format(this.date) : String.valueOf(date))
 				+ ", size:" + this.size
 				+ ", unread: " + this.unread + ']';
 	}

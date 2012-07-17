@@ -27,6 +27,7 @@ The <action> type attribute can be add,update,fix,remove.
 			<action type="add"    dev="clime" >[pop3] new command: QUOTA</action>
 			<action type="update" dev="clime" >[pop3] login greeting message now warn when user is reaching its quota</action>
 			<action type="update" dev="clime" >[mbox] exporter now warn when user is reaching its quota</action>
+			<action type="add"    dev="clime" >[mbox] lock output file to prevent concurrent access by other applications</action>
 		</release>
 		<release version="1.1" date="2012-07-16" description="">
 			<action type="add"    dev="clime" >jar file is now runnable: try java -jar iNotes-exporter-1.1-jar-with-dependencies.jar</action>

@@ -5,8 +5,11 @@ package fr.cedrik.inotes.mbox;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.channels.FileLock;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -14,7 +17,6 @@ import java.util.Iterator;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +43,7 @@ abstract class BaseMBox implements fr.cedrik.inotes.MainRunner.Main {
 	protected Logger logger = LoggerFactory.getLogger(this.getClass());
 	protected Session session;
 	protected File outFile;
+	protected FileLock outFileLock;
 	protected Writer mbox;
 	protected Date oldestMessageToFetch;
 
@@ -89,10 +92,12 @@ abstract class BaseMBox implements fr.cedrik.inotes.MainRunner.Main {
 	protected abstract void help();
 
 	protected final void export() throws IOException {
+		// login
 		if (! session.login()) {
 			logger.error("Can not login!");
 			return;
 		}
+		// meta-data
 		MessagesMetaData messages = session.getMessagesMetaData(oldestMessageToFetch);
 		if (messages.ignorequota == 0 && messages.sizelimit > 0) {
 			String quotaDetails = "dbsize: " + messages.dbsize
@@ -106,37 +111,53 @@ abstract class BaseMBox implements fr.cedrik.inotes.MainRunner.Main {
 				logger.info("WARNING: you are nearing your quota! " + quotaDetails);
 			}
 		}
-		openOutputFile();
-		if (! messages.entries.isEmpty()) {
-			for (MessageMetaData message : messages.entries) {
-				IteratorChain<String> mime = session.getMessageMIME(message);
-				if (! mime.hasNext()) {
-					logger.warn("Empty MIME message! ({})", message.date);
-					continue;
+		try {
+			if (! messages.entries.isEmpty()) {
+				// open out file
+				boolean append = oldestMessageToFetch != null;
+				FileOutputStream outStream = new FileOutputStream(outFile, append);
+				outFileLock = outStream.getChannel().tryLock();
+				if (outFileLock == null) {
+					logger.error("Can not acquire a lock on file " + outFile.getPath() + ". Aborting.");
+					return;
 				}
-				logger.debug("Writing message {}", message);
-				writeMIME(message, mime);
-				mime.close();
+				mbox = new BufferedWriter(new OutputStreamWriter(outStream, Charsets.US_ASCII), 32*1024);
+				// write messages
+				for (MessageMetaData message : messages.entries) {
+					IteratorChain<String> mime = session.getMessageMIME(message);
+					if (! mime.hasNext()) {
+						logger.warn("Empty MIME message! ({})", message);
+						continue;
+					}
+					logger.debug("Writing message {}", message);
+					writeMIME(message, mime);
+					mime.close();
+				}
+				mbox.flush();
+				// set Preference to oldestMessageToFetch
+				{
+					Preferences prefs = Preferences.userNodeForPackage(this.getClass());
+					Date lastExportDate = messages.entries.get(messages.entries.size()-1).date;
+					prefs.node(this.getClass().getSimpleName()).putLong(PREF_LAST_EXPORT_DATE, lastExportDate.getTime()+1);// +1: don't re-import last imported message next time...
+					try {
+						prefs.flush();
+					} catch (BackingStoreException ignore) {
+						logger.warn("Can not store last import date: " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(lastExportDate), ignore);
+					}
+				}
 			}
-			// set Preference to oldestMessageToFetch
-			{
-				Preferences prefs = Preferences.userNodeForPackage(this.getClass());
-				Date lastExportDate = messages.entries.get(messages.entries.size()-1).date;
-				prefs.node(this.getClass().getSimpleName()).putLong(PREF_LAST_EXPORT_DATE, lastExportDate.getTime()+1);// +1: don't re-import last imported message next time...
+		} finally {
+			if (outFileLock != null) {
+				outFileLock.release();
+			}
+			if (mbox != null) {
 				try {
-					prefs.flush();
-				} catch (BackingStoreException ignore) {
-					logger.warn("Can not store last import date: " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(lastExportDate), ignore);
+					mbox.close();
+				} catch (IOException ignore) {
 				}
 			}
+			session.logout();
 		}
-		mbox.close();
-		session.logout();
-	}
-
-	protected void openOutputFile() throws IOException {
-		boolean append = oldestMessageToFetch != null;
-		mbox = new BufferedWriter(new FileWriterWithEncoding(outFile, Charsets.US_ASCII, append), 32*1024);
 	}
 
 	protected abstract void writeMIME(MessageMetaData message, Iterator<String> mime) throws IOException;
