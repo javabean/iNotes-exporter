@@ -4,6 +4,7 @@
 package fr.cedrik.inotes.mbox;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.util.Iterator;
 
 import fr.cedrik.inotes.MessageMetaData;
@@ -40,8 +41,8 @@ public class MBoxo extends BaseMBox {
 	}
 
 	@Override
-	protected void writeMIME(MessageMetaData message, Iterator<String> mime) throws IOException {
-		writeFromLine(message);
+	protected void writeMIME(Writer mbox, MessageMetaData message, Iterator<String> mime) throws IOException {
+		writeFromLine(mbox, message);
 		while (mime.hasNext()) {
 			String line = mime.next();
 			if (line.startsWith("From ")) {

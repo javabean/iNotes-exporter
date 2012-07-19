@@ -44,8 +44,6 @@ abstract class BaseMBox implements fr.cedrik.inotes.MainRunner.Main {
 	protected Logger logger = LoggerFactory.getLogger(this.getClass());
 	protected Session session;
 	protected File outFile;
-	protected FileLock outFileLock;
-	protected Writer mbox;
 	protected Date oldestMessageToFetch;
 
 	public BaseMBox() throws IOException {
@@ -67,7 +65,7 @@ abstract class BaseMBox implements fr.cedrik.inotes.MainRunner.Main {
 			} catch (ParseException ignore) {
 				logger.warn("Bad date format. Please use " + ISO8601_DATE_SEMITIME);
 			}
-		} else if (outFile.exists() && outFile.canWrite()) {
+		} else if (outFile.exists()) {
 			// set oldestMessageToFetch if file exists, and there is a Preference
 			Preferences prefs = Preferences.userNodeForPackage(this.getClass());
 			try {
@@ -112,6 +110,8 @@ abstract class BaseMBox implements fr.cedrik.inotes.MainRunner.Main {
 				logger.info("WARNING: you are nearing your quota! " + quotaDetails);
 			}
 		}
+		Writer mbox = null;
+		FileLock outFileLock = null;
 		try {
 			if (! messages.entries.isEmpty()) {
 				// open out file
@@ -131,7 +131,7 @@ abstract class BaseMBox implements fr.cedrik.inotes.MainRunner.Main {
 						continue;
 					}
 					logger.debug("Writing message {}", message);
-					writeMIME(message, mime);
+					writeMIME(mbox, message, mime);
 					mime.close();
 				}
 				mbox.flush();
@@ -156,9 +156,9 @@ abstract class BaseMBox implements fr.cedrik.inotes.MainRunner.Main {
 		}
 	}
 
-	protected abstract void writeMIME(MessageMetaData message, Iterator<String> mime) throws IOException;
+	protected abstract void writeMIME(Writer mbox, MessageMetaData message, Iterator<String> mime) throws IOException;
 
-	protected void writeFromLine(MessageMetaData message) throws IOException {
+	protected void writeFromLine(Writer mbox, MessageMetaData message) throws IOException {
 		// date should be UTC, but tests show there is no need to convert it
 		mbox.append("From MAILER-DAEMON ").append(DateUtils.MBOX_DATE_TIME_FORMAT.format(message.date)).append('\n');
 	}
