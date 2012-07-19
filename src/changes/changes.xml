@@ -23,8 +23,9 @@ The <action> type attribute can be add,update,fix,remove.
 		<title>Lotus iNotes exporter: POP3 &amp; mbox</title>
 	</properties>
 	<body>
-		<release version="1.2" date="2012-07-19" description="all JVMs, multi-user, quota">
-			<action type="fix"    dev="clime" >Non-Oracle JVM (i.e. OpenJDK 6) do not implement java.net.CookieManager correctly (and anyway, having a JVM singleton (CookieHandler#setDefault(java.net.CookieHandler)) for cookies management sucks!). Manually manage cookies so that iNotes-exporter can run on all JVMs.</action>
+		<release version="1.2" date="2012-07-19" description="all JVMs, multi-user, maildir, quota">
+			<action type="fix"    dev="clime" >Non-Oracle JVMs <= 6 (i.e. OpenJDK 6) do not implement java.net.CookieManager correctly (and anyway, having a JVM singleton (CookieHandler#setDefault(java.net.CookieHandler)) for cookies management sucks!). Manually manage cookies so that iNotes-exporter can run on all JVMs.</action>
+			<action type="add"    dev="clime" >[maildir] new export format: MailDir</action>
 			<action type="add"    dev="clime" >[pop3] new command: QUOTA</action>
 			<action type="update" dev="clime" >[pop3] login greeting message now warn when user is reaching its quota</action>
 			<action type="add"    dev="clime" >[pop3] pop3 server is now multi-threaded (and thus multi-user)</action>

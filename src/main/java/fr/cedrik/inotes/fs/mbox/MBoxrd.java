@@ -1,7 +1,7 @@
 /**
  *
  */
-package fr.cedrik.inotes.mbox;
+package fr.cedrik.inotes.fs.mbox;
 
 import java.io.IOException;
 import java.io.Writer;
