@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -150,12 +151,7 @@ abstract class BaseMBox implements fr.cedrik.inotes.MainRunner.Main {
 			if (outFileLock != null) {
 				outFileLock.release();
 			}
-			if (mbox != null) {
-				try {
-					mbox.close();
-				} catch (IOException ignore) {
-				}
-			}
+			IOUtils.closeQuietly(mbox);
 			session.logout();
 		}
 	}

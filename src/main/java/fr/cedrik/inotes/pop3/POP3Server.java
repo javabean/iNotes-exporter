@@ -41,15 +41,10 @@ public class POP3Server implements fr.cedrik.inotes.MainRunner.Main {
 		while (! shutdown) {
 			Socket clientSocket = serverSocket.accept();
 			logger.info("New client: {}", clientSocket.getRemoteSocketAddress());
-//			Thread clientThread = new Thread(new Session(clientSocket),
-//					"POP3 client " + clientSocket.getRemoteSocketAddress());
-//			clientThread.setDaemon(false);
-//			clientThread.start();
-//			try {
-//				clientThread.join();// implementation is single-threaded...
-//			} catch (InterruptedException ignore) {
-//			}
-			new Session(clientSocket).run();// implementation is single-threaded...
+			Thread clientThread = new Thread(new Session(clientSocket),
+					"POP3 client " + clientSocket.getRemoteSocketAddress());
+			clientThread.setDaemon(false);
+			clientThread.start();
 		}
 		logger.info("POP3 server shutting down...");
 		serverSocket.close();

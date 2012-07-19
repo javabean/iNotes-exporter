@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.StringTokenizer;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +27,7 @@ import fr.cedrik.inotes.util.Charsets;
 /**
  * @author C&eacute;drik LIME
  */
-public class Session {
+public class Session implements Runnable {
 	private static final String CR_LF = "\r\n";//$NON-NLS-1$
 	private static final String END_OF_COMMAND_RESULT = ".";//$NON-NLS-1$
 
@@ -60,60 +61,66 @@ public class Session {
 		}
 	}
 
-	public void run() throws IOException {
-		out.append(ResponseStatus.POSITIVE.toString("POP3 server ready")).append(CR_LF).flush();
-		context.inputArgs = "";
-		while (context.inputArgs != null) {
-			String inputLine = in.readLine();
-			if (inputLine == null) {
-				// POP3 client has broken the socket connection
-				context.inputArgs = null;
-				continue;
-			}
-			StringTokenizer tokenizer = new StringTokenizer(inputLine.trim());
-			if (tokenizer.countTokens() == 0) {
-				continue;
-			}
-			String requestedCommand = tokenizer.nextToken();
-			POP3Command pop3Command = commands.get(requestedCommand.toUpperCase());
-			if (pop3Command == null) {
-				out.append(ResponseStatus.NEGATIVE.toString(requestedCommand)).append(CR_LF).flush();
-				continue;
-			}
-			if (! pop3Command.isValid(context)) {
-				out.append(ResponseStatus.NEGATIVE.toString("invalid state")).append(CR_LF).flush();
-				continue;
-			}
-			if (pop3Command instanceof PASS) {
-				// don't echo password in logs!
-				logger.debug(requestedCommand);
-			} else {
-				logger.debug(inputLine);
-			}
-			context.inputArgs = inputLine.substring(requestedCommand.length()).trim();
-			Iterator<String> responseLines = pop3Command.call(context);
-			int nLines = 0;
-			while (responseLines.hasNext()) {
-				String line = responseLines.next();
-				assert ! line.contains("\r") : line;
-				assert ! line.contains("\n") : line;
-				if (nLines == 0) {
-					// log only response status
-					logger.debug(line);
-				} else {
-					logger.trace(line);
+	@Override
+	public void run() throws RuntimeException {
+		try {
+			out.append(ResponseStatus.POSITIVE.toString("POP3 server ready")).append(CR_LF).flush();
+			context.inputArgs = "";
+			while (context.inputArgs != null) {
+				String inputLine = in.readLine();
+				if (inputLine == null) {
+					// POP3 client has broken the socket connection
+					context.inputArgs = null;
+					continue;
 				}
-				out.append(filterMultiLineResponseLine(line)).append(CR_LF);
-				++nLines;
+				StringTokenizer tokenizer = new StringTokenizer(inputLine.trim());
+				if (tokenizer.countTokens() == 0) {
+					continue;
+				}
+				String requestedCommand = tokenizer.nextToken();
+				POP3Command pop3Command = commands.get(requestedCommand.toUpperCase());
+				if (pop3Command == null) {
+					out.append(ResponseStatus.NEGATIVE.toString(requestedCommand)).append(CR_LF).flush();
+					continue;
+				}
+				if (! pop3Command.isValid(context)) {
+					out.append(ResponseStatus.NEGATIVE.toString("invalid state")).append(CR_LF).flush();
+					continue;
+				}
+				if (pop3Command instanceof PASS) {
+					// don't echo password in logs!
+					logger.debug(requestedCommand);
+				} else {
+					logger.debug(inputLine);
+				}
+				context.inputArgs = inputLine.substring(requestedCommand.length()).trim();
+				Iterator<String> responseLines = pop3Command.call(context);
+				int nLines = 0;
+				while (responseLines.hasNext()) {
+					String line = responseLines.next();
+					assert ! line.contains("\r") : line;
+					assert ! line.contains("\n") : line;
+					if (nLines == 0) {
+						// log only response status
+						logger.debug(line);
+					} else {
+						logger.trace(line);
+					}
+					out.append(filterMultiLineResponseLine(line)).append(CR_LF);
+					++nLines;
+				}
+				if (nLines > 1) {
+					logger.trace(END_OF_COMMAND_RESULT);
+					out.append(END_OF_COMMAND_RESULT).append(CR_LF);
+				}
+				out.flush();
 			}
-			if (nLines > 1) {
-				logger.trace(END_OF_COMMAND_RESULT);
-				out.append(END_OF_COMMAND_RESULT).append(CR_LF);
-			}
-			out.flush();
+		} catch (IOException ioe) {
+			throw new RuntimeException(ioe);
+		} finally {
+			IOUtils.closeQuietly(in);
+			IOUtils.closeQuietly(out);
+			IOUtils.closeQuietly(clientSocket);
 		}
-		in.close();
-		out.close();
-		clientSocket.close();
 	}
 }

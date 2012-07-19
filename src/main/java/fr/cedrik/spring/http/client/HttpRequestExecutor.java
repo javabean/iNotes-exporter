@@ -11,6 +11,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -66,7 +67,7 @@ public class HttpRequestExecutor extends HttpAccessor {
 	 * @return the created request
 	 * @throws IOException  in case of I/O errors
 	 */
-	public ClientHttpRequest createRequest(URL url, HttpMethod method, Map<String, ?> extraParameters, Map<String, String> extraHttpHeaders) throws IOException {
+	public ClientHttpRequest createRequest(URL url, HttpMethod method, Map<String, ?> extraParameters, Map<String, List<String>> extraHttpHeaders) throws IOException {
 		if (method == null) {
 			method = HttpMethod.POST;
 		}
@@ -92,8 +93,8 @@ public class HttpRequestExecutor extends HttpAccessor {
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
-		if (extraHttpHeaders != null) {
-			httpRequest.getHeaders().setAll(extraHttpHeaders);
+		if (extraHttpHeaders != null && ! extraHttpHeaders.isEmpty()) {
+			httpRequest.getHeaders().putAll(extraHttpHeaders);
 		}
 		// add query parameters to HTTP request body
 		if (extraParameters != null && !extraParameters.isEmpty()) {

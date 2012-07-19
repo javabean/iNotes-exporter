@@ -96,6 +96,7 @@ public class Session {
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getServerAddress() + "/names.nsf?Login"), HttpMethod.POST, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
+		context.rememberCookies(httpRequest, httpResponse);
 		if (logger.isTraceEnabled()) {
 			traceBody(httpResponse);
 		}
@@ -108,7 +109,7 @@ public class Session {
 				logger.warn("ERROR while authenticating user \""+context.getUserName()+"\". Please check your parameters in " + INotesProperties.FILE);
 				return false;
 			} else {
-				logger.error("Unknowng server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+				logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
 				return false;
 			}
 		} finally {
@@ -120,8 +121,16 @@ public class Session {
 		httpRequest = context.createRequest(new URL(context.getServerAddress() + "/dwaredirect.nsf"), HttpMethod.GET, params);
 		httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
+		context.rememberCookies(httpRequest, httpResponse);
 		String responseBody = IOUtils.toString(httpResponse.getBody(), context.getCharset(httpResponse));
-		httpResponse.close();
+		try {
+			if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
+				logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+				return false;
+			}
+		} finally {
+			httpResponse.close();
+		}
 		if (logger.isTraceEnabled()) {
 			logger.trace(responseBody);
 		}
@@ -135,9 +144,11 @@ public class Session {
 			logger.trace("Found additional cookie: {}", cookieStr);
 			List<HttpCookie> cookies = HttpCookie.parse(cookieStr);
 			for (HttpCookie cookie : cookies) {
+				cookie.setSecure("https".equalsIgnoreCase(httpRequest.getURI().getScheme()));
+				cookie.setPath("/");
 				logger.trace("Adding cookie: {}", cookie);
 				context.getCookieStore().add(httpRequest.getURI(), cookie);
-				context.getHttpHeaders().put("Cookie", cookie.toString());//XXX hack, since the previous line does not work correctly
+//				context.getHttpHeaders().add("Cookie", cookie.toString());// hack, since the previous line does not work correctly when using the JVM default CookieHandler
 			}
 		}
 		// search for redirect
@@ -171,11 +182,19 @@ public class Session {
 		httpRequest = context.createRequest(new URL(redirectURL), HttpMethod.GET, params);
 		httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
+		context.rememberCookies(httpRequest, httpResponse);
 		if (logger.isTraceEnabled()) {
 			traceBody(httpResponse);
 		}
 		// Apparently we don't need to parse the embeded JS to set the "Shimmer" cookie.
-		httpResponse.close();
+		try {
+			if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
+				logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+				return false;
+			}
+		} finally {
+			httpResponse.close();
+		}
 
 		// Step 1e: login (X-IBM-INOTES-NONCE)
 		List<HttpCookie> cookies = context.getCookieStore().getCookies();
@@ -200,7 +219,7 @@ public class Session {
 					logger.error("Found more than 1 X-IBM-INOTES-NONCE; aborting. ShimmerS cookie: " + cookie);
 					return false;
 				}
-				context.getHttpHeaders().put("X-IBM-INOTES-NONCE", xIbmINotesNonce);
+				context.getHttpHeaders().set("X-IBM-INOTES-NONCE", xIbmINotesNonce);
 			}
 		}
 
@@ -275,6 +294,11 @@ public class Session {
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
 //		traceBody(httpResponse);// DEBUG
+		if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
+			logger.error("Unknown server response while fetching messages meta-data for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+			httpResponse.close();
+			return null;
+		}
 		MessagesMetaData messages;
 		try {
 			messages = new XMLConverter().convertXML(httpResponse.getBody());
@@ -299,6 +323,11 @@ public class Session {
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getFolderBaseURL()+message.unid+"/?OpenDocument"), HttpMethod.GET, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
+		if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
+			logger.error("Unknown server response while fetching message MIME headers for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+			httpResponse.close();
+			return null;
+		}
 		LineIterator responseLines = new HttpCleaningLineIterator(httpResponse);
 		//httpResponse.close();// done in HttpLineIterator#close()
 		if (message.unread) {
@@ -324,6 +353,11 @@ public class Session {
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getFolderBaseURL()+message.unid+"/?OpenDocument&PresetFields=FullMessage;1"), HttpMethod.GET, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
+		if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
+			logger.error("Unknown server response while fetching message MIME for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+			httpResponse.close();
+			return null;
+		}
 		LineIterator responseLines = new HttpCleaningLineIterator(httpResponse);
 		//httpResponse.close();// done in HttpLineIterator#close()
 		if (message.unread) {
@@ -388,7 +422,14 @@ public class Session {
 		if (logger.isTraceEnabled()) {
 			traceBody(httpResponse);
 		}
-		httpResponse.close();
+		try {
+			if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
+				logger.error("Unknown server response while deleting messages for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+				return;
+			}
+		} finally {
+			httpResponse.close();
+		}
 		logger.info("Deleted (moved to Trash) {} messsage(s): {}", toDelete.size(), collectionToDelimitedString(toDelete, ';'));
 		toMarkReadAll.removeAll(toDelete);
 		toMarkUnreadAll.removeAll(toDelete);
@@ -433,7 +474,14 @@ public class Session {
 		if (logger.isTraceEnabled()) {
 			traceBody(httpResponse);
 		}
-		httpResponse.close();
+		try {
+			if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
+				logger.error("Unknown server response while marking messages read for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+				return;
+			}
+		} finally {
+			httpResponse.close();
+		}
 		logger.info("Marked {} messsage(s) as read: {}", toMarkRead.size(), collectionToDelimitedString(toMarkRead, ';'));
 		toMarkReadAll.removeAll(toMarkRead);
 		toMarkRead.clear();
@@ -478,7 +526,14 @@ public class Session {
 		if (logger.isTraceEnabled()) {
 			traceBody(httpResponse);
 		}
-		httpResponse.close();
+		try {
+			if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
+				logger.error("Unknown server response while marking messages unread for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+				return;
+			}
+		} finally {
+			httpResponse.close();
+		}
 		logger.info("Marked {} messsage(s) as unread: {}", toMarkUnread.size(), collectionToDelimitedString(toMarkUnread, ';'));
 		toMarkUnreadAll.removeAll(toMarkUnread);
 		toMarkUnread.clear();
@@ -501,6 +556,7 @@ public class Session {
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getProxyBaseURL()+"&PresetFields=s_CacheScrubType;0"), HttpMethod.GET, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
+		context.rememberCookies(httpRequest, httpResponse);
 		if (logger.isTraceEnabled()) {
 			traceBody(httpResponse);
 		}
@@ -508,7 +564,7 @@ public class Session {
 			if (httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
 				logger.info("Logout successful for user \"" + context.getUserName() + '"');
 			} else {
-				logger.warn("ERROR while logging out user \""+context.getUserName()+"\".");
+				logger.warn("ERROR while logging out user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
 				return false;
 			}
 		} finally {
