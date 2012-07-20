@@ -4,10 +4,12 @@
 package fr.cedrik.inotes.pop3.commands;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Iterator;
 
 import org.apache.commons.lang3.StringUtils;
 
+import fr.cedrik.inotes.MessagesMetaData;
 import fr.cedrik.inotes.pop3.Context;
 import fr.cedrik.inotes.pop3.POP3Command;
 import fr.cedrik.inotes.pop3.ResponseStatus;
@@ -43,7 +45,18 @@ public class PASS extends BasePOP3Command implements POP3Command {
 		context.userPassword = context.inputArgs;
 		if (context.iNotesSession.login(context.userName, context.userPassword)) {
 			context.state = nextState(context);
-			return new IteratorChain<String>(ResponseStatus.POSITIVE.toString("welcome, " + context.userName));
+			String quotaMessage = "";
+			{
+				MessagesMetaData messages = context.iNotesSession.getMessagesMetaData(new Date());
+				if (messages.ignorequota == 0 && messages.sizelimit > 0) {
+					if (messages.dbsize >= messages.sizelimit || messages.currentusage >= messages.sizelimit) {
+						quotaMessage = ". WARNING WARNING: you have exceeded your quota! Run QUOTA command for more information.";
+					} else if (messages.dbsize > messages.warning || messages.currentusage > messages.warning) {
+						quotaMessage = ". WARNING: you are nearing your quota. Run QUOTA command for more information.";
+					}
+				}
+			}
+			return new IteratorChain<String>(ResponseStatus.POSITIVE.toString("welcome, " + context.userName + quotaMessage));
 		} else {
 			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("invalid user or password"));
 		}

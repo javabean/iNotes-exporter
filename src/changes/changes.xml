@@ -23,7 +23,16 @@ The <action> type attribute can be add,update,fix,remove.
 		<title>Lotus iNotes exporter: POP3 &amp; mbox</title>
 	</properties>
 	<body>
-		<release version="1.1" date="2012-07-16" description="">
+		<release version="1.2" date="2012-07-19" description="all JVMs, multi-user, maildir, quota">
+			<action type="fix"    dev="clime" >Non-Oracle JVMs <= 6 (i.e. OpenJDK 6) do not implement java.net.CookieManager correctly (and anyway, having a JVM singleton (CookieHandler#setDefault(java.net.CookieHandler)) for cookies management sucks!). Manually manage cookies so that iNotes-exporter can run on all JVMs.</action>
+			<action type="add"    dev="clime" >[maildir] new export format: MailDir</action>
+			<action type="add"    dev="clime" >[pop3] new command: QUOTA</action>
+			<action type="update" dev="clime" >[pop3] login greeting message now warn when user is reaching its quota</action>
+			<action type="add"    dev="clime" >[pop3] pop3 server is now multi-threaded (and thus multi-user)</action>
+			<action type="update" dev="clime" >[mbox] exporter now warn when user is reaching its quota</action>
+			<action type="add"    dev="clime" >[mbox] lock output file to prevent concurrent access by other applications</action>
+		</release>
+		<release version="1.1" date="2012-07-16" description="runnable jar, incremental export">
 			<action type="add"    dev="clime" >jar file is now runnable: try java -jar iNotes-exporter-1.1-jar-with-dependencies.jar</action>
 			<action type="update" dev="clime" >[mbox] incremental export is now more intelligent, and stores the last export date to automatically continue on existing output file: no need to specify the export start date anymore!</action>
 			<action type="update" dev="clime" >[mbox] out file will be appended in case of partial export (i.e. when specifying a start date)</action>
