@@ -609,13 +609,13 @@ public class Session {
 		@Override
 		public String nextLine() {
 			String line = super.nextLine();
+			CharSequence data = line;
 			// delete html tags
-			StringBuilder result = new StringBuilder(line);
 			if (line.endsWith("<br>")) {
-				result.delete(line.length()-"<br>".length(), line.length());
+				data = new StringBuilder(line).delete(line.length()-"<br>".length(), line.length());
 			}
 			// convert &quot; -> ", &amp; -> &, &lt; -> <, &gt; -> >
-			line = new LookupTranslator(EntityArrays.BASIC_UNESCAPE()).translate(result);
+			line = new LookupTranslator(EntityArrays.BASIC_UNESCAPE()).translate(data);
 			return line;
 		}
 		@Override
