@@ -1,0 +1,71 @@
+#!/bin/sh
+# 
+# PROVIDE: inotes
+# KEYWORD: shutdown
+#
+# Add the following lines to /etc/rc.conf.local or /etc/rc.conf
+# to enable this service:
+#
+# inotes_enable (bool): Set to NO by default.
+#           Set it to YES to enable it.
+# inotes_user:  The user account inotes daemon runs as what
+#           you want it to be. It uses 'root' user by
+#           default. Do not sets it as empty or it will run
+#           as root.
+# inotes_dir:   Directory where inotes lives.
+#           Default: /usr/local/inotes
+# inotes_chdir:  Change to this directory before running inotes.
+#     Default is same as inotes_dir.
+# inotes_pid:  The name of the pidfile to create.
+#     Default is inotes.pid in inotes_dir.
+PATH="/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin"
+
+. /etc/rc.subr
+
+name="inotes"
+rcvar=${name}_enable
+
+load_rc_config ${name}
+
+: ${inotes_enable:="NO"}
+: ${inotes_user:="root"}
+: ${inotes_dir:="/usr/local/share/iNotes-exporter"}
+: ${inotes_type:=""}
+: ${inotes_chdir:="${inotes_dir}"}
+: ${inotes_pid:="${inotes_dir}/inotes.pid"}
+
+status_cmd="${name}_status"
+stop_cmd="${name}_stop"
+
+command="/usr/sbin/daemon"
+command_args="-f -p ${inotes_pid} ${inotes_dir}/scripts/iNotes-wrapper.sh ${inotes_type}"
+
+# Ensure user is root when running this script.
+if [ `id -u` != "0" ]; then
+  echo "Oops, you should be root before running this!"
+  exit 1
+fi
+
+verify_inotes_pid() {
+    # Make sure the pid corresponds to the inotes process.
+    pid=`cat ${inotes_pid} 2>/dev/null`
+    ps -p ${pid} | grep -q "${inotes_dir}/scripts/iNotes-wrapper.sh ${inotes_type}"
+    return $?
+}
+
+# Try to stop inotes cleanly by calling shutdown over http.
+inotes_stop() {
+    echo "Stopping $name"
+    verify_inotes_pid
+    if [ -n "${pid}" ]; then
+      kill ${pid}
+      wait_for_pids ${pid}
+      echo "Stopped"
+    fi
+}
+
+inotes_status() {
+    verify_inotes_pid && echo "$name is running as ${pid}" || echo "$name is not running"
+}
+
+run_rc_command "$1"
