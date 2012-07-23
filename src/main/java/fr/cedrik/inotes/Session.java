@@ -78,13 +78,9 @@ public class Session {
 		context.iNotes.setServerAddress(url);
 	}
 
-	public boolean login(String username, String password) throws IOException {
-		context.setUserName(username);
+	public boolean login(String userName, String password) throws IOException {
+		context.setUserName(userName);
 		context.setUserPassword(password);
-		return login();
-	}
-
-	public boolean login() throws IOException {
 		Map<String, Object> params = new HashMap<String, Object>();
 
 		// Step 1a: login (auth)

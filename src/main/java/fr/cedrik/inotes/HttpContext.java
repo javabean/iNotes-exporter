@@ -28,7 +28,7 @@ import fr.cedrik.spring.http.client.SimpleClientHttpRequestFactory;
  * @author C&eacute;drik LIME
  */
 public class HttpContext {
-	protected final INotesProperties iNotes = new INotesProperties();
+	protected final INotesProperties iNotes = INotesProperties.getInstance();
 	protected final HttpRequestExecutor httpRequestExecutor = getHttpRequestExecutor();
 	protected final CookieManager cookieManager = new CookieManager();
 	protected final HttpHeaders httpHeaders = new HttpHeaders();

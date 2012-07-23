@@ -47,7 +47,8 @@ public class SessionTest {
 	 */
 	@Test
 	public void testSessionWorkflow() throws IOException {
-		if (session.login()) {
+		INotesProperties iNotes = INotesProperties.getInstance();
+		if (session.login(iNotes.getUserName(), iNotes.getUserPassword())) {
 			try {
 				MessagesMetaData messages = session.getMessagesMetaData();
 				assertNotNull("data", messages);

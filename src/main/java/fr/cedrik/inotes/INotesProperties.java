@@ -15,7 +15,9 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @author C&eacute;drik LIME
  */
-class INotesProperties extends Properties {
+public class INotesProperties extends Properties {
+	private static final INotesProperties INSTANCE = new INotesProperties();
+
 	public static final String FILE = "/iNotes.properties";//$NON-NLS-1$
 	public static final String DEFAULT_NOTES_FOLDER = "($Inbox)";//$NON-NLS-1$
 	// iNotes.properties keys
@@ -27,10 +29,12 @@ class INotesProperties extends Properties {
 	private static final String PROXY_PORT     = "proxy.port";//$NON-NLS-1$
 	private static final String NOTES_FOLDER_NAME = "notes.foldername";//$NON-NLS-1$
 
-	/**
-	 *
-	 */
-	public INotesProperties() {
+
+	public static INotesProperties getInstance() {
+		return INSTANCE;
+	}
+
+	private INotesProperties() {
 		init();
 	}
 

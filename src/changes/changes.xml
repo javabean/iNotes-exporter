@@ -23,7 +23,8 @@ The <action> type attribute can be add,update,fix,remove.
 		<title>Lotus iNotes exporter: POP3 &amp; mbox</title>
 	</properties>
 	<body>
-		<release version="1.2.1" date="" description="">
+		<release version="1.2.1" date="2012-07-23" description="">
+			<action type="update" dev="clime" >[mbox] the same (OS) user can now incrementally export multiple (iNotes) users mailboxes, and have iNotes Exporter correctly track the last export date for each one (previously there was only 1, shared, export date)</action>
 			<action type="add"    dev="kalw"  >FreeBSD init.d scripts</action>
 		</release>
 		<release version="1.2" date="2012-07-19" description="all JVMs, multi-user, maildir, quota">

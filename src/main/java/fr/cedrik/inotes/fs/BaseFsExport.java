@@ -15,6 +15,7 @@ import java.util.prefs.Preferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.cedrik.inotes.INotesProperties;
 import fr.cedrik.inotes.MessageMetaData;
 import fr.cedrik.inotes.MessagesMetaData;
 import fr.cedrik.inotes.Session;
@@ -51,10 +52,10 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 			}
 		} else if (shouldLoadOldestMessageToFetchFromPreferences()) {
 			// set oldestMessageToFetch if file exists, and there is a Preference
-			Preferences prefs = Preferences.userNodeForPackage(this.getClass());
 			try {
-				if (prefs.nodeExists(this.getClass().getSimpleName())) {
-					long lastExportDate = prefs.node(this.getClass().getSimpleName()).getLong(PREF_LAST_EXPORT_DATE, -1);
+				Preferences prefs = getUserNode(false);
+				if (prefs != null) {
+					long lastExportDate = prefs.getLong(PREF_LAST_EXPORT_DATE, -1);
 					if (lastExportDate != -1) {
 						this.oldestMessageToFetch = new Date(lastExportDate);
 					}
@@ -68,10 +69,11 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 		} else {
 			logger.info("Full import");
 		}
+		INotesProperties iNotes = INotesProperties.getInstance();
 		session = new Session();
 		// login
-		if (! session.login()) {
-			logger.error("Can not login!");
+		if (! session.login(iNotes.getUserName(), iNotes.getUserPassword())) {
+			logger.error("Can not login user {}!", iNotes.getUserName());
 			return;
 		}
 		try {
@@ -120,13 +122,24 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 	}
 
 	protected void setPreferenceToOldestMessageToFetch(MessagesMetaData messages) {
-		Preferences prefs = Preferences.userNodeForPackage(this.getClass());
 		Date lastExportDate = messages.entries.get(messages.entries.size()-1).date;
-		prefs.node(this.getClass().getSimpleName()).putLong(PREF_LAST_EXPORT_DATE, lastExportDate.getTime()+1);// +1: don't re-import last imported message next time...
 		try {
+			Preferences prefs = getUserNode(true);
+			prefs.putLong(PREF_LAST_EXPORT_DATE, lastExportDate.getTime()+1);// +1: don't re-import last imported message next time...
 			prefs.flush();
 		} catch (BackingStoreException ignore) {
 			logger.warn("Can not store last import date: " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(lastExportDate), ignore);
+		}
+	}
+
+	protected Preferences getUserNode(boolean create) throws BackingStoreException {
+		INotesProperties iNotes = INotesProperties.getInstance();
+		Preferences prefs = Preferences.userNodeForPackage(this.getClass());
+		String key = this.getClass().getSimpleName()+'/'+iNotes.getUserName()+'@'+(iNotes.getServerAddress().replace('/', '\\'));
+		if (create || prefs.nodeExists(key)) {
+			return prefs.node(key);
+		} else {
+			return null;
 		}
 	}
 }
