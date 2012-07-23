@@ -64,6 +64,7 @@ public class Session implements Runnable {
 	@Override
 	public void run() throws RuntimeException {
 		try {
+			Thread.currentThread().setName("POP3 client " + clientSocket.getRemoteSocketAddress());
 			out.append(ResponseStatus.POSITIVE.toString("POP3 server ready")).append(CR_LF).flush();
 			context.inputArgs = "";
 			while (context.inputArgs != null) {
@@ -89,8 +90,10 @@ public class Session implements Runnable {
 				}
 				if (pop3Command instanceof PASS) {
 					// don't echo password in logs!
+					Thread.currentThread().setName("POP3 client " + clientSocket.getRemoteSocketAddress() + ' ' + requestedCommand);
 					logger.debug(requestedCommand);
 				} else {
+					Thread.currentThread().setName("POP3 client " + clientSocket.getRemoteSocketAddress() + ' ' + inputLine);
 					logger.debug(inputLine);
 				}
 				context.inputArgs = inputLine.substring(requestedCommand.length()).trim();
@@ -114,6 +117,7 @@ public class Session implements Runnable {
 					out.append(END_OF_COMMAND_RESULT).append(CR_LF);
 				}
 				out.flush();
+				Thread.currentThread().setName("POP3 client " + clientSocket.getRemoteSocketAddress());
 			}
 		} catch (IOException ioe) {
 			throw new RuntimeException(ioe);
