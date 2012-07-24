@@ -6,7 +6,8 @@ SEO keywords: IBM Lotus Notes Domino iNotes POP3 mbox export
 
 Requirements
 ------------
-(see `pom.xml`)
+Lotus iNotes credentials! (tested with version 8.5.x)  
+Java (see `pom.xml`):
 * Java 6
 * slf4j-api 1.6.6
 * jcl-over-slf4j 1.6.6
@@ -52,3 +53,8 @@ If you don't know which mbox format to choose (mboxo, mboxrd, mboxcl, mboxcl2), 
 	java -jar target/iNotes-exporter-1.2.1-jar-with-dependencies.jar pop3server
 
 use as pop3 user login: `username@https://webmail.example.com`
+
+Additional (non-standard) POP3 commands:
+* `SHUTDOWN`: to shutdown the POP3 server (set the secret in `pop3.properties`)
+* `QUOTA`: gives information on quota usage
+* `LOGGER`: set loggers level at runtime

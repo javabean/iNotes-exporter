@@ -29,3 +29,4 @@ fr.cedrik.inotes.pop3.commands.UIDL
 
 fr.cedrik.inotes.pop3.commands.SHUTDOWN
 fr.cedrik.inotes.pop3.commands.QUOTA
+fr.cedrik.inotes.pop3.commands.LOGGER
