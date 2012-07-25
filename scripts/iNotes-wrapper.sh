@@ -5,4 +5,4 @@ SLEEP_TIME=60
 JAVA_BIN=/usr/local/bin/java
 INOTES_JAR=/usr/local/share/iNotes-exporter/target/iNotes-exporter-1.2.1-jar-with-dependencies.jar
 
-while true ; do $JAVA_BIN -jar $INOTES_JAR $ARGS ; $SLEEP_TIME ;done
+while true ; do $JAVA_BIN -jar $INOTES_JAR $ARGS ; sleep $SLEEP_TIME ; done
