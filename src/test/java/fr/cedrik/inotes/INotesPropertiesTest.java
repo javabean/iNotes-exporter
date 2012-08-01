@@ -27,7 +27,7 @@ public class INotesPropertiesTest {
 
 	@Before
 	public void setUp() throws Exception {
-		props = INotesProperties.getInstance();
+		props = new INotesProperties();
 	}
 
 	@After

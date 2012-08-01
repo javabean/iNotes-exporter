@@ -29,7 +29,8 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 
 	protected static final String PREF_LAST_EXPORT_DATE = "lastExportDate";//$NON-NLS-1$
 
-	protected Logger logger = LoggerFactory.getLogger(this.getClass());
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+	protected INotesProperties iNotes;
 	protected Session session;
 	protected Date oldestMessageToFetch;
 
@@ -41,6 +42,7 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 			help();
 			System.exit(-1);
 		}
+		iNotes = new INotesProperties();
 		if (! prepareOutFileFields(args[0], extension)) {
 			return;
 		}
@@ -69,8 +71,7 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 		} else {
 			logger.info("Full import");
 		}
-		INotesProperties iNotes = INotesProperties.getInstance();
-		session = new Session();
+		session = new Session(iNotes);
 		// login
 		if (! session.login(iNotes.getUserName(), iNotes.getUserPassword())) {
 			logger.error("Can not login user {}!", iNotes.getUserName());
@@ -133,7 +134,6 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 	}
 
 	protected Preferences getUserNode(boolean create) throws BackingStoreException {
-		INotesProperties iNotes = INotesProperties.getInstance();
 		Preferences prefs = Preferences.userNodeForPackage(this.getClass());
 		String key = this.getClass().getSimpleName()+'/'+iNotes.getUserName()+'@'+(iNotes.getServerAddress().replace('/', '\\'));
 		if (create || prefs.nodeExists(key)) {

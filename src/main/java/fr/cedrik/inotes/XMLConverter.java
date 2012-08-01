@@ -77,7 +77,10 @@ class XMLConverter {
 					message.from93      = (String) from93XP.evaluate(node, XPathConstants.STRING);
 					message.from98      = (String) from98XP.evaluate(node, XPathConstants.STRING);
 					message.subject     = (String) subjectXP.evaluate(node, XPathConstants.STRING);
-					message.date        = new SimpleDateFormat("yyyyMMdd'T'HHmmss','SS'Z'").parse((String) dateXP.evaluate(node, XPathConstants.STRING));
+					String dateStr = (String) dateXP.evaluate(node, XPathConstants.STRING);
+					if (StringUtils.isNotEmpty(dateStr)) {
+						message.date        = new SimpleDateFormat("yyyyMMdd'T'HHmmss','SS'Z'").parse(dateStr);
+					}
 					message.size        = ((Number) sizeXP.evaluate(node, XPathConstants.NUMBER)).intValue();
 					message.recipient   = ((Number) recipientXP.evaluate(node, XPathConstants.NUMBER)).intValue();
 					message.attachement = ((Number) attachementXP.evaluate(node, XPathConstants.NUMBER)).intValue();

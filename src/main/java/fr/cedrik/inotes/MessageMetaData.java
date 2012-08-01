@@ -21,7 +21,7 @@ public class MessageMetaData {
 	public String from98;//$98
 	// thread;//$ThreadColumn
 	public String subject;//$73
-	public Date date;//$70
+	public Date date = new Date(0);//$70
 	public int size = -1;//$106
 	public int recipient = -1;//$ToStuff
 	public int attachement = -1;//$97

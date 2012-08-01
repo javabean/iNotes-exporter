@@ -28,8 +28,8 @@ import fr.cedrik.spring.http.client.SimpleClientHttpRequestFactory;
  * @author C&eacute;drik LIME
  */
 public class HttpContext {
-	protected final INotesProperties iNotes = INotesProperties.getInstance();
-	protected final HttpRequestExecutor httpRequestExecutor = getHttpRequestExecutor();
+	protected final INotesProperties iNotes;
+	protected final HttpRequestExecutor httpRequestExecutor;
 	protected final CookieManager cookieManager = new CookieManager();
 	protected final HttpHeaders httpHeaders = new HttpHeaders();
 	protected String proxyBaseURL;
@@ -47,8 +47,10 @@ public class HttpContext {
 		//CookieHandler.setDefault(cookieManager);
 	}
 
-	public HttpContext() {
+	public HttpContext(INotesProperties iNotes) {
+		this.iNotes = iNotes;
 		cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
+		httpRequestExecutor = getHttpRequestExecutor();
 	}
 
 	/**
@@ -88,15 +90,15 @@ public class HttpContext {
 		iNotes.setUserPassword(password);
 	}
 
-	public Proxy getProxy() {
-		return iNotes.getProxy();
-	}
-
 	public String getNotesFolderName() {
 		return iNotes.getNotesFolderName();
 	}
 	public void setNotesFolderName(String notesFolderID) {
 		iNotes.setNotesFolderName(notesFolderID);
+	}
+
+	public List<String> getNotesExcludedFoldersIds() {
+		return iNotes.getNotesExcludedFoldersIds();
 	}
 
 	public String getProxyBaseURL() {

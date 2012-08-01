@@ -8,6 +8,8 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.SocketAddress;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
@@ -16,10 +18,10 @@ import org.apache.commons.lang3.StringUtils;
  * @author C&eacute;drik LIME
  */
 public class INotesProperties extends Properties {
-	private static final INotesProperties INSTANCE = new INotesProperties();
-
 	public static final String FILE = "/iNotes.properties";//$NON-NLS-1$
+	// default values
 	public static final String DEFAULT_NOTES_FOLDER = "($Inbox)";//$NON-NLS-1$
+	public static final String DEFAULT_EXCLUDED_FOLDERS_IDS = "($JunkMail),($SoftDeletions),Threads,hive,(Rules),Stationery";//$NON-NLS-1$
 	// iNotes.properties keys
 	private static final String SERVER   = "server";//$NON-NLS-1$
 	private static final String USERNAME = "user";//$NON-NLS-1$
@@ -28,13 +30,10 @@ public class INotesProperties extends Properties {
 	private static final String PROXY_HOSTNAME = "proxy.hostname";//$NON-NLS-1$
 	private static final String PROXY_PORT     = "proxy.port";//$NON-NLS-1$
 	private static final String NOTES_FOLDER_NAME = "notes.foldername";//$NON-NLS-1$
+	private static final String EXCLUDED_FOLDERS_IDS = "notes.folder.exclude.ids";//$NON-NLS-1$
 
 
-	public static INotesProperties getInstance() {
-		return INSTANCE;
-	}
-
-	private INotesProperties() {
+	public INotesProperties() {
 		init();
 	}
 
@@ -108,5 +107,10 @@ public class INotesProperties extends Properties {
 	}
 	public void setNotesFolderName(String notesFolderID) {
 		setProperty(NOTES_FOLDER_NAME, notesFolderID);
+	}
+
+	public List<String> getNotesExcludedFoldersIds() {
+		String idsStr = getProperty(EXCLUDED_FOLDERS_IDS, DEFAULT_EXCLUDED_FOLDERS_IDS);
+		return Arrays.asList(StringUtils.split(idsStr, ','));
 	}
 }

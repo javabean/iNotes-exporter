@@ -43,7 +43,7 @@ public class LIST extends BasePOP3Command implements POP3Command {
 			// TODO messages marked as deleted are not listed
 			maildrop = messages.entries;
 		}
-		List<String> response = new ArrayList<String>(maildrop.size());
+		List<String> response = new ArrayList<String>(maildrop.size()+1);
 		response.add(ResponseStatus.POSITIVE.toString("scan listing follows: " + maildrop.size() + " message(s)"));
 		int n = 1;
 		for (MessageMetaData message : maildrop) {

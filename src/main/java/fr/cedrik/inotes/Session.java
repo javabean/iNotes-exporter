@@ -7,9 +7,9 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpCookie;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,9 +24,10 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.CharEncoding;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.translate.EntityArrays;
 import org.apache.commons.lang3.text.translate.LookupTranslator;
-import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
@@ -43,7 +44,7 @@ public class Session {
 	private static final int META_DATA_LOAD_BATCH_SIZE = 500;
 
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
-	protected final HttpContext context = new HttpContext();
+	protected final HttpContext context;
 	protected final Set<String> toDelete = new HashSet<String>();
 	protected final Set<String> toMarkUnread = new HashSet<String>();
 	protected final Set<String> toMarkRead = new HashSet<String>();
@@ -51,12 +52,14 @@ public class Session {
 	protected final Set<String> toMarkReadAll = new HashSet<String>();
 	protected MessagesMetaData allMessagesCache = null;
 	protected boolean isLoggedIn = false;
+	protected List<Folder> folders = new ArrayList<Folder>();
 
 	static {
 //		System.setProperty("java.util.logging.config.file", "logging.properties");//XXX DEBUG
 	}
 
-	public Session() {
+	public Session(INotesProperties iNotes) {
+		context = new HttpContext(iNotes);
 	}
 
 	protected void trace(ClientHttpRequest httpRequest, ClientHttpResponse httpResponse) throws IOException {
@@ -78,144 +81,301 @@ public class Session {
 		context.iNotes.setServerAddress(url);
 	}
 
+	public List<Folder> getFolders() {
+		if (! isLoggedIn) {
+			throw new IllegalStateException();
+		}
+		return folders;
+	}
+
+	public void setCurrentFolder(Folder folder) throws IOException {
+		if (isLoggedIn) {
+			cleanup();
+		}
+		context.setNotesFolderName(folder.id);
+		allMessagesCache = null;
+	}
+
 	public boolean login(String userName, String password) throws IOException {
 		context.setUserName(userName);
 		context.setUserPassword(password);
 		Map<String, Object> params = new HashMap<String, Object>();
+		ClientHttpRequest httpRequest;
+		ClientHttpResponse httpResponse;
+		String responseBody;
 
 		// Step 1a: login (auth)
-		params.clear();
-		params.put("%%ModDate", "0000000100000000");
-		params.put("RedirectTo", "/dwaredirect.nsf");
-		params.put("password", context.getUserPassword());
-		params.put("username", context.getUserName());
-		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getServerAddress() + "/names.nsf?Login"), HttpMethod.POST, params);
-		ClientHttpResponse httpResponse = httpRequest.execute();
-		trace(httpRequest, httpResponse);
-		context.rememberCookies(httpRequest, httpResponse);
-		if (logger.isTraceEnabled()) {
-			traceBody(httpResponse);
-		}
-		try {
-			if (httpResponse.getStatusCode().series().equals(HttpStatus.Series.REDIRECTION)) {
-				logger.info("Authentication successful for user \"" + context.getUserName() + '"');
-				logger.debug("Redirect: {}", httpResponse.getHeaders().getLocation());
-			} else if (httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-				// body will contain "Invalid username or password was specified."
-				logger.warn("ERROR while authenticating user \""+context.getUserName()+"\". Please check your parameters in " + INotesProperties.FILE);
-				return false;
-			} else {
-				logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
-				return false;
+		{
+			params.clear();
+			params.put("%%ModDate", "0000000100000000");
+			params.put("RedirectTo", "/dwaredirect.nsf");
+			params.put("password", context.getUserPassword());
+			params.put("username", context.getUserName());
+			httpRequest = context.createRequest(new URL(context.getServerAddress() + "/names.nsf?Login"), HttpMethod.POST, params);
+			httpResponse = httpRequest.execute();
+			trace(httpRequest, httpResponse);
+			context.rememberCookies(httpRequest, httpResponse);
+			if (logger.isTraceEnabled()) {
+				traceBody(httpResponse);
 			}
-		} finally {
-			httpResponse.close();
+			try {
+				if (httpResponse.getStatusCode().series().equals(HttpStatus.Series.REDIRECTION)) {
+					logger.info("Authentication successful for user \"" + context.getUserName() + '"');
+					logger.debug("Redirect: {}", httpResponse.getHeaders().getLocation());
+				} else if (httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
+					// body will contain "Invalid username or password was specified."
+					logger.warn("ERROR while authenticating user \""+context.getUserName()+"\". Please check your parameters in " + INotesProperties.FILE);
+					return false;
+				} else {
+					logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+					return false;
+				}
+			} finally {
+				httpResponse.close();
+			}
 		}
 
-		// Step 1b: login (iNotesSRV + base url)
-		params.clear();
-		httpRequest = context.createRequest(new URL(context.getServerAddress() + "/dwaredirect.nsf"), HttpMethod.GET, params);
-		httpResponse = httpRequest.execute();
-		trace(httpRequest, httpResponse);
-		context.rememberCookies(httpRequest, httpResponse);
-		String responseBody = IOUtils.toString(httpResponse.getBody(), context.getCharset(httpResponse));
-		try {
-			if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-				logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
-				return false;
+		// Step 1b: login (iNotesSRV cookie + base url)
+		{
+			params.clear();
+			httpRequest = context.createRequest(new URL(context.getServerAddress() + "/dwaredirect.nsf"), HttpMethod.GET, params);
+			httpResponse = httpRequest.execute();
+			trace(httpRequest, httpResponse);
+			context.rememberCookies(httpRequest, httpResponse);
+			responseBody = IOUtils.toString(httpResponse.getBody(), context.getCharset(httpResponse));
+			try {
+				if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
+					logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+					return false;
+				}
+			} finally {
+				httpResponse.close();
 			}
-		} finally {
-			httpResponse.close();
-		}
-		if (logger.isTraceEnabled()) {
-			logger.trace(responseBody);
+			if (logger.isTraceEnabled()) {
+				logger.trace(responseBody);
+			}
 		}
 		// search for additional cookie
-//		Pattern jsCookie = Pattern.compile("<script language=javascript>document\\.cookie='([^']+)';</script>", Pattern.CASE_INSENSITIVE);
-		Pattern jsCookie = Pattern.compile("script language=javascript>document\\.cookie='([^']+)';</script>", Pattern.CASE_INSENSITIVE);
-		Matcher jsCookieMatcher = jsCookie.matcher(responseBody);
-		assert jsCookieMatcher.groupCount() == 1 ; jsCookieMatcher.groupCount();
-		while (jsCookieMatcher.find()) {
-			String cookieStr = jsCookieMatcher.group(1);
-			logger.trace("Found additional cookie: {}", cookieStr);
-			List<HttpCookie> cookies = HttpCookie.parse(cookieStr);
-			for (HttpCookie cookie : cookies) {
-				cookie.setSecure("https".equalsIgnoreCase(httpRequest.getURI().getScheme()));
-				cookie.setPath("/");
-				logger.trace("Adding cookie: {}", cookie);
-				context.getCookieStore().add(httpRequest.getURI(), cookie);
-//				context.getHttpHeaders().add("Cookie", cookie.toString());// hack, since the previous line does not work correctly when using the JVM default CookieHandler
+		{
+			Pattern jsCookie = Pattern.compile("<script language=javascript>document\\.cookie='([^']+)';</script>", Pattern.CASE_INSENSITIVE);
+			Matcher jsCookieMatcher = jsCookie.matcher(responseBody);
+			assert jsCookieMatcher.groupCount() == 1 ; jsCookieMatcher.groupCount();
+			while (jsCookieMatcher.find()) {
+				String cookieStr = jsCookieMatcher.group(1);
+				logger.trace("Found additional cookie: {}", cookieStr);
+				List<HttpCookie> cookies = HttpCookie.parse(cookieStr);
+				for (HttpCookie cookie : cookies) {
+					cookie.setSecure("https".equalsIgnoreCase(httpRequest.getURI().getScheme()));
+					cookie.setPath("/");
+					logger.trace("Adding cookie: {}", cookie);
+					context.getCookieStore().add(httpRequest.getURI(), cookie);
+//					context.getHttpHeaders().add("Cookie", cookie.toString());// hack, since the previous line does not work correctly when using the JVM default CookieHandler
+				}
 			}
 		}
 		// search for redirect
 		final String redirectURL;
-		Pattern htmlRedirect = Pattern.compile("<META HTTP-EQUIV=\"refresh\" content=\"\\d;URL=([^\"]+)\">", Pattern.CASE_INSENSITIVE);
-		Matcher htmlRedirectMatcher = htmlRedirect.matcher(responseBody);
-		assert htmlRedirectMatcher.groupCount() == 1 ; htmlRedirectMatcher.groupCount();
-		if (htmlRedirectMatcher.find()) {
-			redirectURL = htmlRedirectMatcher.group(1);
-			logger.trace("Found redirect URL: {}", redirectURL);
-		} else {
-			logger.error("Can not find the redirect URL; aborting. Response body:\n" + responseBody);
-			return false;
-		}
-		if (htmlRedirectMatcher.find()) {
-			logger.error("Found more than 1 redirect URL; aborting. Response body:\n" + responseBody);
-			return false;
-		}
-
-		// Step 1c: base URL
-		String baseURL = redirectURL.substring(0, redirectURL.indexOf(".nsf")+".nsf".length()) + '/';
-		context.setProxyBaseURL(baseURL + "iNotes/Proxy/?OpenDocument");
-		context.setFolderBaseURL(baseURL);
-		context.setMailEditBaseURL(baseURL + "iNotes/Mail/?EditDocument");
-		logger.trace("Proxy base URL for user \"{}\": {}", context.getUserName(), context.getProxyBaseURL());
-		logger.trace("Folder base URL for user \"{}\": {}", context.getUserName(), context.getFolderBaseURL());
-		logger.trace("Mail edit base URL for user \"{}\": {}", context.getUserName(), context.getMailEditBaseURL());
-
-		// Step 1d: login (ShimmerS)
-		params.clear();
-		httpRequest = context.createRequest(new URL(redirectURL), HttpMethod.GET, params);
-		httpResponse = httpRequest.execute();
-		trace(httpRequest, httpResponse);
-		context.rememberCookies(httpRequest, httpResponse);
-		if (logger.isTraceEnabled()) {
-			traceBody(httpResponse);
-		}
-		// Apparently we don't need to parse the embeded JS to set the "Shimmer" cookie.
-		try {
-			if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-				logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+		{
+			Pattern htmlRedirect = Pattern.compile("<META HTTP-EQUIV=\"refresh\" content=\"\\d;URL=([^\"]+)\">", Pattern.CASE_INSENSITIVE);
+			Matcher htmlRedirectMatcher = htmlRedirect.matcher(responseBody);
+			assert htmlRedirectMatcher.groupCount() == 1 ; htmlRedirectMatcher.groupCount();
+			if (htmlRedirectMatcher.find()) {
+				redirectURL = htmlRedirectMatcher.group(1);
+				logger.trace("Found redirect URL: {}", redirectURL);
+			} else {
+				logger.error("Can not find the redirect URL; aborting. Response body:\n" + responseBody);
 				return false;
 			}
-		} finally {
-			httpResponse.close();
+			if (htmlRedirectMatcher.find()) {
+				logger.error("Found more than 1 redirect URL; aborting. Response body:\n" + responseBody);
+				return false;
+			}
+		}
+		responseBody = null;
+
+		// Step 1c: base URL
+		{
+			String baseURL = redirectURL.substring(0, redirectURL.indexOf(".nsf")+".nsf".length()) + '/';
+			context.setProxyBaseURL(baseURL + "iNotes/Proxy/?OpenDocument");
+			context.setFolderBaseURL(baseURL);
+			context.setMailEditBaseURL(baseURL + "iNotes/Mail/?EditDocument");
+			logger.trace("Proxy base URL for user \"{}\": {}", context.getUserName(), context.getProxyBaseURL());
+			logger.trace("Folder base URL for user \"{}\": {}", context.getUserName(), context.getFolderBaseURL());
+			logger.trace("Mail edit base URL for user \"{}\": {}", context.getUserName(), context.getMailEditBaseURL());
 		}
 
-		// Step 1e: login (X-IBM-INOTES-NONCE)
-		List<HttpCookie> cookies = context.getCookieStore().getCookies();
-		for (HttpCookie cookie : cookies) {
-			if ("ShimmerS".equals(cookie.getName())) {
-				if (context.getHttpHeaders().containsKey("X-IBM-INOTES-NONCE")) {
-					logger.error("Multiple cookies \"ShimmerS\" in store; aborting.");
+		// Step 1d: login (ShimmerS cookie)
+		{
+			params.clear();
+			// need to emulate a real browser, or else we get an "unknown browser" response with no possibility to continue
+			context.getHttpHeaders().set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:14.0) Gecko/20100101 Firefox/14.0.1");
+//			context.getHttpHeaders().set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/534.57.2 (KHTML, like Gecko) Version/5.1.7 Safari/534.57.2");
+			httpRequest = context.createRequest(new URL(redirectURL), HttpMethod.GET, params);
+			httpResponse = httpRequest.execute();
+			trace(httpRequest, httpResponse);
+			context.rememberCookies(httpRequest, httpResponse);
+			responseBody = IOUtils.toString(httpResponse.getBody(), context.getCharset(httpResponse));
+			// Apparently we don't need to parse the embeded JS to set the "Shimmer" cookie.
+			try {
+				if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
+					logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
 					return false;
 				}
-				String xIbmINotesNonce;
-				Pattern shimmerS = Pattern.compile("&N:(\\p{XDigit}+)");
-				Matcher shimmerSMatcher = shimmerS.matcher(cookie.getValue());
-				assert shimmerSMatcher.groupCount() == 1 ; shimmerSMatcher.groupCount();
-				if (shimmerSMatcher.find()) {
-					xIbmINotesNonce = shimmerSMatcher.group(1);
-					logger.trace("Found X-IBM-INOTES-NONCE: {}", xIbmINotesNonce);
+			} finally {
+				httpResponse.close();
+			}
+			if (logger.isTraceEnabled()) {
+				logger.trace(responseBody);
+			}
+		}
+
+		// Step 1e: get available folders
+		{
+			// parse the response to get the SessionFrame URL
+			String sessionFrameURL;
+			{
+				Pattern sessionFrame = Pattern.compile("<frame name=\"s_SessionFrame\" src=\"([^\"]+Form=l_SessionFrame[^\"]+)\".*>", Pattern.CASE_INSENSITIVE);
+				Matcher sessionFrameMatcher = sessionFrame.matcher(responseBody);
+				assert sessionFrameMatcher.groupCount() == 1 ; sessionFrameMatcher.groupCount();
+				if (sessionFrameMatcher.find()) {
+					sessionFrameURL = sessionFrameMatcher.group(1);
+					if (! sessionFrameURL.toLowerCase().startsWith("http")) {
+						URI uri = httpRequest.getURI();
+						String uriString = uri.toString();
+						sessionFrameURL = uriString.substring(0, uriString.indexOf(uri.getRawPath())) + sessionFrameURL;
+					}
+					logger.trace("Found l_SessionFrame URL: {}", sessionFrameURL);
 				} else {
-					logger.error("Can not find X-IBM-INOTES-NONCE; aborting. ShimmerS cookie: " + cookie);
+					logger.error("Can not find the l_SessionFrame URL; aborting. Response body:\n" + responseBody);
 					return false;
 				}
-				if (shimmerSMatcher.find()) {
-					logger.error("Found more than 1 X-IBM-INOTES-NONCE; aborting. ShimmerS cookie: " + cookie);
+				if (sessionFrameMatcher.find()) {
+					logger.error("Found more than 1 l_SessionFrame URL; aborting. Response body:\n" + responseBody);
 					return false;
 				}
-				context.getHttpHeaders().set("X-IBM-INOTES-NONCE", xIbmINotesNonce);
+			}
+
+			// play the SessionFrame URL to get the SessionInfo URL
+			{
+				params.clear();
+				httpRequest = context.createRequest(new URL(sessionFrameURL), HttpMethod.GET, params);
+				httpResponse = httpRequest.execute();
+				trace(httpRequest, httpResponse);
+				context.rememberCookies(httpRequest, httpResponse);
+				responseBody = IOUtils.toString(httpResponse.getBody(), context.getCharset(httpResponse));
+				try {
+					if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
+						logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+						return false;
+					}
+				} finally {
+					httpResponse.close();
+				}
+				if (logger.isTraceEnabled()) {
+					logger.trace(responseBody);
+				}
+			}
+
+			String sessionInfoURL;
+			{
+				Pattern sessionInfo = Pattern.compile("<script src=\"([^\"]+Form=f_SessionInfo[^\"]+)\".*>", Pattern.CASE_INSENSITIVE);
+				Matcher sessionInfoMatcher = sessionInfo.matcher(responseBody);
+				assert sessionInfoMatcher.groupCount() == 1 ; sessionInfoMatcher.groupCount();
+				if (sessionInfoMatcher.find()) {
+					sessionInfoURL = sessionInfoMatcher.group(1);
+					if (! sessionInfoURL.toLowerCase().startsWith("http")) {
+						URI uri = httpRequest.getURI();
+						String uriString = uri.toString();
+						sessionInfoURL = uriString.substring(0, uriString.indexOf(uri.getRawPath())) + sessionInfoURL;
+					}
+					logger.trace("Found s_SessionInfo URL: {}", sessionInfoURL);
+				} else {
+					logger.error("Can not find the s_SessionInfo URL; aborting. Response body:\n" + responseBody);
+					return false;
+				}
+				if (sessionInfoMatcher.find()) {
+					logger.error("Found more than 1 s_SessionInfo URL; aborting. Response body:\n" + responseBody);
+					return false;
+				}
+			}
+
+			// play the SessionInfo URL to parse the folders
+			{
+				params.clear();
+				httpRequest = context.createRequest(new URL(sessionInfoURL), HttpMethod.GET, params);
+				httpResponse = httpRequest.execute();
+				trace(httpRequest, httpResponse);
+				context.rememberCookies(httpRequest, httpResponse);
+				responseBody = IOUtils.toString(httpResponse.getBody(), context.getCharset(httpResponse));
+				try {
+					if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
+						logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+						return false;
+					}
+				} finally {
+					httpResponse.close();
+				}
+				if (logger.isTraceEnabled()) {
+					logger.trace(responseBody);
+				}
+			}
+
+			{
+				Pattern jsArray = Pattern.compile("new Array\\(\"([.0-9]*?)\",(\\d+),'(.*?)','.*?','(.*?)',\".*?\"\\)", Pattern.CASE_INSENSITIVE);
+				Matcher jsArrayMatcher = jsArray.matcher(responseBody);
+				assert jsArrayMatcher.groupCount() == 4 ; jsArrayMatcher.groupCount();
+				List<String> excludedFoldersIds = context.getNotesExcludedFoldersIds();
+				while (jsArrayMatcher.find()) {
+					String levelTree   = jsArrayMatcher.group(1);
+					int levelNumber    = Integer.parseInt(jsArrayMatcher.group(2));
+					String name        = StringEscapeUtils.unescapeEcmaScript(jsArrayMatcher.group(3));
+					String url         = jsArrayMatcher.group(4);
+					if (StringUtils.isNotEmpty(url) && url.contains(".nsf/")) {
+						int startIndex = url.indexOf(".nsf/") + ".nsf/".length();
+						int endIndex = url.indexOf('/', startIndex+1);
+						String id = url.substring(startIndex, endIndex);
+						// filter folders to exclude non-user things like "Forums", "Rules", "Stationery" etc.
+						if (! (levelNumber <= 1 && excludedFoldersIds.contains(id))) {
+							Folder folder = new Folder();
+							folder.levelTree = levelTree;
+							folder.levelNumber = levelNumber;
+							folder.name = name;
+							folder.id = id;
+							folders.add(folder);
+							logger.debug("Found iNotes folder {}", folder);
+						}
+					}
+				}
+			}
+		}
+		responseBody = null;
+
+		// Step 1f: X-IBM-INOTES-NONCE header
+		{
+			List<HttpCookie> cookies = context.getCookieStore().getCookies();
+			for (HttpCookie cookie : cookies) {
+				if ("ShimmerS".equals(cookie.getName())) {
+					if (context.getHttpHeaders().containsKey("X-IBM-INOTES-NONCE")) {
+						logger.error("Multiple cookies \"ShimmerS\" in store; aborting.");
+						return false;
+					}
+					String xIbmINotesNonce;
+					Pattern shimmerS = Pattern.compile("&N:(\\p{XDigit}+)");
+					Matcher shimmerSMatcher = shimmerS.matcher(cookie.getValue());
+					assert shimmerSMatcher.groupCount() == 1 ; shimmerSMatcher.groupCount();
+					if (shimmerSMatcher.find()) {
+						xIbmINotesNonce = shimmerSMatcher.group(1);
+						logger.trace("Found X-IBM-INOTES-NONCE: {}", xIbmINotesNonce);
+					} else {
+						logger.error("Can not find X-IBM-INOTES-NONCE; aborting. ShimmerS cookie: " + cookie);
+						return false;
+					}
+					if (shimmerSMatcher.find()) {
+						logger.error("Found more than 1 X-IBM-INOTES-NONCE; aborting. ShimmerS cookie: " + cookie);
+						return false;
+					}
+					context.getHttpHeaders().set("X-IBM-INOTES-NONCE", xIbmINotesNonce);
+				}
 			}
 		}
 
@@ -239,7 +399,7 @@ public class Session {
 	public MessagesMetaData getMessagesMetaData(Date oldestMessageToFetch) throws IOException {
 		checkLoggedIn();
 		if (oldestMessageToFetch == null) {
-			oldestMessageToFetch = new Date(0 + 30*DateUtils.MILLIS_PER_DAY);
+			oldestMessageToFetch = new Date(0);
 		}
 		// iNotes limits the number of results to 1000. Need to paginate.
 		int start = 1;
@@ -410,7 +570,7 @@ public class Session {
 		params.put("s_ViewName", context.getNotesFolderName());
 		params.put("h_SetCommand", "h_DeletePages");
 		params.put("h_SetEditNextScene", "l_HaikuErrorStatusJSON");
-		params.put("h_SetDeleteList", collectionToDelimitedString(toDelete, ';'));
+		params.put("h_SetDeleteList", StringUtils.join(toDelete, ';'));
 		params.put("h_SetDeleteListCS", "");
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getMailEditBaseURL()), HttpMethod.POST, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
@@ -426,7 +586,7 @@ public class Session {
 		} finally {
 			httpResponse.close();
 		}
-		logger.info("Deleted (moved to Trash) {} messsage(s): {}", toDelete.size(), collectionToDelimitedString(toDelete, ';'));
+		logger.info("Deleted (moved to Trash) {} messsage(s): {}", toDelete.size(), StringUtils.join(toDelete, ';'));
 		toMarkReadAll.removeAll(toDelete);
 		toMarkUnreadAll.removeAll(toDelete);
 		toDelete.clear();
@@ -462,7 +622,7 @@ public class Session {
 		params.put("h_SetReturnURL", "[[./&Form=s_CallBlankScript]]");
 		params.put("h_EditAction", "h_Next");
 		params.put("h_SetEditNextScene", "l_HaikuErrorStatusJSON");
-		params.put("h_SetDeleteList", collectionToDelimitedString(toMarkRead, ';'));
+		params.put("h_SetDeleteList", StringUtils.join(toMarkRead, ';'));
 		params.put("h_SetDeleteListCS", "");
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getMailEditBaseURL()), HttpMethod.POST, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
@@ -478,7 +638,7 @@ public class Session {
 		} finally {
 			httpResponse.close();
 		}
-		logger.info("Marked {} messsage(s) as read: {}", toMarkRead.size(), collectionToDelimitedString(toMarkRead, ';'));
+		logger.info("Marked {} messsage(s) as read: {}", toMarkRead.size(), StringUtils.join(toMarkRead, ';'));
 		toMarkReadAll.removeAll(toMarkRead);
 		toMarkRead.clear();
 	}
@@ -514,7 +674,7 @@ public class Session {
 		params.put("h_SetReturnURL", "[[./&Form=s_CallBlankScript]]");
 		params.put("h_EditAction", "h_Next");
 		params.put("h_SetEditNextScene", "l_HaikuErrorStatusJSON");
-		params.put("h_SetDeleteList", collectionToDelimitedString(toMarkUnread, ';'));
+		params.put("h_SetDeleteList", StringUtils.join(toMarkUnread, ';'));
 		params.put("h_SetDeleteListCS", "");
 		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getMailEditBaseURL()+"&PresetFields=s_NoMarkRead;1"), HttpMethod.POST, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
@@ -530,21 +690,25 @@ public class Session {
 		} finally {
 			httpResponse.close();
 		}
-		logger.info("Marked {} messsage(s) as unread: {}", toMarkUnread.size(), collectionToDelimitedString(toMarkUnread, ';'));
+		logger.info("Marked {} messsage(s) as unread: {}", toMarkUnread.size(), StringUtils.join(toMarkUnread, ';'));
 		toMarkUnreadAll.removeAll(toMarkUnread);
 		toMarkUnread.clear();
 	}
 
-	public boolean logout() throws IOException {
-		if (! isLoggedIn) {
-			return true;
-		}
+	protected void cleanup() throws IOException {
 		// do mark messages unread
 		doMarkMessagesUnread();
 		// do mark messages read
 		doMarkMessagesRead();
 		// do delete messages
 		doDeleteMessages();
+	}
+
+	public boolean logout() throws IOException {
+		if (! isLoggedIn) {
+			return true;
+		}
+		cleanup();
 		// and now: logout!
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("Form", "s_Logout");
@@ -577,24 +741,6 @@ public class Session {
 		return true;
 	}
 
-
-	/**
-	 * Convenience method to return a Collection as a delimited String.
-	 * @param coll the Collection to display
-	 * @param delim the delimiter to use (probably a ';')
-	 * @return the delimited String
-	 */
-	private static String collectionToDelimitedString(Collection<?> coll, char delim) {
-		StringBuilder sb = new StringBuilder();
-		Iterator<?> it = coll.iterator();
-		while (it.hasNext()) {
-			sb.append(it.next());
-			if (it.hasNext()) {
-				sb.append(delim);
-			}
-		}
-		return sb.toString();
-	}
 
 	private class HttpCleaningLineIterator extends LineIterator implements Iterator<String>, Closeable {
 		private final ClientHttpResponse httpResponse;

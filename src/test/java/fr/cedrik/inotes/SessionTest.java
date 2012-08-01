@@ -22,11 +22,13 @@ import fr.cedrik.inotes.util.IteratorChain;
  * @author C&eacute;drik LIME
  */
 public class SessionTest {
+	private static INotesProperties iNotes;
 	private static Session session;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		session = new Session();
+		iNotes = new INotesProperties();
+		session = new Session(iNotes);
 	}
 
 	@AfterClass
@@ -47,7 +49,6 @@ public class SessionTest {
 	 */
 	@Test
 	public void testSessionWorkflow() throws IOException {
-		INotesProperties iNotes = INotesProperties.getInstance();
 		if (session.login(iNotes.getUserName(), iNotes.getUserPassword())) {
 			try {
 				MessagesMetaData messages = session.getMessagesMetaData();
