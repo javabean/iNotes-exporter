@@ -63,13 +63,13 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 					}
 				}
 			} catch (BackingStoreException ignore) {
-				logger.warn("Can not load last import date:", ignore);
+				logger.warn("Can not load last export date:", ignore);
 			}
 		}
 		if (this.oldestMessageToFetch != null) {
-			logger.info("Incremental import from " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(this.oldestMessageToFetch));
+			logger.info("Incremental export from " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(this.oldestMessageToFetch));
 		} else {
-			logger.info("Full import");
+			logger.info("Full export");
 		}
 		session = new Session(iNotes);
 		// login
@@ -126,16 +126,19 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 		Date lastExportDate = messages.entries.get(messages.entries.size()-1).date;
 		try {
 			Preferences prefs = getUserNode(true);
-			prefs.putLong(PREF_LAST_EXPORT_DATE, lastExportDate.getTime()+1);// +1: don't re-import last imported message next time...
+			prefs.putLong(PREF_LAST_EXPORT_DATE, lastExportDate.getTime()+1);// +1: don't re-export last exported message next time...
 			prefs.flush();
 		} catch (BackingStoreException ignore) {
-			logger.warn("Can not store last import date: " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(lastExportDate), ignore);
+			logger.warn("Can not store last export date: " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(lastExportDate), ignore);
 		}
 	}
 
 	protected Preferences getUserNode(boolean create) throws BackingStoreException {
 		Preferences prefs = Preferences.userNodeForPackage(this.getClass());
-		String key = this.getClass().getSimpleName()+'/'+iNotes.getUserName()+'@'+(iNotes.getServerAddress().replace('/', '\\'));
+		String key = this.getClass().getSimpleName() + '/'
+				+ iNotes.getUserName().replace('/', '\\') + '@'
+				+ (iNotes.getServerAddress().replace('/', '\\')) + '/'
+				+ (iNotes.getNotesFolderName().replace('/', '\\'));
 		if (create || prefs.nodeExists(key)) {
 			return prefs.node(key);
 		} else {

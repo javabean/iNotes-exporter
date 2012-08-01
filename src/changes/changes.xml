@@ -27,6 +27,7 @@ The <action> type attribute can be add,update,fix,remove.
 			<action type="add"    dev="clime" >ability to list iNotes (IMAP) folders and their uid (command-line and POP3 commands)</action>
 			<action type="add"    dev="clime" >[pop3] new command: logger, to set SimpleLogger levels at runtime</action>
 			<action type="fix"    dev="clime" >[pop3] remove remaining singleton, impacting multi-user capability</action>
+			<action type="fix"    dev="clime" >[mbox] the same (OS) user can now incrementally export multiple (iNotes) users mailboxes, and have iNotes Exporter correctly track the last export date for each one (previously the export date did not track folder name)</action>
 		</release>
 		<release version="1.2.1" date="2012-07-23" description="">
 			<action type="update" dev="clime" >[mbox] the same (OS) user can now incrementally export multiple (iNotes) users mailboxes, and have iNotes Exporter correctly track the last export date for each one (previously there was only 1, shared, export date)</action>
