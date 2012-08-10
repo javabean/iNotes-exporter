@@ -12,12 +12,12 @@ import java.util.List;
 public class MessagesMetaData {
 	// viewentries
 	public List<MessageMetaData> entries = new ArrayList<MessageMetaData>();
-	// dbquotasize
-	public int dbsize;
-	public int sizelimit;
-	public int warning;
-	public int ignorequota;
-	public int currentusage;
+	// dbquotasize//dbQuotaInfo
+	public int dbsize;//DBN
+	public int sizelimit;//DVL
+	public int warning;//CuL
+	public int ignorequota;//ignoreQuota
+	public int currentusage;//currentUsage
 	// unreadinfo
 	public String foldername;
 	public int unreadcount;

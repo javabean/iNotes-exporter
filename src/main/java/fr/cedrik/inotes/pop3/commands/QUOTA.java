@@ -4,7 +4,6 @@
 package fr.cedrik.inotes.pop3.commands;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.Iterator;
 
 import fr.cedrik.inotes.MessagesMetaData;
@@ -23,7 +22,7 @@ public class QUOTA extends BasePOP3Command implements POP3Command {
 
 	@Override
 	public Iterator<String> call(Context context) throws IOException {
-		MessagesMetaData messages = context.iNotesSession.getMessagesMetaData(new Date());
+		MessagesMetaData messages = context.iNotesSession.getMessagesMetaData(0);
 		/*
 		<dbquotasize>
 			<dbsize>121938</dbsize>

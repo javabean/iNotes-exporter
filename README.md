@@ -48,6 +48,8 @@ examples:
 
 If you don't know which mbox format to choose (mboxo, mboxrd, mboxcl, mboxcl2), use mboxrd.
 
+The (incremental) last export date is stored in the Java Preferences (`~/.java/` for Linux / *BSD, `~/Library/Preferences/fr.cedrik.inotes.plist` for Mac OS X, and the Registry for Windows).
+
 ### list available iNotes folders
 
 	java -jar target/iNotes-exporter-1.3-jar-with-dependencies.jar listfolders

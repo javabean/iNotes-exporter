@@ -299,7 +299,7 @@ public class Session {
 				}
 			}
 
-			// play the SessionInfo URL to parse the folders
+			// play the SessionInfo URL to parse the folders (this also contains the Domino server name)
 			{
 				params.clear();
 				httpRequest = context.createRequest(new URL(sessionInfoURL), HttpMethod.GET, params);
@@ -393,20 +393,26 @@ public class Session {
 		if (allMessagesCache != null) {
 			return allMessagesCache;
 		}
-		allMessagesCache = getMessagesMetaData(null);
+		allMessagesCache = getMessagesMetaData(null, Integer.MAX_VALUE);
 		return allMessagesCache;
 	}
+	public MessagesMetaData getMessagesMetaData(int count) throws IOException {
+		return getMessagesMetaData(null, count);
+	}
 	public MessagesMetaData getMessagesMetaData(Date oldestMessageToFetch) throws IOException {
+		return getMessagesMetaData(oldestMessageToFetch, Integer.MAX_VALUE);
+	}
+	protected MessagesMetaData getMessagesMetaData(Date oldestMessageToFetch, int count) throws IOException {
 		checkLoggedIn();
 		if (oldestMessageToFetch == null) {
 			oldestMessageToFetch = new Date(0);
 		}
 		// iNotes limits the number of results to 1000. Need to paginate.
-		int start = 1;
+		int start = 1, currentCount = 0;
 		MessagesMetaData messages = null, partialMessages;
 		boolean stopLoading = false;
 		do {
-			partialMessages = getMessagesMetaDataNoSort(start, META_DATA_LOAD_BATCH_SIZE);
+			partialMessages = getMessagesMetaDataNoSort(start, Math.min(count - currentCount, META_DATA_LOAD_BATCH_SIZE));
 			if (messages == null) {
 				messages = partialMessages;
 				// filter on date
@@ -427,7 +433,8 @@ public class Session {
 				}
 			}
 			start += META_DATA_LOAD_BATCH_SIZE;
-		} while (! stopLoading && partialMessages.entries.size() >= META_DATA_LOAD_BATCH_SIZE);
+			currentCount = messages.entries.size();
+		} while (! stopLoading && partialMessages.entries.size() >= Math.min(count - currentCount, META_DATA_LOAD_BATCH_SIZE) && currentCount < count);
 		Collections.reverse(messages.entries);
 		logger.trace("Loaded {} messages metadata", Integer.valueOf(messages.entries.size()));
 		return messages;

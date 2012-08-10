@@ -23,6 +23,9 @@ The <action> type attribute can be add,update,fix,remove.
 		<title>Lotus iNotes exporter: POP3 &amp; mbox</title>
 	</properties>
 	<body>
+		<release version="" date="" description="">
+			<action type="fix"    dev="clime" >[pop3] don't load messages meta-data on QUOTA or PASS (speed up pop3 login)</action>
+		</release>
 		<release version="1.3" date="2012-08-01" description="folders listing">
 			<action type="add"    dev="clime" >ability to list iNotes (IMAP) folders and their uid (command-line and POP3 commands)</action>
 			<action type="add"    dev="clime" >[pop3] new command: logger, to set SimpleLogger levels at runtime</action>
