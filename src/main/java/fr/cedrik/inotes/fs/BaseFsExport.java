@@ -42,7 +42,7 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 			help();
 			System.exit(-1);
 		}
-		iNotes = new INotesProperties();
+		iNotes = new INotesProperties(INotesProperties.FILE);
 		if (! prepareOutFileFields(args[0], extension)) {
 			return;
 		}

@@ -3,7 +3,7 @@
  */
 package fr.cedrik.inotes.pop3;
 
-import fr.cedrik.inotes.INotesProperties;
+
 
 /**
  * @author C&eacute;drik LIME
@@ -11,11 +11,14 @@ import fr.cedrik.inotes.INotesProperties;
 public class Context {
 	public State state = State.AUTHORIZATION;
 	public String inputArgs;
-	public fr.cedrik.inotes.Session iNotesSession = new fr.cedrik.inotes.Session(new INotesProperties());
+	public POP3Properties pop3Properties;
+	public fr.cedrik.inotes.Session iNotesSession;
 	public String userName;
 	public String userPassword;
 
-	public Context() {
+	public Context(POP3Properties pop3Properties) {
+		this.pop3Properties = pop3Properties;
+		this.iNotesSession = new fr.cedrik.inotes.Session(pop3Properties);
 	}
 
 }

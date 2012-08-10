@@ -27,7 +27,7 @@ public class INotesPropertiesTest {
 
 	@Before
 	public void setUp() throws Exception {
-		props = new INotesProperties();
+		props = new INotesProperties(INotesProperties.FILE);
 	}
 
 	@After

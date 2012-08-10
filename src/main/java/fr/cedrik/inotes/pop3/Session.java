@@ -35,7 +35,7 @@ public class Session implements Runnable {
 	protected final Socket clientSocket;
 	protected final BufferedReader in;
 	protected final Writer out;
-	protected final Context context = new Context();
+	protected final Context context ;
 	protected final Map<String, POP3Command> commands = new HashMap<String, POP3Command>();
 
 	{
@@ -48,6 +48,8 @@ public class Session implements Runnable {
 
 	public Session(Socket clientSocket) throws IOException {
 		this.clientSocket = clientSocket;
+		// don't inherit from server pop3Properties, as the properties will be changed per session/connected user
+		this.context = new Context(new POP3Properties(POP3Properties.FILE));
 		in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), DEFAULT_ENCODING));
 		out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), DEFAULT_ENCODING));
 	}

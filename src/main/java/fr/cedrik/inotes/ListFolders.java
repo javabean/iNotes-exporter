@@ -29,7 +29,7 @@ public class ListFolders implements fr.cedrik.inotes.MainRunner.Main {
 	 * @param args
 	 */
 	public static void main(String[] args) throws IOException {
-		INotesProperties iNotes = new INotesProperties();
+		INotesProperties iNotes = new INotesProperties(INotesProperties.FILE);
 		Session session = new Session(iNotes);
 		// login
 		if (! session.login(iNotes.getUserName(), iNotes.getUserPassword())) {

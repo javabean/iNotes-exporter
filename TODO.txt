@@ -13,15 +13,11 @@ Improvements
 New features
 ============
 
-* re-work configuration, or at least externalize conf with a set of default built-in
+* re-work configuration: externalize conf with a set of default built-in
 	-> avoid to re-compile for a simple configuration change!
-	-> separate mbox properties from the rest
-		-> extract webmail, username, passphrase, foldername into export.properties and move configuration reading from .inotes to .fs
 	-> support pop3 server port in jar file name
-	-> use Preferences? -> no!
-	-> java -jar "eats" the classpath -> need to manually load an external, non-classpath, resource
-	
-	-> OR: put all configuration (iNotes, pop3) in a single file; may be easier for the user. And Pop3 extends iNotes.
+	-> externalize: don't use Preferences
+* POP3: merge FOLDERS and FOLDER commands
 * POP3: additional commands?
 * POP3: allow to bind to a specific interface
 * POP3: limit the number of simultaneous connections

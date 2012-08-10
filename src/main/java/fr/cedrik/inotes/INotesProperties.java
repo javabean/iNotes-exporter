@@ -3,6 +3,9 @@
  */
 package fr.cedrik.inotes;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -12,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,32 +37,46 @@ public class INotesProperties extends Properties {
 	private static final String EXCLUDED_FOLDERS_IDS = "notes.folder.exclude.ids";//$NON-NLS-1$
 
 
-	public INotesProperties() {
-		init();
+	public INotesProperties(String file) {
+		init(file);
 	}
 
 	/**
 	 * @param defaults
 	 */
-	public INotesProperties(Properties defaults) {
+	public INotesProperties(String file, Properties defaults) {
 		super(defaults);
-		init();
+		init(file);
 	}
 
-	private void init() {
-		InputStream in = this.getClass().getResourceAsStream(FILE);
-		if (in == null) {
-			throw new IllegalStateException("Can not find file " + FILE);
-		} else {
+	protected void init(String file) {
+		InputStream in = this.getClass().getResourceAsStream(file);
+		if (in != null) {
+			// load from classpath
 			try {
 				load(in);
 			} catch (IOException e) {
-				throw new IllegalStateException("Can not load file " + FILE, e);
+				throw new IllegalStateException("Can not load file from classpath: " + file, e);
 			} finally {
+				IOUtils.closeQuietly(in);
+			}
+		} else {
+			try {
+				in = new FileInputStream(new File(file));
+			} catch (FileNotFoundException ignore) {
+			}
+			if (in != null) {
+				// load from filesystem
 				try {
-					in.close();
-				} catch (IOException ignore) {
+					load(in);
+				} catch (IOException e) {
+					throw new IllegalStateException("Can not load file from filesystem: " + file, e);
+				} finally {
+					IOUtils.closeQuietly(in);
 				}
+			} else {
+				// error
+				throw new IllegalStateException("Can not find file neither in classpath nor in filesystem: " + file);
 			}
 		}
 	}

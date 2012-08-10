@@ -27,7 +27,7 @@ public class SessionTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		iNotes = new INotesProperties();
+		iNotes = new INotesProperties(INotesProperties.FILE);
 		session = new Session(iNotes);
 	}
 
