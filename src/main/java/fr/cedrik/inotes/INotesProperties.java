@@ -82,7 +82,11 @@ public class INotesProperties extends Properties {
 	}
 
 	public String getServerAddress() {
-		return getProperty(SERVER);
+		String url = getProperty(SERVER);
+		if (url.endsWith("/")) {
+			url = url.substring(0, url.length()-1);
+		}
+		return url;
 	}
 
 	public void setServerAddress(String url) {
