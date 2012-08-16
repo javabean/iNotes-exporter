@@ -68,8 +68,8 @@ abstract class BaseMailDir extends BaseFsExport implements fr.cedrik.inotes.Main
 		// write messages
 		for (MessageMetaData message : messages.entries) {
 			IteratorChain<String> mime = session.getMessageMIME(message);
-			if (! mime.hasNext()) {
-				logger.warn("Empty MIME message! ({})", message);
+			if (mime == null || ! mime.hasNext()) {
+				logger.error("Empty MIME message! ({})", message);
 				continue;
 			}
 			logger.debug("Writing message {}", message);

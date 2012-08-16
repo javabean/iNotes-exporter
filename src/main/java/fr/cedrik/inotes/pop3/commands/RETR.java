@@ -4,7 +4,9 @@
 package fr.cedrik.inotes.pop3.commands;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import fr.cedrik.inotes.MessageMetaData;
 import fr.cedrik.inotes.MessagesMetaData;
@@ -35,9 +37,14 @@ public class RETR extends BasePOP3Command implements POP3Command {
 		}
 		// TODO may NOT refer to a message marked as deleted
 		MessageMetaData message = messages.entries.get(requestedMessageNumber-1);
-		return new IteratorChain<String>(
-				ResponseStatus.POSITIVE.toString("message " + requestedMessageNumber + " (" + message.unid + ") follows (" + message.size + " octets)"),
-				context.iNotesSession.getMessageMIME(message));
+		IteratorChain<String> mimeMessage = context.iNotesSession.getMessageMIME(message);
+		if (mimeMessage == null) {
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("unknown error: can not retrieve message"));
+		} else {
+			return new IteratorChain<String>(
+					ResponseStatus.POSITIVE.toString("message " + requestedMessageNumber + " (" + message.unid + ") follows (" + message.size + " octets)"),
+					mimeMessage);
+		}
 	}
 
 }

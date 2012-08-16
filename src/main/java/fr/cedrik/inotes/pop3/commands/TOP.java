@@ -51,16 +51,20 @@ public class TOP extends BasePOP3Command implements POP3Command {
 		}
 		MessagesMetaData messages = context.iNotesSession.getMessagesMetaData();
 		if (requestedMessageNumber > messages.entries.size()) {
-			return new LineIterator(new StringReader(ResponseStatus.NEGATIVE.toString("no such message, only " + messages.entries.size() + " messages in maildrop")));
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("no such message, only " + messages.entries.size() + " messages in maildrop"));
 		}
 		// TODO may NOT refer to a message marked as deleted
 		MessageMetaData message = messages.entries.get(requestedMessageNumber - 1);
-		String responseStatus = ResponseStatus.POSITIVE.toString("top " + requestedLinesNumber + " lines of message " + message.unid + " follows");
 		Iterator<String> mimeHeaders = context.iNotesSession.getMessageMIMEHeaders(message);
-		List<String> emptytLine = new ArrayList<String>(1);
-		emptytLine.add("");
-		// TODO requestedLinesNumber lines of body
-		return new IteratorChain<String>(responseStatus, mimeHeaders, emptytLine.iterator());
+		if (mimeHeaders == null) {
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("unknown error: can not retrieve message headers"));
+		} else {
+			String responseStatus = ResponseStatus.POSITIVE.toString("top " + requestedLinesNumber + " lines of message " + message.unid + " follows");
+			List<String> emptytLine = new ArrayList<String>(1);
+			emptytLine.add("");
+			// TODO requestedLinesNumber lines of body
+			return new IteratorChain<String>(responseStatus, mimeHeaders, emptytLine.iterator());
+		}
 	}
 
 }
