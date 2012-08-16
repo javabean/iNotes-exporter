@@ -53,8 +53,8 @@ The (incremental) last export date is stored in the Java Preferences (`~/.java/`
 use as pop3 user login: `username@https://webmail.example.com`
 
 Additional (non-standard) POP3 commands:
-* `SHUTDOWN`: to shutdown the POP3 server (set the secret in `pop3.properties`)
+* `SHUTDOWN`: to shutdown the POP3 server (set the secret in `iNotes.properties`)
 * `QUOTA`: gives information on quota usage
-* `FOLDERS`: list available iNotes folders
+* `FOLDER`: list available iNotes folders
 * `FOLDER <id>`: change current folder
 * `LOGGER`: get/set loggers level at runtime
