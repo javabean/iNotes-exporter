@@ -82,9 +82,11 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 			MessagesMetaData messages = session.getMessagesMetaData(oldestMessageToFetch);
 			checkQuota(messages);
 			if (! messages.entries.isEmpty()) {
-				this.export(messages);
-				// set Preference to oldestMessageToFetch
-				setPreferenceToOldestMessageToFetch(messages);
+				Date lastExportedMessageDate = this.export(messages);
+				if (lastExportedMessageDate != null) {
+					// set Preference to oldestMessageToFetch
+					setPreferenceToOldestMessageToFetch(lastExportedMessageDate);
+				}
 			}
 		} finally {
 			session.logout();
@@ -93,7 +95,10 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 
 	protected abstract void help();
 
-	protected abstract void export(MessagesMetaData messages) throws IOException;
+	/**
+	 * @return last exported message date (can be {@code null})
+	 */
+	protected abstract Date export(MessagesMetaData messages) throws IOException;
 
 	/**
 	 * Create objects and store them in fields. Does not physically create files.
@@ -122,10 +127,10 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 		}
 	}
 
-	protected void setPreferenceToOldestMessageToFetch(MessagesMetaData messages) {
-		Date lastExportDate = messages.entries.get(messages.entries.size()-1).date;
+	protected void setPreferenceToOldestMessageToFetch(Date lastExportDate) {
 		try {
 			Preferences prefs = getUserNode(true);
+			logger.debug("Recording last export date: {} for: {}", lastExportDate, prefs);
 			prefs.putLong(PREF_LAST_EXPORT_DATE, lastExportDate.getTime()+1);// +1: don't re-export last exported message next time...
 			prefs.flush();
 		} catch (BackingStoreException ignore) {

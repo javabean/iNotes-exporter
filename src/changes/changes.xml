@@ -23,20 +23,21 @@ The <action> type attribute can be add,update,fix,remove.
 		<title>Lotus iNotes exporter: POP3 &amp; mbox</title>
 	</properties>
 	<body>
-		<release version="1.3.1" date="2012-08-10" description="">
-			<action type="update" dev="clime" >initial configuration re-work</action>
+		<release version="1.3.1" date="2012-08-27" description="">
 			<action type="fix"    dev="clime" >fix lost HTTP session when the iNotes.properties's server URL ends with a /</action>
+			<action type="fix"    dev="clime" >[export] ensure last export date is correctly set to last exported message in case of error</action>
 			<action type="fix"    dev="clime" >[pop3] don't load messages meta-data on QUOTA or PASS (speed up pop3 login)</action>
 			<action type="update" dev="clime" >[pop3] merge FOLDERS and FOLDER commands</action>
+			<action type="update" dev="clime" >initial internal configuration re-work</action>
 		</release>
 		<release version="1.3" date="2012-08-01" description="folders listing">
 			<action type="add"    dev="clime" >ability to list iNotes (IMAP) folders and their uid (command-line and POP3 commands)</action>
 			<action type="add"    dev="clime" >[pop3] new command: logger, to set SimpleLogger levels at runtime</action>
 			<action type="fix"    dev="clime" >[pop3] remove remaining singleton, impacting multi-user capability</action>
-			<action type="fix"    dev="clime" >[mbox] the same (OS) user can now incrementally export multiple (iNotes) users mailboxes, and have iNotes Exporter correctly track the last export date for each one (previously the export date did not track folder name)</action>
+			<action type="fix"    dev="clime" >[export] the same (OS) user can now incrementally export multiple (iNotes) users mailboxes, and have iNotes Exporter correctly track the last export date for each one (previously the export date did not track folder name)</action>
 		</release>
 		<release version="1.2.1" date="2012-07-23" description="">
-			<action type="update" dev="clime" >[mbox] the same (OS) user can now incrementally export multiple (iNotes) users mailboxes, and have iNotes Exporter correctly track the last export date for each one (previously there was only 1, shared, export date)</action>
+			<action type="update" dev="clime" >[export] the same (OS) user can now incrementally export multiple (iNotes) users mailboxes, and have iNotes Exporter correctly track the last export date for each one (previously there was only 1, shared, export date)</action>
 			<action type="add"    dev="kalw"  >FreeBSD init.d scripts</action>
 		</release>
 		<release version="1.2" date="2012-07-19" description="all JVMs, multi-user, maildir, quota">

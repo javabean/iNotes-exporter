@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.channels.FileLock;
+import java.util.Date;
 
 import org.apache.commons.io.IOUtils;
 
@@ -51,9 +52,10 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 	}
 
 	@Override
-	protected final void export(MessagesMetaData messages) throws IOException {
+	protected final Date export(MessagesMetaData messages) throws IOException {
 		Writer mbox = null;
 		FileLock outFileLock = null;
+		Date lastExportedMessageDate = null;
 		try {
 			// open out file
 			boolean append = oldestMessageToFetch != null;
@@ -61,7 +63,7 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 			outFileLock = outStream.getChannel().tryLock();
 			if (outFileLock == null) {
 				logger.error("Can not acquire a lock on file " + outFile + ". Aborting.");
-				return;
+				return null;
 			}
 			mbox = new BufferedWriter(new OutputStreamWriter(outStream, Charsets.US_ASCII), 32*1024);
 			// write messages
@@ -69,7 +71,7 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 				IteratorChain<String> mime = session.getMessageMIME(message);
 				if (mime == null || ! mime.hasNext()) {
 					logger.error("Empty MIME message! ({})", message);
-					continue;
+					break;
 				}
 				logger.debug("Writing message {}", message);
 				try {
@@ -77,6 +79,7 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 				} finally {
 					mime.close();
 				}
+				lastExportedMessageDate = message.date;
 			}
 			mbox.flush();
 		} finally {
@@ -85,6 +88,7 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 			}
 			IOUtils.closeQuietly(mbox);
 		}
+		return lastExportedMessageDate;
 	}
 
 	protected void writeFromLine(Writer mbox, MessageMetaData message) throws IOException {

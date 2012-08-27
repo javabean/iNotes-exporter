@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.channels.FileLock;
+import java.util.Date;
 
 import org.apache.commons.io.IOUtils;
 
@@ -53,24 +54,25 @@ abstract class BaseMailDir extends BaseFsExport implements fr.cedrik.inotes.Main
 	}
 
 	@Override
-	protected final void export(MessagesMetaData messages) throws IOException {
+	protected final Date export(MessagesMetaData messages) throws IOException {
 		File tmpDir = new File(mailDir, TMP);
 		if (! tmpDir.exists() && ! tmpDir.mkdirs()) {
 			logger.error("Can not create directory: " + tmpDir);
-			return;
+			return null;
 		}
 		File newDir = new File(mailDir, NEW);
 		if (! newDir.exists() && ! newDir.mkdirs()) {
 			logger.error("Can not create directory: " + newDir);
-			return;
+			return null;
 		}
 		new File(mailDir, CUR).mkdirs();
+		Date lastExportedMessageDate = null;
 		// write messages
 		for (MessageMetaData message : messages.entries) {
 			IteratorChain<String> mime = session.getMessageMIME(message);
 			if (mime == null || ! mime.hasNext()) {
 				logger.error("Empty MIME message! ({})", message);
-				continue;
+				break;
 			}
 			logger.debug("Writing message {}", message);
 			// open out file
@@ -79,7 +81,7 @@ abstract class BaseMailDir extends BaseFsExport implements fr.cedrik.inotes.Main
 			FileLock tmpFileLock = outStream.getChannel().tryLock();
 			if (tmpFileLock == null) {
 				logger.error("Can not acquire a lock on file " + tmpFile + ". Aborting.");
-				continue;
+				break;
 			}
 			Writer mbox = new BufferedWriter(new OutputStreamWriter(outStream, Charsets.US_ASCII), 32*1024);
 			try {
@@ -97,7 +99,9 @@ abstract class BaseMailDir extends BaseFsExport implements fr.cedrik.inotes.Main
 			if (! tmpFile.renameTo(newFile)) {
 				logger.warn("Can not move file {} to {}", tmpFile, newFile);
 			}
+			lastExportedMessageDate = message.date;
 		}
+		return lastExportedMessageDate;
 	}
 
 	protected String getMailFileName(MessageMetaData message) {
