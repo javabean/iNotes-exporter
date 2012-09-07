@@ -23,6 +23,9 @@ The <action> type attribute can be add,update,fix,remove.
 		<title>Lotus iNotes exporter: POP3 &amp; mbox</title>
 	</properties>
 	<body>
+		<release version="1.4" date="2012-09-07" description="configuration: command-line override">
+			<action type="add"    dev="clime" >allow to override iNotes.properties properties on the command line (-Dkey=value)</action>
+		</release>
 		<release version="1.3.1" date="2012-08-27" description="">
 			<action type="fix"    dev="clime" >fix lost HTTP session when the iNotes.properties's server URL ends with a /</action>
 			<action type="fix"    dev="clime" >[export] ensure last export date is correctly set to last exported message in case of error</action>

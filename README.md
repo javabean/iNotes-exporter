@@ -8,11 +8,11 @@ Requirements
 ------------
 * Lotus iNotes credentials (tested with version 8.5.x)  
 * Java 6
-* Maven for compiling
+* Maven 3 for compiling
 
 Configuration
 -------------
-Personal credentials and preferences: `src/main/resources/iNotes.properties`  
+Personal credentials and preferences: `src/main/resources/iNotes.properties` (can be overriden on command-line)  
 logging: `src/main/resources/simplelogger.properties`
 
 Compiling
@@ -26,7 +26,7 @@ Running
 
 ### mbox/maildir export
 
-	java -jar target/iNotes-exporter-1.3.1-jar-with-dependencies.jar (mboxrd|maildir) <output_file|output_dir> [yyyy-MM-dd'T'HH:mm]
+	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] [-Dnotes.foldername=($Inbox)] -jar target/iNotes-exporter-1.4-jar-with-dependencies.jar (mboxrd|maildir) <output_file|output_dir> [yyyy-MM-dd'T'HH:mm]
 
 where
 * `yyyy-MM-dd'T'HH:mm` is the date of the oldest message to export
@@ -35,20 +35,22 @@ where
 * `<output_file>` will be overwritten if no start date is given. Otherwise, the newest email data is appended to it.
 
 examples:
-* `java -jar target/iNotes-exporter-1.3.1-jar-with-dependencies.jar mboxrd /tmp/my_mailbox 2012-01-20T20:00`
-* `java -jar target/iNotes-exporter-1.3.1-jar-with-dependencies.jar maildir /tmp/my_mailir 2012-01-20T20:00`
+* `java -jar target/iNotes-exporter-1.4-jar-with-dependencies.jar mboxrd /tmp/my_mailbox 2012-01-20T20:00`
+* `java -jar target/iNotes-exporter-1.4-jar-with-dependencies.jar maildir /tmp/my_mailir 2012-01-20T20:00`
 
 If you don't know which mbox format to choose (mboxo, mboxrd, mboxcl, mboxcl2), use mboxrd.
 
 The (incremental) last export date is stored in the Java Preferences (`~/.java/` for Linux / *BSD, `~/Library/Preferences/fr.cedrik.inotes.plist` for Mac OS X, and the Registry for Windows).
 
+If running unattended, please have a process monitor the output for all `ERROR`'s that could occur!
+
 ### list available iNotes folders
 
-	java -jar target/iNotes-exporter-1.3.1-jar-with-dependencies.jar listfolders
+	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] -jar target/iNotes-exporter-1.4-jar-with-dependencies.jar listfolders
 
 ### pop3 server
 
-	java -jar target/iNotes-exporter-1.3.1-jar-with-dependencies.jar pop3server
+	java [-Dpop3.port=110] [-Dpop3.shutdown=now!] [-Dnotes.foldername=($Inbox)] -jar target/iNotes-exporter-1.4-jar-with-dependencies.jar pop3server
 
 use as pop3 user login: `username@https://webmail.example.com`
 

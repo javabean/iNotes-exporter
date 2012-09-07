@@ -27,9 +27,9 @@ public class INotesProperties extends Properties {
 	public static final String DEFAULT_NOTES_FOLDER = "($Inbox)";//$NON-NLS-1$
 	public static final String DEFAULT_EXCLUDED_FOLDERS_IDS = "($JunkMail),($SoftDeletions),Threads,hive,(Rules),Stationery";//$NON-NLS-1$
 	// iNotes.properties keys
-	private static final String SERVER   = "server";//$NON-NLS-1$
-	private static final String USERNAME = "user";//$NON-NLS-1$
-	private static final String PASSWORD = "password";//$NON-NLS-1$
+	private static final String SERVER   = "inotes.server";//$NON-NLS-1$
+	private static final String USERNAME = "notes.user";//$NON-NLS-1$
+	private static final String PASSWORD = "notes.password";//$NON-NLS-1$
 	private static final String PROXY_TYPE     = "proxy.type";//$NON-NLS-1$
 	private static final String PROXY_HOSTNAME = "proxy.hostname";//$NON-NLS-1$
 	private static final String PROXY_PORT     = "proxy.port";//$NON-NLS-1$
@@ -80,6 +80,21 @@ public class INotesProperties extends Properties {
 			}
 		}
 	}
+
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * Looks up in System properties before looking up in this property list.
+	 */
+	@Override
+	public String getProperty(String key) {
+		String value = System.getProperty(key);
+		if (value == null) {
+			value = super.getProperty(key);
+		}
+		return value;
+	}
+
 
 	public String getServerAddress() {
 		String url = getProperty(SERVER);

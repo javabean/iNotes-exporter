@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.slf4j.impl.SimpleLogger;
 import org.slf4j.impl.SimpleLoggerAccess;
 
@@ -38,7 +39,7 @@ public class LOGGER extends BasePOP3Command implements POP3Command {
 			// list all available loggers
 			Collection<SimpleLogger> allLoggers = SimpleLoggerAccess.getAllLoggers();
 			List<String> result = new ArrayList<String>(allLoggers.size() + 1);
-			result.add(ResponseStatus.POSITIVE.toString("loggers list follows"));
+			result.add(ResponseStatus.POSITIVE.toString("loggers list follows (root logger: " + Logger.ROOT_LOGGER_NAME + ')'));
 			for (SimpleLogger logger : allLoggers) {
 				result.add(SimpleLoggerAccess.getLevelName(logger) + ' ' +  logger.getName());
 			}
