@@ -11,6 +11,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.channels.FileLock;
 import java.util.Date;
+import java.util.Iterator;
 
 import org.apache.commons.io.IOUtils;
 
@@ -38,11 +39,11 @@ abstract class BaseMailDir extends BaseFsExport implements fr.cedrik.inotes.Main
 	}
 
 	@Override
-	protected boolean prepareOutFileFields(String baseName, String extension) {
+	protected boolean validateDestinationName(String baseName, String extension) {
 		String dirName = baseName;
 		this.mailDir = new File(dirName);
-		if (! this.mailDir.exists() && ! this.mailDir.mkdirs()) {
-			logger.error("Can not create directory: " + mailDir);
+		if ((this.mailDir.exists() && ! this.mailDir.isDirectory()) || (! this.mailDir.exists() && ! this.mailDir.mkdirs())) {
+			logger.error("Not a directory, or can not create directory: " + mailDir);
 			return false;
 		}
 		return true;
@@ -109,4 +110,13 @@ abstract class BaseMailDir extends BaseFsExport implements fr.cedrik.inotes.Main
 		// here we use use iNotes date + iNotes unid
 		return "" + message.date.getTime() + '-' + message.unid;
 	}
+
+	@Override
+	protected void writeMIME(Writer mbox, MessageMetaData message, Iterator<String> mime) throws IOException {
+		while (mime.hasNext()) {
+			String line = mime.next();
+			mbox.append(line).append('\n');
+		}
+	}
+
 }

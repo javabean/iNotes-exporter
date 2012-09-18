@@ -37,7 +37,7 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 	}
 
 	@Override
-	protected boolean prepareOutFileFields(String baseName, String extension) {
+	protected boolean validateDestinationName(String baseName, String extension) {
 		String fileName = baseName;
 		if (! fileName.endsWith(extension)) {
 			fileName += extension;

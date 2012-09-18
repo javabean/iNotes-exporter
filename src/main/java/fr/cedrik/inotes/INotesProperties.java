@@ -24,7 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 public class INotesProperties extends Properties {
 	public static final String FILE = "/iNotes.properties";//$NON-NLS-1$
 	// default values
-	public static final String DEFAULT_NOTES_FOLDER = "($Inbox)";//$NON-NLS-1$
+	public static final String DEFAULT_NOTES_FOLDER_ID = Folder.INBOX;
 	public static final String DEFAULT_EXCLUDED_FOLDERS_IDS = "($JunkMail),($SoftDeletions),Threads,hive,(Rules),Stationery";//$NON-NLS-1$
 	// iNotes.properties keys
 	private static final String SERVER   = "inotes.server";//$NON-NLS-1$
@@ -33,7 +33,7 @@ public class INotesProperties extends Properties {
 	private static final String PROXY_TYPE     = "proxy.type";//$NON-NLS-1$
 	private static final String PROXY_HOSTNAME = "proxy.hostname";//$NON-NLS-1$
 	private static final String PROXY_PORT     = "proxy.port";//$NON-NLS-1$
-	private static final String NOTES_FOLDER_NAME = "notes.foldername";//$NON-NLS-1$
+	private static final String NOTES_FOLDER_ID = "notes.folder.id";//$NON-NLS-1$
 	private static final String EXCLUDED_FOLDERS_IDS = "notes.folder.exclude.ids";//$NON-NLS-1$
 
 
@@ -139,11 +139,11 @@ public class INotesProperties extends Properties {
 		return proxy;
 	}
 
-	public String getNotesFolderName() {
-		return getProperty(NOTES_FOLDER_NAME, DEFAULT_NOTES_FOLDER);
+	public String getNotesFolderId() {
+		return getProperty(NOTES_FOLDER_ID, DEFAULT_NOTES_FOLDER_ID);
 	}
-	public void setNotesFolderName(String notesFolderID) {
-		setProperty(NOTES_FOLDER_NAME, notesFolderID);
+	public void setNotesFolderId(String notesFolderID) {
+		setProperty(NOTES_FOLDER_ID, notesFolderID);
 	}
 
 	public List<String> getNotesExcludedFoldersIds() {

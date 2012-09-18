@@ -13,7 +13,7 @@
 	<!-- Coordinates -->
 	<groupId>fr.cedrik.inotes</groupId>
 	<artifactId>iNotes-exporter</artifactId>
-	<version>1.4</version>
+	<version>1.5</version>
 
 	<!-- Inheritance -->
 	<!--parent>
@@ -59,6 +59,12 @@
 			<version>${spring.version}</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+			<version>1.4.5</version>
+			<scope>compile</scope>
+		</dependency>
 		<!-- Provided dependencies -->
 		<dependency>
 			<groupId>commons-logging</groupId>
@@ -67,6 +73,12 @@
 			<scope>provided</scope><!-- prevents any version of commons-logging to be bundled with the final artifact -->
 			<optional>true</optional>
 		</dependency>
+		<dependency><!-- not needed on Java 6, but transitive deps loads it anyway... -->
+			<groupId>javax.activation</groupId>
+			<artifactId>activation</artifactId>
+			<version>1.1.1</version>
+			<scope>provided</scope>
+		</dependency>
 		<!-- Run-time dependencies -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -74,6 +86,24 @@
 			<version>${slf4j.version}</version>
 			<scope>runtime</scope>
 		</dependency>
+		<!--dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>apache-log4j-extras</artifactId>
+			<version>1.1</version>
+			<scope>runtime</scope>
+		</dependency-->
 		<!-- Test-time dependencies -->
 		<dependency>
 			<groupId>junit</groupId>
@@ -296,7 +326,7 @@
 
 	<!-- Maven Environment -->
 	<prerequisites>
-		<maven>3.0.3</maven>
+		<maven>3.0.4</maven>
 	</prerequisites>
 	<repositories></repositories>
 	<pluginRepositories></pluginRepositories>

@@ -35,14 +35,14 @@ public class POP3Properties extends INotesProperties {
 	@Override
 	protected void init(String file) {
 		super.init(file);
-		setNotesFolderName(DEFAULT_NOTES_FOLDER);
+		setNotesFolderId(DEFAULT_NOTES_FOLDER_ID);
 	}
 
-	public int getServerPort() {
+	public int getPOP3ServerPort() {
 		return Integer.parseInt(getProperty(SERVER_PORT, DEFAULT_PORT));
 	}
 
-	public String getShutdownSecret() {
+	public String getPOP3ShutdownSecret() {
 		return getProperty(SHUTDOWN_SECRET, DEFAULT_SHARED_SECRET);
 	}
 

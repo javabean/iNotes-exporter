@@ -7,6 +7,15 @@ package fr.cedrik.inotes;
  * @author C&eacute;drik LIME
  */
 public class Folder {
+	// Special folders ids
+	public static final String INBOX          = "($Inbox)";//$NON-NLS-1$
+	public static final String DRAFTS         = "($Drafts)";//$NON-NLS-1$
+	public static final String SENT           = "($Sent)";//$NON-NLS-1$
+	public static final String FOLLOW_UP      = "($Follow-Up)";//$NON-NLS-1$
+	public static final String ALL            = "($All)";//$NON-NLS-1$
+	public static final String JUNKMAIL       = "($JunkMail)";//$NON-NLS-1$
+	public static final String SOFT_DELETIONS = "($SoftDeletions)"; // maildir++ name: .Trash //$NON-NLS-1$
+
 	public String levelTree;
 	public int    levelNumber;
 	public String name;
@@ -15,9 +24,17 @@ public class Folder {
 	public Folder() {
 	}
 
+	public boolean isInbox() {
+		return INBOX.equals(id);
+	}
+
+	public boolean isAllMails() {
+		return ALL.equals(id);
+	}
+
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " (level " + levelNumber + ' ' + levelTree + "): " + name + ' ' + id;
+		return getClass().getSimpleName() + " (level " + levelNumber + ", #" + levelTree + "):\t" + id + '\t' + name;
 	}
 
 	@Override

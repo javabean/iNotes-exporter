@@ -52,7 +52,7 @@ public class Session {
 	protected final Set<String> toMarkReadAll = new HashSet<String>();
 	protected MessagesMetaData allMessagesCache = null;
 	protected boolean isLoggedIn = false;
-	protected List<Folder> folders = new ArrayList<Folder>();
+	protected FoldersList folders = new FoldersList();
 
 	static {
 //		System.setProperty("java.util.logging.config.file", "logging.properties");//XXX DEBUG
@@ -81,7 +81,7 @@ public class Session {
 		context.iNotes.setServerAddress(url);
 	}
 
-	public List<Folder> getFolders() {
+	public FoldersList getFolders() {
 		if (! isLoggedIn) {
 			throw new IllegalStateException();
 		}
@@ -92,7 +92,7 @@ public class Session {
 		if (isLoggedIn) {
 			cleanup();
 		}
-		context.setNotesFolderName(folder.id);
+		context.setNotesFolderId(folder.id);
 		allMessagesCache = null;
 	}
 
@@ -453,7 +453,7 @@ public class Session {
 		params.put("Start", Integer.toString(start));
 		params.put("Count", Integer.toString(count));
 		params.put("resortdescending", "5");
-		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getProxyBaseURL()+"&PresetFields=DBQuotaInfo;1,FolderName;"+context.getNotesFolderName()+",UnreadCountInfo;1,s_UsingHttps;1,hc;$98,noPI;1"), HttpMethod.GET, params);
+		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getProxyBaseURL()+"&PresetFields=DBQuotaInfo;1,FolderName;"+context.getNotesFolderId()+",UnreadCountInfo;1,s_UsingHttps;1,hc;$98,noPI;1"), HttpMethod.GET, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
 //		traceBody(httpResponse);// DEBUG
@@ -574,7 +574,7 @@ public class Session {
 		params.put("h_SetReturnURL", "[[./&Form=s_CallBlankScript]]");
 		params.put("h_AllDocs", "");
 		params.put("h_FolderStorage", "");
-		params.put("s_ViewName", context.getNotesFolderName());
+		params.put("s_ViewName", context.getNotesFolderId());
 		params.put("h_SetCommand", "h_DeletePages");
 		params.put("h_SetEditNextScene", "l_HaikuErrorStatusJSON");
 		params.put("h_SetDeleteList", StringUtils.join(toDelete, ';'));
@@ -623,7 +623,7 @@ public class Session {
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("Form", "l_HaikuErrorStatusJSON");
 		params.put("ui", "dwa_form");
-		params.put("s_ViewName", context.getNotesFolderName());
+		params.put("s_ViewName", context.getNotesFolderId());
 		params.put("h_AllDocs", "");
 		params.put("h_SetCommand", "h_ShimmerMarkRead");
 		params.put("h_SetReturnURL", "[[./&Form=s_CallBlankScript]]");
@@ -675,7 +675,7 @@ public class Session {
 		params.put("Form", "l_HaikuErrorStatusJSON");
 		params.put("ui", "dwa_form");
 //		params.put("PresetFields", "s_NoMarkRead;1");
-		params.put("s_ViewName", context.getNotesFolderName());
+		params.put("s_ViewName", context.getNotesFolderId());
 		params.put("h_AllDocs", "");
 		params.put("h_SetCommand", "h_ShimmerMarkUnread");
 		params.put("h_SetReturnURL", "[[./&Form=s_CallBlankScript]]");

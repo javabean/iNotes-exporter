@@ -90,11 +90,11 @@ public class HttpContext {
 		iNotes.setUserPassword(password);
 	}
 
-	public String getNotesFolderName() {
-		return iNotes.getNotesFolderName();
+	public String getNotesFolderId() {
+		return iNotes.getNotesFolderId();
 	}
-	public void setNotesFolderName(String notesFolderID) {
-		iNotes.setNotesFolderName(notesFolderID);
+	public void setNotesFolderId(String notesFolderID) {
+		iNotes.setNotesFolderId(notesFolderID);
 	}
 
 	public List<String> getNotesExcludedFoldersIds() {
@@ -110,7 +110,7 @@ public class HttpContext {
 	}
 
 	public String getFolderBaseURL() {
-		return folderBaseURL + getNotesFolderName() + '/';
+		return folderBaseURL + getNotesFolderId() + '/';
 	}
 
 	public void setFolderBaseURL(String baseURL) {

@@ -15,6 +15,8 @@ import java.util.prefs.Preferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.cedrik.inotes.Folder;
+import fr.cedrik.inotes.FoldersList;
 import fr.cedrik.inotes.INotesProperties;
 import fr.cedrik.inotes.MessageMetaData;
 import fr.cedrik.inotes.MessagesMetaData;
@@ -42,10 +44,31 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 			help();
 			System.exit(-1);
 		}
-		iNotes = new INotesProperties(INotesProperties.FILE);
-		if (! prepareOutFileFields(args[0], extension)) {
+		if (! validateDestinationName(args[0], extension)) {
 			return;
 		}
+		iNotes = new INotesProperties(INotesProperties.FILE);
+		// login
+		session = new Session(iNotes);
+		if (! session.login(iNotes.getUserName(), iNotes.getUserPassword())) {
+			logger.error("Can not login user {}!", iNotes.getUserName());
+			return;
+		}
+		try {
+			// export folders hierarchy
+			FoldersList folders = session.getFolders();
+			Folder folder = folders.getFolderById(iNotes.getNotesFolderId());
+			export(folder, args);
+		} finally {
+			session.logout();
+		}
+	}
+
+	protected abstract void help();
+
+	protected void export(Folder folder, String[] args) throws IOException {
+		session.setCurrentFolder(folder);
+		this.oldestMessageToFetch = null; // reset
 		if (args.length > 1) {
 			try {
 				this.oldestMessageToFetch = new SimpleDateFormat(ISO8601_DATE_SEMITIME).parse(args[1]);
@@ -67,33 +90,23 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 			}
 		}
 		if (this.oldestMessageToFetch != null) {
-			logger.info("Incremental export from " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(this.oldestMessageToFetch));
+			logger.info(folder.name + ": incremental export from " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(this.oldestMessageToFetch));
 		} else {
-			logger.info("Full export");
+			logger.info(folder.name + ": full export");
 		}
-		session = new Session(iNotes);
-		// login
-		if (! session.login(iNotes.getUserName(), iNotes.getUserPassword())) {
-			logger.error("Can not login user {}!", iNotes.getUserName());
-			return;
-		}
-		try {
-			// meta-data
-			MessagesMetaData messages = session.getMessagesMetaData(oldestMessageToFetch);
+		// meta-data
+		MessagesMetaData messages = session.getMessagesMetaData(oldestMessageToFetch);
+		if (folder.isInbox() || folder.isAllMails()) {
 			checkQuota(messages);
-			if (! messages.entries.isEmpty()) {
-				Date lastExportedMessageDate = this.export(messages);
-				if (lastExportedMessageDate != null) {
-					// set Preference to oldestMessageToFetch
-					setPreferenceToOldestMessageToFetch(lastExportedMessageDate);
-				}
+		}
+		if (! messages.entries.isEmpty()) {
+			Date lastExportedMessageDate = this.export(messages);
+			if (lastExportedMessageDate != null) {
+				// set Preference to oldestMessageToFetch
+				setPreferenceToOldestMessageToFetch(lastExportedMessageDate);
 			}
-		} finally {
-			session.logout();
 		}
 	}
-
-	protected abstract void help();
 
 	/**
 	 * @return last exported message date (can be {@code null})
@@ -101,9 +114,9 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 	protected abstract Date export(MessagesMetaData messages) throws IOException;
 
 	/**
-	 * Create objects and store them in fields. Does not physically create files.
+	 * Create Java objects and store them in fields. Does not physically create files.
 	 */
-	protected abstract boolean prepareOutFileFields(String baseName, String extension);
+	protected abstract boolean validateDestinationName(String baseName, String extension);
 
 	/**
 	 * Usually, check if outFile exists
@@ -143,7 +156,7 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 		String key = this.getClass().getSimpleName() + '/'
 				+ iNotes.getUserName().replace('/', '\\') + '@'
 				+ (iNotes.getServerAddress().replace('/', '\\')) + '/'
-				+ (iNotes.getNotesFolderName().replace('/', '\\'));
+				+ (iNotes.getNotesFolderId().replace('/', '\\'));
 		if (create || prefs.nodeExists(key)) {
 			return prefs.node(key);
 		} else {

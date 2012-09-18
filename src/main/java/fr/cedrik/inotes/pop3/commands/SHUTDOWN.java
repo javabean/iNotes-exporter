@@ -28,7 +28,7 @@ public class SHUTDOWN extends BasePOP3Command implements POP3Command {
 	@Override
 	public Iterator<String> call(Context context) throws IOException {
 		String magicPassword = context.inputArgs;
-		if (context.pop3Properties.getShutdownSecret().equals(magicPassword)) {
+		if (context.pop3Properties.getPOP3ShutdownSecret().equals(magicPassword)) {
 			POP3Server.shutdown();
 		}
 		// no else: we don't want to give any indication of "password" failure...
