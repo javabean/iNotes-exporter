@@ -78,6 +78,7 @@ public class FoldersList extends ArrayList<Folder> {
 		Folder parent;
 		while ((parent = getParent(folder)) != null) {
 			result.add(parent);
+			folder = parent;
 		}
 		Collections.reverse(result);
 		assert result != null && ! result.isEmpty() : folder;

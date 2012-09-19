@@ -16,10 +16,10 @@ public class Folder {
 	public static final String JUNKMAIL       = "($JunkMail)";//$NON-NLS-1$
 	public static final String SOFT_DELETIONS = "($SoftDeletions)"; // maildir++ name: .Trash //$NON-NLS-1$
 
-	public String levelTree;
-	public int    levelNumber;
-	public String name;
 	public String id;
+	public String name;
+	public int    levelNumber;
+	public String levelTree;
 
 	public Folder() {
 	}
