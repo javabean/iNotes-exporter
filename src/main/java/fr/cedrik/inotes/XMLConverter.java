@@ -5,160 +5,242 @@ package fr.cedrik.inotes;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
+import javax.xml.namespace.QName;
+import javax.xml.stream.Location;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLReporter;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 /**
  * @author C&eacute;drik LIME
  */
+// StAX event API
 class XMLConverter {
 	protected static final Logger logger = LoggerFactory.getLogger(XMLConverter.class);
 
 	public XMLConverter() {
 	}
 
-	public MessagesMetaData convertXML(InputStream input) throws IOException {
-		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-		Document doc;
-		try {
-			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			doc = dBuilder.parse(input);
-		} catch (ParserConfigurationException e) {
-			logger.error("", e);
-			return null;
-		} catch (SAXException e) {
-			logger.error("", e);
-			return null;
+	public MessagesMetaData convertXML(InputStream input, Charset charset) throws IOException, XMLStreamException {
+		XMLInputFactory factory = XMLInputFactory.newInstance();
+		if (factory.isPropertySupported(XMLInputFactory.IS_VALIDATING)) {
+			factory.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
 		}
-		doc.getDocumentElement().normalize();
+		if (factory.isPropertySupported(XMLInputFactory.IS_COALESCING)) {
+			factory.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
+		}
+		factory.setXMLReporter(new XMLReporter() {
+			@Override
+			public void report(String message, String errorType,
+					Object relatedInformation, Location location)
+					throws XMLStreamException {
+				logger.warn("Error of type: " + errorType + ", message: " + message);
+			}
+		});
+		XMLEventReader reader;
+		if (charset != null) {
+			reader = factory.createXMLEventReader(input, charset.name());
+		} else {
+			reader = factory.createXMLEventReader(input);
+		}
+
 		MessagesMetaData messages = new MessagesMetaData();
-		try {
-			Number dbsize       = (Number) dbsizeXP.evaluate(doc, XPathConstants.NUMBER);
-			Number sizelimit    = (Number) sizelimitXP.evaluate(doc, XPathConstants.NUMBER);
-			Number warning      = (Number) warningXP.evaluate(doc, XPathConstants.NUMBER);
-			Number ignorequota  = (Number) ignorequotaXP.evaluate(doc, XPathConstants.NUMBER);
-			Number currentusage = (Number) currentusageXP.evaluate(doc, XPathConstants.NUMBER);
-			String foldername   = (String) foldernameXP.evaluate(doc, XPathConstants.STRING);
-			Number unreadcount  = (Number) unreadcountXP.evaluate(doc, XPathConstants.NUMBER);
-			messages.dbsize       = dbsize.intValue();
-			messages.sizelimit    = sizelimit.intValue();
-			messages.warning      = warning.intValue();
-			messages.ignorequota  = ignorequota.intValue();
-			messages.currentusage = currentusage.intValue();
-			messages.foldername   = foldername;
-			messages.unreadcount  = unreadcount.intValue();
-			NodeList messagesList = (NodeList) viewentryXP.evaluate(doc, XPathConstants.NODESET);
-			if (messagesList != null) {
-				for (int i = 0; i < messagesList.getLength(); ++i) {
-					Node node = messagesList.item(i);
-					MessageMetaData message = new MessageMetaData();
-					message.unid        = (String) unidXP.evaluate(node, XPathConstants.STRING);
-					message.noteid      = (String) noteidXP.evaluate(node, XPathConstants.STRING);
-					message.unread      = ((Boolean) unreadXP.evaluate(node, XPathConstants.BOOLEAN)).booleanValue();
-					message.type        = ((Number) typeXP.evaluate(node, XPathConstants.NUMBER)).intValue();
-					message.importance  = ((Number) importanceXP.evaluate(node, XPathConstants.NUMBER)).intValue();
-					message.from93      = (String) from93XP.evaluate(node, XPathConstants.STRING);
-					message.from98      = (String) from98XP.evaluate(node, XPathConstants.STRING);
-					message.subject     = (String) subjectXP.evaluate(node, XPathConstants.STRING);
-					String dateStr = (String) dateXP.evaluate(node, XPathConstants.STRING);
-					if (StringUtils.isNotEmpty(dateStr)) {
-						message.date        = new SimpleDateFormat("yyyyMMdd'T'HHmmss','SS'Z'").parse(dateStr);
+		while (reader.hasNext()) {
+			XMLEvent next = reader.nextEvent();
+			if (next.isStartElement()) {
+				StartElement start = next.asStartElement();
+				String startName = start.getName().getLocalPart();
+				if ("viewentry".equals(startName)) {
+					try {
+						MessageMetaData message = new MessageMetaData();
+						loadViewEntry(message, start, reader);
+						if (StringUtils.isBlank(message.unid)) {
+							logger.error("Error while parsing XML viewentry: empty unid!");
+							return null;
+						}
+						messages.entries.add(message);
+					} catch (ParseException e) {
+						logger.error("", e);
+						return null;
 					}
-					message.size        = ((Number) sizeXP.evaluate(node, XPathConstants.NUMBER)).intValue();
-					message.recipient   = ((Number) recipientXP.evaluate(node, XPathConstants.NUMBER)).intValue();
-					message.attachement = ((Number) attachementXP.evaluate(node, XPathConstants.NUMBER)).intValue();
-					message.answerFlag  = ((Number) answerFlagXP.evaluate(node, XPathConstants.NUMBER)).intValue();
-					if (StringUtils.isBlank(message.unid)) {
-						logger.error("Error while parsing XML viewentry: empty unid! {}", node);
-						continue;
-					}
-					messages.entries.add(message);
+				} else if ("dbquotasize".equals(startName)) {
+					loadDbQuotaSize(messages, reader);
+				} else if ("unreadinfo".equals(startName)) {
+					loadUnreadInfo(messages, reader);
 				}
 			}
-		} catch (XPathExpressionException e) {
-			logger.error("", e);
-			return null;
-		} catch (ParseException e) {
-			logger.error("", e);
-			return null;
 		}
+		reader.close();
 		return messages;
 	}
 
-	private static final XPathFactory xpFactory = XPathFactory.newInstance();
-	private static final XPath xpath = xpFactory.newXPath();
-	private static final XPathExpression viewentryXP;
-	private static final XPathExpression dbsizeXP;
-	private static final XPathExpression sizelimitXP;
-	private static final XPathExpression warningXP;
-	private static final XPathExpression ignorequotaXP;
-	private static final XPathExpression currentusageXP;
-	private static final XPathExpression foldernameXP;
-	private static final XPathExpression unreadcountXP;
-	private static final XPathExpression unidXP;
-	private static final XPathExpression noteidXP;
-	private static final XPathExpression unreadXP;
-	private static final XPathExpression typeXP;
-	private static final XPathExpression importanceXP;
-//	private static final XPathExpression availabilityXP;
-	private static final XPathExpression from93XP;
-	private static final XPathExpression from98XP;
-//	private static final XPathExpression threadXP;
-	private static final XPathExpression subjectXP;
-	private static final XPathExpression dateXP;
-	private static final XPathExpression sizeXP;
-	private static final XPathExpression recipientXP;
-	private static final XPathExpression attachementXP;
-	private static final XPathExpression answerFlagXP;
-//	private static final XPathExpression userDataXP;
-
-	static {
-		try {
-			dbsizeXP       = xpath.compile("/readviewentries/dbquotasize/dbsize");
-			sizelimitXP    = xpath.compile("/readviewentries/dbquotasize/sizelimit");
-			warningXP      = xpath.compile("/readviewentries/dbquotasize/warning");
-			ignorequotaXP  = xpath.compile("/readviewentries/dbquotasize/ignorequota");
-			currentusageXP = xpath.compile("/readviewentries/dbquotasize/currentusage");
-			foldernameXP  = xpath.compile("/readviewentries/unreadinfo/foldername");
-			unreadcountXP = xpath.compile("/readviewentries/unreadinfo/unreadcount");
-			viewentryXP = xpath.compile("/readviewentries/viewentries/viewentry");
-			unidXP        = xpath.compile("@unid");
-			noteidXP      = xpath.compile("@noteid");
-			unreadXP      = xpath.compile("@unread");
-			typeXP        = xpath.compile("entrydata[@name='$86']/number");
-			importanceXP  = xpath.compile("entrydata[@name='$Importance']/number");
-//			availabilityXP = xpath.compile("entrydata[@name='SametimeInfo']/XXXXX");
-			from93XP      = xpath.compile("entrydata[@name='$93']/text");
-			from98XP      = xpath.compile("entrydata[@name='$98']/text");
-//			threadXP      = xpath.compile("entrydata[@name='$ThreadColumn']/XXXXX");
-			subjectXP     = xpath.compile("entrydata[@name='$73']/text");
-			dateXP        = xpath.compile("entrydata[@name='$70']/datetime");
-			sizeXP        = xpath.compile("entrydata[@name='$106']/number");
-			recipientXP   = xpath.compile("entrydata[@name='$ToStuff']/number");
-			attachementXP = xpath.compile("entrydata[@name='$97']/number");
-			answerFlagXP  = xpath.compile("entrydata[@name='$109']/number");
-//			userDataXP    = xpath.compile("entrydata[@name='$UserData']/XXXXX");
-		} catch (XPathExpressionException e) {
-			logger.error("", e);
-			throw new RuntimeException(e);
+	protected void loadDbQuotaSize(MessagesMetaData messages, XMLEventReader reader) throws XMLStreamException {
+		while (reader.hasNext()) {
+			XMLEvent next = reader.nextEvent();
+			if (next.isStartElement()) {
+				StartElement start = next.asStartElement();
+				String startName = start.getName().getLocalPart();
+				if ("dbsize".equals(startName)) {
+					messages.dbsize = Integer.parseInt(readElementValue(reader, start));
+				} else if ("sizelimit".equals(startName)) {
+					messages.sizelimit = Integer.parseInt(readElementValue(reader, start));
+				} else if ("warning".equals(startName)) {
+					messages.warning = Integer.parseInt(readElementValue(reader, start));
+				} else if ("ignorequota".equals(startName)) {
+					messages.ignorequota = Integer.parseInt(readElementValue(reader, start));
+				} else if ("currentusage".equals(startName)) {
+					messages.currentusage = Integer.parseInt(readElementValue(reader, start));
+				} else {
+					logger.debug("Unknown DbQuotaSize element: {}", startName);
+				}
+			} else if (next.isEndElement()) {
+				if ("dbquotasize".equals(next.asEndElement().getName().getLocalPart())) {
+					return;
+				}
+			}
 		}
 	}
 
+	protected void loadUnreadInfo(MessagesMetaData messages, XMLEventReader reader) throws XMLStreamException {
+		while (reader.hasNext()) {
+			XMLEvent next = reader.nextEvent();
+			if (next.isStartElement()) {
+				StartElement start = next.asStartElement();
+				String startName = start.getName().getLocalPart();
+				if ("foldername".equals(startName)) {
+					messages.foldername = readElementValue(reader, start);
+				} else if ("unreadcount".equals(startName)) {
+					messages.unreadcount = Integer.parseInt(readElementValue(reader, start));
+				} else {
+					logger.debug("Unknown UnreadInfo element: {}", startName);
+				}
+			} else if (next.isEndElement()) {
+				if ("unreadinfo".equals(next.asEndElement().getName().getLocalPart())) {
+					return;
+				}
+			}
+		}
+	}
+
+	protected void loadViewEntry(MessageMetaData message, StartElement viewEntry, XMLEventReader reader) throws XMLStreamException, ParseException {
+		Attribute unid = viewEntry.getAttributeByName(QName.valueOf("unid"));
+		message.unid = unid.getValue();
+		Attribute noteid = viewEntry.getAttributeByName(QName.valueOf("noteid"));
+		message.noteid = noteid.getValue();
+		Attribute unread = viewEntry.getAttributeByName(QName.valueOf("unread"));
+		if (unread != null) {
+			message.unread = Boolean.parseBoolean(unread.getValue());
+		}
+
+		while (reader.hasNext()) {
+			XMLEvent next = reader.nextEvent();
+			if (next.isStartElement()) {
+				StartElement start = next.asStartElement();
+				String startName = start.getName().getLocalPart();
+				if ("entrydata".equals(startName)) {
+					// read data value
+					String value = readSingleSubElementValue(reader, start);
+					// determine which attribute this is
+					String name = start.getAttributeByName(QName.valueOf("name")).getValue();
+					if ("$86".equals(name)) { // type
+						if (StringUtils.isNotBlank(value)) {
+							message.type = Integer.parseInt(value);
+						}
+					} else if ("$Importance".equals(name)) { // importance
+						if (StringUtils.isNotBlank(value)) {
+							message.importance = Integer.parseInt(value);
+						}
+//					} else if ("SametimeInfo".equals(name)) { // availability
+//						message.availability = value;
+					} else if ("$93".equals(name)) { // from
+						message.from93 = value;
+					} else if ("$98".equals(name)) { // from
+						message.from98 = value;
+//					} else if ("$ThreadColumn".equals(name)) { // thread
+//						message.thread = value;
+					} else if ("$73".equals(name)) { // subject
+						message.subject = value;
+					} else if ("$70".equals(name)) { // date
+						if (StringUtils.isNotBlank(value)) {
+							message.date = new SimpleDateFormat("yyyyMMdd'T'HHmmss','SS'Z'").parse(value);
+						}
+					} else if ("$106".equals(name)) { // size
+						if (StringUtils.isNotBlank(value)) {
+							message.size = Integer.parseInt(value);
+						}
+					} else if ("$ToStuff".equals(name)) { // recipient
+						if (StringUtils.isNotBlank(value)) {
+							message.recipient = Integer.parseInt(value);
+						}
+					} else if ("$97".equals(name)) { // attachement
+						if (StringUtils.isNotBlank(value)) {
+							message.attachement = Integer.parseInt(value);
+						}
+					} else if ("$109".equals(name)) { // answer flag
+						if (StringUtils.isNotBlank(value)) {
+							message.answerFlag = Integer.parseInt(value);
+						}
+//					} else if ("$UserData".equals(name)) { // user data
+//						message.userData = value;
+					} else {
+						logger.debug("Unknown EntryData attribute value: {}", name);
+					}
+				} else {
+					logger.debug("Unknown ViewEntry element: {}", startName);
+				}
+			} else if (next.isEndElement()) {
+				if ("viewentry".equals(next.asEndElement().getName().getLocalPart())) {
+					return;
+				}
+			}
+		}
+	}
+
+	protected String readSingleSubElementValue(XMLEventReader reader, StartElement start) throws XMLStreamException {
+		String value = null;
+		boolean inValueElement = false;
+		while (reader.hasNext()) {
+			XMLEvent next = reader.nextEvent();
+			if (next.isStartElement()) {
+				inValueElement = true;
+				StartElement startData = next.asStartElement();
+				logger.trace("{} element: {}", start.getName().getLocalPart(), startData.getName().getLocalPart());
+			} else if (next.isCharacters() && inValueElement) {
+				value = next.asCharacters().getData();
+			} else if (next.isEndElement()) {
+				inValueElement = false;
+				if (start.getName().getLocalPart().equals(next.asEndElement().getName().getLocalPart())) {
+					return value;
+				}
+			}
+		}
+		return value;
+	}
+
+	protected String readElementValue(XMLEventReader reader, StartElement start) throws XMLStreamException {
+		String value = null;
+		while (reader.hasNext()) {
+			XMLEvent next = reader.nextEvent();
+			if (next.isCharacters()) {
+				value = next.asCharacters().getData();
+			} else if (next.isEndElement()) {
+				if (start.getName().getLocalPart().equals(next.asEndElement().getName().getLocalPart())) {
+					return value;
+				}
+			}
+		}
+		return value;
+	}
 }

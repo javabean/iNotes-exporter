@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.stream.XMLStreamException;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.CharEncoding;
@@ -464,7 +466,9 @@ public class Session {
 		}
 		MessagesMetaData messages;
 		try {
-			messages = new XMLConverter().convertXML(httpResponse.getBody());
+			messages = new XMLConverter().convertXML(httpResponse.getBody(), context.getCharset(httpResponse));
+		} catch (XMLStreamException e) {
+			throw new IOException(e);
 		} finally {
 			httpResponse.close();
 		}

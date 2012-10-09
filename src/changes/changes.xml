@@ -23,7 +23,11 @@ The <action> type attribute can be add,update,fix,remove.
 		<title>Lotus iNotes exporter: POP3 &amp; mbox</title>
 	</properties>
 	<body>
-		<release version="1.5" date="2012-10-09" description="maildir++ export">
+		<release version="1.6" date="2012-10-09" description="metadata speed">
+			<action type="update" dev="clime" >greatly improve metadata parsing speed (XPath -&gt; StAX)</action>
+			<action type="fix"    dev="clime" >[maildir++] fix incorrect nested folders name</action>
+		</release>
+		<release version="1.5" date="2012-09-19" description="maildir++ export">
 			<action type="add"    dev="clime" >MailDir++ export</action>
 		</release>
 		<release version="1.4" date="2012-09-07" description="configuration: command-line override">

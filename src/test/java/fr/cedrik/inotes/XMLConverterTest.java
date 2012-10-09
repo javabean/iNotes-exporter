@@ -3,10 +3,13 @@
  */
 package fr.cedrik.inotes;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import javax.xml.stream.XMLStreamException;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -42,9 +45,10 @@ public class XMLConverterTest {
 	 * Test method for {@link fr.cedrik.inotes.XMLConverter#convertXML(java.io.InputStream)}.
 	 */
 	@Test
-	public void testConvertXML() throws IOException {
+	public void testConvertXML() throws IOException, XMLStreamException {
 		InputStream is = getClass().getResourceAsStream("/test.xml");
-		MessagesMetaData messages = xmlConverter.convertXML(is);
+		MessagesMetaData messages = xmlConverter.convertXML(is, null);
+		is.close();
 		assertNotNull("convertXML", messages);
 		for (MessageMetaData message : messages.entries) {
 			assertNotNull("unid", message.unid);

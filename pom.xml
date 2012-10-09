@@ -13,7 +13,7 @@
 	<!-- Coordinates -->
 	<groupId>fr.cedrik.inotes</groupId>
 	<artifactId>iNotes-exporter</artifactId>
-	<version>1.5</version>
+	<version>1.6</version>
 
 	<!-- Inheritance -->
 	<!--parent>
