@@ -91,13 +91,13 @@ public class MailDirPP extends BaseMailDir {
 			// compute MailDir++ full folder name and encode each segment
 			List<Folder> foldersChain = folders.getFoldersChain(folder);
 			StringBuilder result = new StringBuilder();
-			result.append(baseMailDir.getPath()).append(File.separatorChar).append('.');
+			result.append('.');
 			for (Folder parent : foldersChain) {
 				result.append(encodeFolderName(parent.name));
 				result.append('.');
 			}
-			result.deleteCharAt(result.length() - 1); // remove leading '.'
-			return new File(baseMailDir, '.' + encodeFolderName(folder.name)).getPath();
+			result.deleteCharAt(result.length() - 1); // remove trailing '.'
+			return new File(baseMailDir, result.toString()).getPath();
 		}
 	}
 
