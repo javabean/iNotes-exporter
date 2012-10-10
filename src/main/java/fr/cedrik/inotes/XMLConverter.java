@@ -46,7 +46,7 @@ class XMLConverter {
 			public void report(String message, String errorType,
 					Object relatedInformation, Location location)
 					throws XMLStreamException {
-				logger.warn("Error of type: " + errorType + ", message: " + message);
+				logger.warn("XML error of type: " + errorType + " at ligne: " + location.getLineNumber() + " column: " + location.getColumnNumber() + ", message: " + message);
 			}
 		});
 		XMLEventReader reader;
@@ -122,7 +122,11 @@ class XMLConverter {
 				if ("foldername".equals(startName)) {
 					messages.foldername = readElementValue(reader, start);
 				} else if ("unreadcount".equals(startName)) {
-					messages.unreadcount = Integer.parseInt(readElementValue(reader, start));
+					try {
+						messages.unreadcount = Integer.parseInt(readElementValue(reader, start));
+					} catch (NumberFormatException ignore) {
+						logger.trace(ignore.toString());
+					}
 				} else {
 					logger.debug("Unknown UnreadInfo element: {}", startName);
 				}
