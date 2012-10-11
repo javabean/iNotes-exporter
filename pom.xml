@@ -42,6 +42,12 @@
 			<scope>compile</scope><!-- "compile" since we can manage log levels at runtime (LOGGER POP3 command) -->
 		</dependency>
 		<dependency>
+			<groupId>org.mnode.ical4j</groupId>
+			<artifactId>ical4j</artifactId>
+			<version>1.0.3</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>3.1</version>

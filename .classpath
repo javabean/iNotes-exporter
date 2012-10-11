@@ -20,5 +20,9 @@
 	<classpathentry kind="var" path="M2_REPO/org/springframework/spring-expression/3.0.7.RELEASE/spring-expression-3.0.7.RELEASE.jar" sourcepath="M2_REPO/org/springframework/spring-expression/3.0.7.RELEASE/spring-expression-3.0.7.RELEASE-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/springframework/spring-test/3.0.7.RELEASE/spring-test-3.0.7.RELEASE.jar" sourcepath="M2_REPO/org/springframework/spring-test/3.0.7.RELEASE/spring-test-3.0.7.RELEASE-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-simple/1.6.6/slf4j-simple-1.6.6.jar" sourcepath="M2_REPO/org/slf4j/slf4j-simple/1.6.6/slf4j-simple-1.6.6-sources.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/mnode/ical4j/ical4j/1.0.3/ical4j-1.0.3.jar" sourcepath="/M2_REPO/org/mnode/ical4j/ical4j/1.0.3/ical4j-1.0.3-sources.jar"/>
+	<classpathentry kind="var" path="M2_REPO/commons-lang/commons-lang/2.4/commons-lang-2.4.jar"/>
+	<classpathentry kind="var" path="M2_REPO/commons-codec/commons-codec/1.6/commons-codec-1.6.jar" sourcepath="/M2_REPO/commons-codec/commons-codec/1.6/commons-codec-1.6-sources.jar"/>
+	<classpathentry kind="var" path="M2_REPO/backport-util-concurrent/backport-util-concurrent/3.1/backport-util-concurrent-3.1.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

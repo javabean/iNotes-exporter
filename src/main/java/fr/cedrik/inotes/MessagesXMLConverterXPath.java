@@ -32,10 +32,10 @@ import org.xml.sax.SAXException;
  * @deprecated XPath is simply too slow…
  */
 @Deprecated
-class XMLConverterXPath {
-	protected static final Logger logger = LoggerFactory.getLogger(XMLConverterXPath.class);
+class MessagesXMLConverterXPath {
+	protected static final Logger logger = LoggerFactory.getLogger(MessagesXMLConverterXPath.class);
 
-	public XMLConverterXPath() {
+	public MessagesXMLConverterXPath() {
 	}
 
 	protected Document loadXML(InputStream input) throws ParserConfigurationException, SAXException, IOException {

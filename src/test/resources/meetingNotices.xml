@@ -1,0 +1,476 @@
+<readviewentries>
+	<viewentries timestamp="20121010T140108,02Z"
+		toplevelentries="43">
+		<viewentry position="1" unid="9812881B6C894376C12579A50056AF56"
+			noteid="686A" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>11</number>
+					<number>0</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120215T160000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>Jean-Francois Ibon</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120215T154654,82Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>[CLIENT] Workshop Planning Migration </text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120215T170000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<viewentry position="2" unid="14877695997C2776C12579A50053DACD"
+			noteid="23D6" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>11</number>
+					<number>0</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120215T160000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>Jean-Francois Nibon</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120215T151558,58Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>[CLIENT] Workshop Planning Migration </text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120215T170000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<viewentry position="3" unid="662302065B71734FC12579A400403477"
+			noteid="4FEE" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>33</number>
+					<number>0</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120216T090000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>Romaric Belevar</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120214T114118,16Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>EAE - CÃ©drik (16 FÃ©v 10:00 CET dans Mon bureau)</text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120216T100000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<viewentry position="4" unid="D0552804E4D54969C12579A50062FC36"
+			noteid="845A" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>33</number>
+					<number>0</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120216T133000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>Romaric Belevar</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120215T180112,47Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>EAE - CÃ©drik (16 FÃ©v 14:30 CET dans Mon bureau)</text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120216T143000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<viewentry position="5" unid="1C7FFDF8A2EE6357C12579A6003BCC7D"
+			noteid="288A" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>33</number>
+					<number>0</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120216T140000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>Romaric Belevar</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120216T105310,32Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>EAE - CÃ©drik (16 FÃ©v 15:00 CET dans Mon bureau)</text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120216T150000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<viewentry position="6" unid="4FC72F058B4927A3C12579A700543E56"
+			noteid="448A" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>33</number>
+					<number>0</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120222T150000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>David Settev</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120217T152010,63Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>[PRODUCT] Review tasks (22 FÃ©v 16:00 CET dans Salle JAVA)
+				</text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120222T160000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<viewentry position="7" unid="F5BD3BEC30E8EF76C12579AC003AB3D3"
+			noteid="97B2" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>33</number>
+					<number>0</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120222T170000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>David Settev</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120222T104111,69Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>[PRODUCT] Review tasks (22 FÃ©v 18:00 CET dans Salle JAVA)
+				</text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120222T180000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<viewentry position="8" unid="F2FA6C3E2580577EC12579B800568397"
+			noteid="963E" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>11</number>
+					<number>0</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120306T133000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>Charles Rela</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120305T154502,80Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>JBOSS Scheduler : TLM-199 </text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120306T140000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<viewentry position="9" unid="9D301748F3AB9D6EC12579B800540B12"
+			noteid="6AB2" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>33</number>
+					<number>0</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120306T133000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>Charles Rela</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120305T151803,58Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>JBOSS Scheduler : TLM-199 - BT #99012 (6 Mars 14:30 CET dans
+					java room)</text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120306T140000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<viewentry position="10" unid="7505D451DB0BA158C12579B90035B5FA"
+			noteid="5796" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>33</number>
+					<number>11</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120307T090000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>Charles Rela</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120306T094818,34Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>JBOSS Scheduler : TLM-199 (7 Mars 10:00 CET dans java room)
+				</text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120307T093000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<viewentry position="11" unid="5964C3241F1E95AAC12579B9004966DE"
+			noteid="49AA" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>33</number>
+					<number>0</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120307T133000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>Charles Rela</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120306T132144,90Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>JBOSS Scheduler : TLM-199 (7 Mars 14:30 CET dans java room)
+				</text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120307T140000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<viewentry position="12" unid="F75738B4972E843EC12579B40065EC20"
+			noteid="985E" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>33</number>
+					<number>11</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120307T160000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>Cecile Locin</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120301T183320,42Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>DÃ©fintion du sujet prez (7 Mars 17:00 CET)</text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120307T170000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<viewentry position="13" unid="F8F9EEBB1507F1C0C12579B9003EB7EC"
+			noteid="9962" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>33</number>
+					<number>11</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120309T134500,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>Cecile Locin</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120306T112507,85Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>DÃ©fintion du sujet prez (9 Mars 14:45 CET)</text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120309T141500,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<viewentry position="14" unid="AB8E62619DB6E140C12579BC0048FC12"
+			noteid="716A" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>33</number>
+					<number>0</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120314T100000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>Cecile Locin</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120309T131713,01Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>DÃ©fintion du sujet prez (14 Mars 11:00 CET)</text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120314T103000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<viewentry position="15" unid="91C67A0CAD9E2EFDC12579CF0035E339"
+			noteid="6556" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>33</number>
+					<number>11</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120328T150000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>Charles Lera</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120328T094838,99Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>MOM (Specification) (28 Mars 17:00 CEDT)</text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120328T160000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<viewentry position="16" unid="A0D6C1ECD80EB1C4C12579CF005C3589"
+			noteid="6C4A" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>33</number>
+					<number>0</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120329T130000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>Charles Lera</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120328T164711,81Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>MOM (Specification) (29 Mars 15:00 CEDT)</text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120329T140000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+		<viewentry position="17" unid="DBCEE6BE769B00F0C12579D0002F9138"
+			noteid="8A12" siblings="43">
+			<entrydata columnnumber="0" name="$149">
+				<numberlist>
+					<number>33</number>
+					<number>0</number>
+				</numberlist>
+			</entrydata>
+			<entrydata columnnumber="1" name="$144">
+				<datetime>20120329T143000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="2" name="$2">
+				<text>Charles Lera</text>
+			</entrydata>
+			<entrydata columnnumber="3" name="$3">
+				<datetime>20120329T083934,56Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="4" name="$147">
+				<text>MOM (Specification) (29 Mars 16:30 CEDT)</text>
+			</entrydata>
+			<entrydata columnnumber="5" name="$146">
+				<datetime>20120329T153000,00Z</datetime>
+			</entrydata>
+			<entrydata columnnumber="6" name="$154">
+				<number>0</number>
+			</entrydata>
+		</viewentry>
+	</viewentries>
+	<dbquotasize>
+		<dbsize>274104</dbsize>
+		<sizelimit>1280000</sizelimit>
+		<warning>768000</warning>
+		<ignorequota>0</ignorequota>
+		<currentusage>274104</currentusage>
+	</dbquotasize>
+</readviewentries>

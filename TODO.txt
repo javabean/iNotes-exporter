@@ -20,6 +20,7 @@ New features
 * POP3: limit the number of simultaneous connections
 * MBOX: mboxcl and mboxcl2 export
 * MAILDIR: maildir++ quota support
-* calendar (CalDAV)
+* calendar/meeting invites (ics in pop3/mbox/...)
+* calendar + todos (CalDAV or ics + built-in http server)
 * contacts (CardDAV)
 * IMAP4rev1 (rfc 3501)

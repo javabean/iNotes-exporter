@@ -16,6 +16,8 @@ public class Folder {
 	public static final String JUNKMAIL       = "($JunkMail)";//$NON-NLS-1$
 	public static final String SOFT_DELETIONS = "($SoftDeletions)"; // maildir++ name: .Trash //$NON-NLS-1$
 
+	public static final String MEETING_NOTICES = "(iNotes_Notices)";//$NON-NLS-1$
+
 	public String id;
 	public String name;
 	public int    levelNumber;

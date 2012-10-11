@@ -10,6 +10,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 import javax.xml.namespace.QName;
+import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -27,13 +28,14 @@ import org.slf4j.LoggerFactory;
  * @author C&eacute;drik LIME
  */
 // StAX event API
-class XMLConverter {
-	protected static final Logger logger = LoggerFactory.getLogger(XMLConverter.class);
+class MessagesXMLConverter {
+	protected static final Logger logger = LoggerFactory.getLogger(MessagesXMLConverter.class);
 
-	public XMLConverter() {
+	public MessagesXMLConverter() {
 	}
 
-	public MessagesMetaData convertXML(InputStream input, Charset charset) throws IOException, XMLStreamException {
+	protected XMLEventReader getXMLEventReader(InputStream input, Charset charset)
+			throws FactoryConfigurationError, XMLStreamException {
 		XMLInputFactory factory = XMLInputFactory.newInstance();
 		if (factory.isPropertySupported(XMLInputFactory.IS_VALIDATING)) {
 			factory.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
@@ -55,6 +57,11 @@ class XMLConverter {
 		} else {
 			reader = factory.createXMLEventReader(input);
 		}
+		return reader;
+	}
+
+	public MessagesMetaData convertXML(InputStream input, Charset charset) throws IOException, XMLStreamException {
+		XMLEventReader reader = getXMLEventReader(input, charset);
 
 		MessagesMetaData messages = new MessagesMetaData();
 		while (reader.hasNext()) {
@@ -79,6 +86,8 @@ class XMLConverter {
 					loadDbQuotaSize(messages, reader);
 				} else if ("unreadinfo".equals(startName)) {
 					loadUnreadInfo(messages, reader);
+				} else {
+					logger.debug("Unknown root element: {}", startName);
 				}
 			}
 		}

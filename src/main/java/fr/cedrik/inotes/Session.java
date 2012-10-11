@@ -37,6 +37,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 
+import net.fortuna.ical4j.model.Calendar;
+
 import fr.cedrik.inotes.util.IteratorChain;
 
 /**
@@ -211,7 +213,7 @@ public class Session {
 			params.clear();
 			// need to emulate a real browser, or else we get an "unknown browser" response with no possibility to continue
 			context.getHttpHeaders().set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:14.0) Gecko/20100101 Firefox/14.0.1");
-//			context.getHttpHeaders().set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/534.57.2 (KHTML, like Gecko) Version/5.1.7 Safari/534.57.2");
+//			context.getHttpHeaders().set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/534.57.7 (KHTML, like Gecko) Version/5.1.7 Safari/534.57.7");
 			httpRequest = context.createRequest(new URL(redirectURL), HttpMethod.GET, params);
 			httpResponse = httpRequest.execute();
 			trace(httpRequest, httpResponse);
@@ -466,7 +468,7 @@ public class Session {
 		}
 		MessagesMetaData messages;
 		try {
-			messages = new XMLConverter().convertXML(httpResponse.getBody(), context.getCharset(httpResponse));
+			messages = new MessagesXMLConverter().convertXML(httpResponse.getBody(), context.getCharset(httpResponse));
 		} catch (XMLStreamException e) {
 			throw new IOException(e);
 		} finally {
@@ -705,6 +707,95 @@ public class Session {
 		toMarkUnreadAll.removeAll(toMarkUnread);
 		toMarkUnread.clear();
 	}
+
+
+	public MeetingNoticesMetaData getMeetingNoticesMetaData() throws IOException {
+		return getMeetingNoticesMetaData(Integer.MAX_VALUE);
+	}
+	public MeetingNoticesMetaData getMeetingNoticesMetaData(int count) throws IOException {
+		checkLoggedIn();
+		cleanup();
+		String notesFolderIdBackup = context.getNotesFolderId();
+		context.setNotesFolderId(Folder.MEETING_NOTICES);
+		// iNotes limits the number of results to 1000. Need to paginate.
+		int start = 1, currentCount = 0;
+		MeetingNoticesMetaData notices = null, partialNotices;
+		do {
+			partialNotices = getMeetingNoticesMetaDataNoSort(start, Math.min(count - currentCount, META_DATA_LOAD_BATCH_SIZE));
+			if (notices == null) {
+				notices = partialNotices;
+			} else {
+				notices.entries.addAll(partialNotices.entries);
+			}
+			start += META_DATA_LOAD_BATCH_SIZE;
+			currentCount = notices.entries.size();
+		} while (partialNotices.entries.size() >= Math.min(count - currentCount, META_DATA_LOAD_BATCH_SIZE) && currentCount < count);
+		context.setNotesFolderId(notesFolderIdBackup);
+		Collections.reverse(notices.entries);
+		logger.trace("Loaded {} meeting notices metadata", Integer.valueOf(notices.entries.size()));
+		return notices;
+	}
+
+	/**
+	 * @return set of meeting notices meta-data, in iNotes order
+	 */
+	protected MeetingNoticesMetaData getMeetingNoticesMetaDataNoSort(int start, int count) throws IOException {
+		checkLoggedIn();
+		String notesFolderIdBackup = context.getNotesFolderId();
+		context.setNotesFolderId(Folder.MEETING_NOTICES);
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("charset", CharEncoding.UTF_8);
+		params.put("Form", "s_ReadViewEntries");
+//		params.put("PresetFields", "DBQuotaInfo;1,FolderName;"+context.getNotesFolderName()+",UnreadCountInfo;1,s_UsingHttps;1,hc;$98,noPI;1");
+		params.put("TZType", "UTC");
+		params.put("Start", Integer.toString(start));
+		params.put("Count", Integer.toString(count));
+		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getProxyBaseURL()+"&PresetFields=DBQuotaInfo;1,FolderName;"+context.getNotesFolderId()+",s_UsingHttps;1,hc;AltChair,noPI;1"), HttpMethod.GET, params);
+		ClientHttpResponse httpResponse = httpRequest.execute();
+		trace(httpRequest, httpResponse);
+//		traceBody(httpResponse);// DEBUG
+		context.setNotesFolderId(notesFolderIdBackup);
+		if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
+			logger.error("Unknown server response while fetching metting notices meta-data for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+			httpResponse.close();
+			return null;
+		}
+		MeetingNoticesMetaData notices;
+		try {
+			notices = new MeetingNoticesXMLConverter().convertXML(httpResponse.getBody(), context.getCharset(httpResponse));
+		} catch (XMLStreamException e) {
+			throw new IOException(e);
+		} finally {
+			httpResponse.close();
+		}
+		return notices;
+	}
+
+	public Calendar getMeetingNoticeJSON(MeetingNoticeMetaData meetingNotice) throws IOException {
+		checkLoggedIn();
+		String notesFolderIdBackup = context.getNotesFolderId();
+		context.setNotesFolderId(Folder.MEETING_NOTICES);
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("charset", CharEncoding.UTF_8);
+		params.put("Form", "l_JSVars");
+		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getFolderBaseURL()+meetingNotice.unid+"/?OpenDocument"+"&PresetFields=s_HandleAttachmentNames;1,s_HandleMime;1,s_OpenUI;1,s_HideRemoteImage;1"), HttpMethod.GET, params);
+		ClientHttpResponse httpResponse = httpRequest.execute();
+		trace(httpRequest, httpResponse);
+		context.setNotesFolderId(notesFolderIdBackup);
+		if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
+			logger.error("Unknown server response while fetching Meeting Notice for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+			httpResponse.close();
+			return null;
+		}
+		Calendar ics;
+		try {
+			ics = new MeetingNoticeJSONConverter().convertJSON(httpResponse.getBody(), context.getCharset(httpResponse));
+		} finally {
+			httpResponse.close();
+		}
+		return ics;
+	}
+
 
 	protected void cleanup() throws IOException {
 		// do mark messages unread

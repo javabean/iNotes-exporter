@@ -52,8 +52,8 @@ public class SessionTest {
 		if (session.login(iNotes.getUserName(), iNotes.getUserPassword())) {
 			try {
 				MessagesMetaData messages = session.getMessagesMetaData();
-				assertNotNull("data", messages);
-				assertNotNull("data.entries", messages.entries);
+				assertNotNull("messages", messages);
+				assertNotNull("messages.entries", messages.entries);
 				if (! messages.entries.isEmpty()) {
 					checkMessagesOrder(messages.entries);
 					MessageMetaData message = messages.entries.get(0);
@@ -67,6 +67,14 @@ public class SessionTest {
 					assertTrue("MIME", mime.hasNext());
 					assertTrue("Empty MIME", mime.hasNext());
 					mime.close();
+				}
+				MeetingNoticesMetaData notices = session.getMeetingNoticesMetaData();
+				assertNotNull("notices", notices);
+				assertNotNull("notices.entries", notices.entries);
+				if (! notices.entries.isEmpty()) {
+					MeetingNoticeMetaData notice = notices.entries.get(0);
+					Object json = session.getMeetingNoticeJSON(notice);
+					assertNotNull("JSON Meeting Notice", json);
 				}
 			} finally {
 				boolean logout = session.logout();
