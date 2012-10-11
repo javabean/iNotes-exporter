@@ -51,7 +51,7 @@ abstract class BaseMailDir extends BaseFsExport implements fr.cedrik.inotes.Main
 
 	@Override
 	protected boolean shouldLoadOldestMessageToFetchFromPreferences() {
-		return mailDir.exists() && mailDir.list().length == 0;
+		return mailDir.exists() && mailDir.list().length != 0;
 	}
 
 	@Override
