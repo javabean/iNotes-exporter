@@ -46,7 +46,7 @@ class MessagesXMLConverterXPath {
 		return doc;
 	}
 
-	public MessagesMetaData convertXML(InputStream input) throws IOException {
+	public INotesMessagesMetaData<MessageMetaData> convertXML(InputStream input) throws IOException {
 		Document doc;
 		try {
 			doc = loadXML(input);
@@ -57,7 +57,7 @@ class MessagesXMLConverterXPath {
 			logger.error("", e);
 			return null;
 		}
-		MessagesMetaData messages = new MessagesMetaData();
+		INotesMessagesMetaData<MessageMetaData> messages = new INotesMessagesMetaData<MessageMetaData>();
 		try {
 			Number dbsize       = (Number) dbsizeXP.evaluate(doc, XPathConstants.NUMBER);
 			Number sizelimit    = (Number) sizelimitXP.evaluate(doc, XPathConstants.NUMBER);

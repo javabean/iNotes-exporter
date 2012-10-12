@@ -3,19 +3,10 @@
  */
 package fr.cedrik.inotes;
 
-import static org.junit.Assert.assertNotNull;
-
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
-
-import net.fortuna.ical4j.model.Calendar;
-import net.fortuna.ical4j.model.ValidationException;
 
 /**
  * @author C&eacute;drik LIME
@@ -44,13 +35,13 @@ public class MeetingNoticeJSONConverterTest {
 	/**
 	 * Test method for {@link fr.cedrik.inotes.MeetingNoticeJSONConverter#convertJSON(InputStream, java.nio.charset.Charset)}.
 	 */
-	@Test
-	public void testConvertJSON() throws IOException, ValidationException {
-		InputStream is = getClass().getResourceAsStream("/meetingNotice.js");
-		Calendar ics = converter.convertJSON(is, null);
-		is.close();
-		assertNotNull("convertJSON", ics);
-		ics.validate();
-	}
+//	@Test
+//	public void testConvertJSON() throws IOException, ValidationException {
+//		InputStream is = getClass().getResourceAsStream("/meetingNotice.js");
+//		Calendar ics = converter.convertJSON(is, null);
+//		is.close();
+//		assertNotNull("convertJSON", ics);
+//		ics.validate();
+//	}
 
 }

@@ -6,8 +6,8 @@ package fr.cedrik.inotes.pop3.commands;
 import java.io.IOException;
 import java.util.Iterator;
 
-import fr.cedrik.inotes.MessageMetaData;
-import fr.cedrik.inotes.MessagesMetaData;
+import fr.cedrik.inotes.BaseINotesMessage;
+import fr.cedrik.inotes.INotesMessagesMetaData;
 import fr.cedrik.inotes.pop3.Context;
 import fr.cedrik.inotes.pop3.POP3Command;
 import fr.cedrik.inotes.pop3.ResponseStatus;
@@ -23,10 +23,10 @@ public class STAT extends BasePOP3Command implements POP3Command {
 
 	@Override
 	public Iterator<String> call(Context context) throws IOException {
-		MessagesMetaData messages = context.iNotesSession.getMessagesMetaData();
+		INotesMessagesMetaData<?> messages = context.iNotesSession.getMessagesAndMeetingNoticesMetaData();
 		long totalSize = 0;
-		for (MessageMetaData message : messages.entries) {
-			totalSize += message.size;
+		for (BaseINotesMessage message : messages.entries) {
+			totalSize += message.getSize();
 		}
 		return new IteratorChain<String>(ResponseStatus.POSITIVE.toString("" + messages.entries.size() + ' ' + totalSize));
 	}

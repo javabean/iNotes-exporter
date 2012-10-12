@@ -15,11 +15,11 @@ import java.util.prefs.Preferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.cedrik.inotes.BaseINotesMessage;
 import fr.cedrik.inotes.Folder;
 import fr.cedrik.inotes.FoldersList;
+import fr.cedrik.inotes.INotesMessagesMetaData;
 import fr.cedrik.inotes.INotesProperties;
-import fr.cedrik.inotes.MessageMetaData;
-import fr.cedrik.inotes.MessagesMetaData;
 import fr.cedrik.inotes.Session;
 import fr.cedrik.inotes.util.DateUtils;
 
@@ -94,14 +94,17 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 		} else {
 			logger.info(folder.name + ": full export");
 		}
-		// meta-data
-		MessagesMetaData messages = session.getMessagesMetaData(oldestMessageToFetch);
+		// messages and meeting notices meta-data
+		INotesMessagesMetaData<? extends BaseINotesMessage> messages = session.getMessagesAndMeetingNoticesMetaData(oldestMessageToFetch);
 		if (folder.isInbox() || folder.isAllMails()) {
 			checkQuota(messages);
 		}
 		if (! messages.entries.isEmpty()) {
 			Date lastExportedMessageDate = this.export(messages);
 			if (lastExportedMessageDate != null) {
+				if (oldestMessageToFetch != null) {
+					assert lastExportedMessageDate.after(oldestMessageToFetch);
+				}
 				// set Preference to oldestMessageToFetch
 				setPreferenceToOldestMessageToFetch(lastExportedMessageDate);
 			}
@@ -111,7 +114,7 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 	/**
 	 * @return last exported message date (can be {@code null})
 	 */
-	protected abstract Date export(MessagesMetaData messages) throws IOException;
+	protected abstract Date export(INotesMessagesMetaData<?> messages) throws IOException;
 
 	/**
 	 * Create Java objects and store them in fields. Does not physically create files.
@@ -123,9 +126,9 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 	 */
 	protected abstract boolean shouldLoadOldestMessageToFetchFromPreferences();
 
-	protected abstract void writeMIME(Writer mbox, MessageMetaData message, Iterator<String> mime) throws IOException;
+	protected abstract void writeMIME(Writer mbox, BaseINotesMessage message, Iterator<String> mime) throws IOException;
 
-	protected void checkQuota(MessagesMetaData messages) {
+	protected void checkQuota(INotesMessagesMetaData<?> messages) {
 		if (messages.ignorequota == 0 && messages.sizelimit > 0) {
 			String quotaDetails = "dbsize: " + messages.dbsize
 					+ " currentusage: " + messages.currentusage

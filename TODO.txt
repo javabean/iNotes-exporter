@@ -21,6 +21,6 @@ New features
 * MBOX: mboxcl and mboxcl2 export
 * MAILDIR: maildir++ quota support
 * calendar/meeting invites (ics in pop3/mbox/...)
-* calendar + todos (CalDAV or ics + built-in http server)
+* calendar + todos + journal (CalDAV or ics + built-in http server)
 * contacts (CardDAV)
 * IMAP4rev1 (rfc 3501)

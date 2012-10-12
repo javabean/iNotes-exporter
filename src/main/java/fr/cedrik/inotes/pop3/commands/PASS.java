@@ -8,7 +8,7 @@ import java.util.Iterator;
 
 import org.apache.commons.lang3.StringUtils;
 
-import fr.cedrik.inotes.MessagesMetaData;
+import fr.cedrik.inotes.INotesMessagesMetaData;
 import fr.cedrik.inotes.pop3.Context;
 import fr.cedrik.inotes.pop3.POP3Command;
 import fr.cedrik.inotes.pop3.ResponseStatus;
@@ -46,7 +46,7 @@ public class PASS extends BasePOP3Command implements POP3Command {
 			context.state = nextState(context);
 			String quotaMessage = "";
 			{
-				MessagesMetaData messages = context.iNotesSession.getMessagesMetaData(0);
+				INotesMessagesMetaData<?> messages = context.iNotesSession.getMessagesMetaData(0);
 				if (messages.ignorequota == 0 && messages.sizelimit > 0) {
 					if (messages.dbsize >= messages.sizelimit || messages.currentusage >= messages.sizelimit) {
 						quotaMessage = ". WARNING WARNING: you have exceeded your quota! Run QUOTA command for more information.";

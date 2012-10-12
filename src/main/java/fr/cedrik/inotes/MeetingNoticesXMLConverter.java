@@ -60,10 +60,10 @@ class MeetingNoticesXMLConverter {
 		return reader;
 	}
 
-	public MeetingNoticesMetaData convertXML(InputStream input, Charset charset) throws IOException, XMLStreamException {
+	public INotesMessagesMetaData<MeetingNoticeMetaData> convertXML(InputStream input, Charset charset) throws IOException, XMLStreamException {
 		XMLEventReader reader = getXMLEventReader(input, charset);
 
-		MeetingNoticesMetaData notices = new MeetingNoticesMetaData();
+		INotesMessagesMetaData<MeetingNoticeMetaData> notices = new INotesMessagesMetaData<MeetingNoticeMetaData>();
 		while (reader.hasNext()) {
 			XMLEvent next = reader.nextEvent();
 			if (next.isStartElement()) {
@@ -93,7 +93,7 @@ class MeetingNoticesXMLConverter {
 		return notices;
 	}
 
-	protected void loadDbQuotaSize(MeetingNoticesMetaData notices, XMLEventReader reader) throws XMLStreamException {
+	protected void loadDbQuotaSize(INotesMessagesMetaData<?> notices, XMLEventReader reader) throws XMLStreamException {
 		while (reader.hasNext()) {
 			XMLEvent next = reader.nextEvent();
 			if (next.isStartElement()) {

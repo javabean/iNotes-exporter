@@ -60,10 +60,10 @@ class MessagesXMLConverter {
 		return reader;
 	}
 
-	public MessagesMetaData convertXML(InputStream input, Charset charset) throws IOException, XMLStreamException {
+	public INotesMessagesMetaData<MessageMetaData> convertXML(InputStream input, Charset charset) throws IOException, XMLStreamException {
 		XMLEventReader reader = getXMLEventReader(input, charset);
 
-		MessagesMetaData messages = new MessagesMetaData();
+		INotesMessagesMetaData<MessageMetaData> messages = new INotesMessagesMetaData<MessageMetaData>();
 		while (reader.hasNext()) {
 			XMLEvent next = reader.nextEvent();
 			if (next.isStartElement()) {
@@ -95,7 +95,7 @@ class MessagesXMLConverter {
 		return messages;
 	}
 
-	protected void loadDbQuotaSize(MessagesMetaData messages, XMLEventReader reader) throws XMLStreamException {
+	protected void loadDbQuotaSize(INotesMessagesMetaData<?> messages, XMLEventReader reader) throws XMLStreamException {
 		while (reader.hasNext()) {
 			XMLEvent next = reader.nextEvent();
 			if (next.isStartElement()) {
@@ -122,7 +122,7 @@ class MessagesXMLConverter {
 		}
 	}
 
-	protected void loadUnreadInfo(MessagesMetaData messages, XMLEventReader reader) throws XMLStreamException {
+	protected void loadUnreadInfo(INotesMessagesMetaData<?> messages, XMLEventReader reader) throws XMLStreamException {
 		while (reader.hasNext()) {
 			XMLEvent next = reader.nextEvent();
 			if (next.isStartElement()) {

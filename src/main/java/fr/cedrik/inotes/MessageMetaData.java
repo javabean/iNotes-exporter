@@ -10,9 +10,7 @@ import fr.cedrik.inotes.util.DateUtils;
 /**
  * @author C&eacute;drik LIME
  */
-public class MessageMetaData {
-	public String unid;
-	public String noteid;
+public class MessageMetaData extends BaseINotesMessage {
 	public boolean unread = false;
 	public int type = -1;//$86
 	public int importance = -1;//$Importance
@@ -29,6 +27,16 @@ public class MessageMetaData {
 	// userData;//$UserData
 
 	public MessageMetaData() {
+	}
+
+	@Override
+	public Date getDate() {
+		return date;
+	}
+
+	@Override
+	public int getSize() {
+		return size;
 	}
 
 	@Override

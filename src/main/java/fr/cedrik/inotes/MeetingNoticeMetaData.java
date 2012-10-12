@@ -10,19 +10,22 @@ import fr.cedrik.inotes.util.DateUtils;
 /**
  * @author C&eacute;drik LIME
  */
-public class MeetingNoticeMetaData {
-	public String unid;
-	public String noteid;
+public class MeetingNoticeMetaData extends BaseINotesMessage {
 	//public List<Integer> xxx;//$149
 	public Date meetingDate;//$144
 	// availability;//SametimeInfo
 	public String from;//$2
-	public Date date;//$3
+	public Date date = new Date(0);//$3
 	public String subject;//$147
 	//public Date xxx;//$146
 	//public int xxx;//$154
 
 	public MeetingNoticeMetaData() {
+	}
+
+	@Override
+	public Date getDate() {
+		return date;
 	}
 
 	@Override

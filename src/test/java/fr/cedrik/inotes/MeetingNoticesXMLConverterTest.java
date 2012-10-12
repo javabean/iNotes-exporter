@@ -46,7 +46,7 @@ public class MeetingNoticesXMLConverterTest {
 	@Test
 	public void testConvertXML() throws IOException, XMLStreamException {
 		InputStream is = getClass().getResourceAsStream("/meetingNotices.xml");
-		MeetingNoticesMetaData messages = xmlConverter.convertXML(is, null);
+		INotesMessagesMetaData<MeetingNoticeMetaData> messages = xmlConverter.convertXML(is, null);
 		is.close();
 		assertNotNull("convertXML", messages);
 		for (MeetingNoticeMetaData message : messages.entries) {

@@ -14,8 +14,8 @@ import java.util.Date;
 
 import org.apache.commons.io.IOUtils;
 
-import fr.cedrik.inotes.MessageMetaData;
-import fr.cedrik.inotes.MessagesMetaData;
+import fr.cedrik.inotes.BaseINotesMessage;
+import fr.cedrik.inotes.INotesMessagesMetaData;
 import fr.cedrik.inotes.fs.BaseFsExport;
 import fr.cedrik.inotes.util.Charsets;
 import fr.cedrik.inotes.util.DateUtils;
@@ -52,7 +52,7 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 	}
 
 	@Override
-	protected final Date export(MessagesMetaData messages) throws IOException {
+	protected final Date export(INotesMessagesMetaData<?> messages) throws IOException {
 		Writer mbox = null;
 		FileLock outFileLock = null;
 		Date lastExportedMessageDate = null;
@@ -67,7 +67,7 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 			}
 			mbox = new BufferedWriter(new OutputStreamWriter(outStream, Charsets.US_ASCII), 32*1024);
 			// write messages
-			for (MessageMetaData message : messages.entries) {
+			for (BaseINotesMessage message : messages.entries) {
 				IteratorChain<String> mime = session.getMessageMIME(message);
 				if (mime == null || ! mime.hasNext()) {
 					logger.error("Empty MIME message! ({})", message);
@@ -79,7 +79,7 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 				} finally {
 					mime.close();
 				}
-				lastExportedMessageDate = message.date;
+				lastExportedMessageDate = message.getDate();
 			}
 			mbox.flush();
 		} finally {
@@ -91,9 +91,9 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 		return lastExportedMessageDate;
 	}
 
-	protected void writeFromLine(Writer mbox, MessageMetaData message) throws IOException {
+	protected void writeFromLine(Writer mbox, BaseINotesMessage message) throws IOException {
 		// date should be UTC, but tests show there is no need to convert it
-		mbox.append("From MAILER-DAEMON ").append(DateUtils.MBOX_DATE_TIME_FORMAT.format(message.date)).append('\n');
+		mbox.append("From MAILER-DAEMON ").append(DateUtils.MBOX_DATE_TIME_FORMAT.format(message.getDate())).append('\n');
 	}
 
 }

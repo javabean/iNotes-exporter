@@ -47,13 +47,14 @@ public class MessagesXMLConverterTest {
 	@Test
 	public void testConvertXML() throws IOException, XMLStreamException {
 		InputStream is = getClass().getResourceAsStream("/messages.xml");
-		MessagesMetaData messages = xmlConverter.convertXML(is, null);
+		INotesMessagesMetaData<MessageMetaData> messages = xmlConverter.convertXML(is, null);
 		is.close();
 		assertNotNull("convertXML", messages);
 		for (MessageMetaData message : messages.entries) {
 			assertNotNull("unid", message.unid);
 			assertNotNull("noteid", message.noteid);
-			assertTrue("size", message.size >= 0);
+			assertNotNull("date", message.getDate());
+			assertTrue("size", message.getSize() >= 0);
 		}
 	}
 

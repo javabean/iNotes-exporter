@@ -15,8 +15,8 @@ import java.util.Iterator;
 
 import org.apache.commons.io.IOUtils;
 
-import fr.cedrik.inotes.MessageMetaData;
-import fr.cedrik.inotes.MessagesMetaData;
+import fr.cedrik.inotes.BaseINotesMessage;
+import fr.cedrik.inotes.INotesMessagesMetaData;
 import fr.cedrik.inotes.fs.BaseFsExport;
 import fr.cedrik.inotes.util.Charsets;
 import fr.cedrik.inotes.util.IteratorChain;
@@ -55,7 +55,7 @@ abstract class BaseMailDir extends BaseFsExport implements fr.cedrik.inotes.Main
 	}
 
 	@Override
-	protected final Date export(MessagesMetaData messages) throws IOException {
+	protected final Date export(INotesMessagesMetaData<?> messages) throws IOException {
 		File tmpDir = new File(mailDir, TMP);
 		if (! tmpDir.exists() && ! tmpDir.mkdirs()) {
 			logger.error("Can not create directory: " + tmpDir);
@@ -69,7 +69,7 @@ abstract class BaseMailDir extends BaseFsExport implements fr.cedrik.inotes.Main
 		new File(mailDir, CUR).mkdirs();
 		Date lastExportedMessageDate = null;
 		// write messages
-		for (MessageMetaData message : messages.entries) {
+		for (BaseINotesMessage message : messages.entries) {
 			IteratorChain<String> mime = session.getMessageMIME(message);
 			if (mime == null || ! mime.hasNext()) {
 				logger.error("Empty MIME message! ({})", message);
@@ -94,25 +94,25 @@ abstract class BaseMailDir extends BaseFsExport implements fr.cedrik.inotes.Main
 				IOUtils.closeQuietly(mbox);
 			}
 			// the modification time of the file is the delivery date of the message.
-			tmpFile.setLastModified(message.date.getTime());
+			tmpFile.setLastModified(message.getDate().getTime());
 			// move the message from tmp to new
 			File newFile = new File(newDir, getMailFileName(message));
 			if (! tmpFile.renameTo(newFile)) {
 				logger.warn("Can not move file {} to {}", tmpFile, newFile);
 			}
-			lastExportedMessageDate = message.date;
+			lastExportedMessageDate = message.getDate();
 		}
 		return lastExportedMessageDate;
 	}
 
-	protected String getMailFileName(MessageMetaData message) {
+	protected String getMailFileName(BaseINotesMessage message) {
 		// time.pid.host
 		// here we use use iNotes date + iNotes unid
-		return "" + message.date.getTime() + '-' + message.unid;
+		return "" + message.getDate().getTime() + '-' + message.unid;
 	}
 
 	@Override
-	protected void writeMIME(Writer mbox, MessageMetaData message, Iterator<String> mime) throws IOException {
+	protected void writeMIME(Writer mbox, BaseINotesMessage message, Iterator<String> mime) throws IOException {
 		while (mime.hasNext()) {
 			String line = mime.next();
 			mbox.append(line).append('\n');
