@@ -58,6 +58,9 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 			// export folders hierarchy
 			FoldersList folders = session.getFolders();
 			Folder folder = folders.getFolderById(iNotes.getNotesFolderId());
+			if (folder == null) {
+				throw new IllegalArgumentException("Can not find folder \"" + iNotes.getNotesFolderId() + "\". Did you input the folder name instead of its id?");
+			}
 			export(folder, args);
 		} finally {
 			session.logout();

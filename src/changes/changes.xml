@@ -20,13 +20,14 @@ The <action> type attribute can be add,update,fix,remove.
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/changes/1.0.0 http://maven.apache.org/plugins/maven-changes-plugin/xsd/changes-1.0.0.xsd">
 	<properties>
-		<title>Lotus iNotes exporter: POP3 &amp; mbox</title>
+		<title>Lotus Domino iNotes exporter: POP3, mbox &amp; maildir</title>
 	</properties>
 	<body>
-		<release version="1.6" date="2012-10-12" description="metadata speed">
+		<release version="1.6" date="2012-10-24" description="metadata speed">
 			<action type="update" dev="clime" >greatly improve metadata parsing speed (XPath -&gt; StAX)</action>
 			<action type="fix"    dev="clime" >[maildir++] fix incorrect nested folders name</action>
-			<action type="fix"    dev="clime" >[maildir][maildir++] exports where always full instead of inremental</action>
+			<action type="fix"    dev="clime" >[maildir][maildir++] exports where always full instead of incremental</action>
+			<action type="update" dev="clime" >[maildir] give a meaningful error message (instead of a NPE) when the user gives an incorrect folder id</action>
 		</release>
 		<release version="1.5" date="2012-09-19" description="maildir++ export">
 			<action type="add"    dev="clime" >MailDir++ export</action>
