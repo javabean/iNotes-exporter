@@ -78,7 +78,7 @@ public class Session {
 		}
 	}
 
-	public void setServerAddress(String url) {
+	public void setServerAddress(URL url) {
 		if (isLoggedIn) {
 			throw new IllegalStateException();
 		}

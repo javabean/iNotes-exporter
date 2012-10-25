@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.SocketAddress;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -104,8 +105,8 @@ public class INotesProperties extends Properties {
 		return url;
 	}
 
-	public void setServerAddress(String url) {
-		setProperty(SERVER, url);
+	public void setServerAddress(URL url) {
+		setProperty(SERVER, url.toString());
 	}
 
 	public String getUserName() {
