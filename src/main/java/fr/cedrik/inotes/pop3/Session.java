@@ -20,6 +20,7 @@ import java.util.StringTokenizer;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import fr.cedrik.inotes.pop3.commands.PASS;
 import fr.cedrik.inotes.util.Charsets;
@@ -30,6 +31,11 @@ import fr.cedrik.inotes.util.Charsets;
 public class Session implements Runnable {
 	private static final String CR_LF = "\r\n";//$NON-NLS-1$
 	private static final String END_OF_COMMAND_RESULT = ".";//$NON-NLS-1$
+
+	/* MDC keys */
+	private static final String MDC_IP = "";
+	private static final String MDC_USER = "";
+	private static final String MDC_COMMAND = "";
 
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	protected final Socket clientSocket;
@@ -67,6 +73,7 @@ public class Session implements Runnable {
 	public void run() throws RuntimeException {
 		try {
 			Thread.currentThread().setName("POP3 client " + clientSocket.getRemoteSocketAddress());
+			MDC.put(MDC_IP, clientSocket.getRemoteSocketAddress().toString());
 			out.append(ResponseStatus.POSITIVE.toString("POP3 server ready")).append(CR_LF).flush();
 			context.inputArgs = "";
 			while (context.inputArgs != null) {
@@ -93,13 +100,18 @@ public class Session implements Runnable {
 				if (pop3Command instanceof PASS) {
 					// don't echo password in logs!
 					Thread.currentThread().setName("POP3 client " + clientSocket.getRemoteSocketAddress() + ' ' + requestedCommand);
+					MDC.put(MDC_COMMAND, requestedCommand);
 					logger.debug(requestedCommand);
 				} else {
 					Thread.currentThread().setName("POP3 client " + clientSocket.getRemoteSocketAddress() + ' ' + inputLine);
+					MDC.put(MDC_COMMAND, inputLine);
 					logger.debug(inputLine);
 				}
 				context.inputArgs = inputLine.substring(requestedCommand.length()).trim();
 				Iterator<String> responseLines = pop3Command.call(context);
+				if (pop3Command instanceof PASS && context.state == State.TRANSACTION) {
+					MDC.put(MDC_USER, context.userName);
+				}
 				int nLines = 0;
 				while (responseLines.hasNext()) {
 					String line = responseLines.next();
@@ -120,6 +132,7 @@ public class Session implements Runnable {
 				}
 				out.flush();
 				Thread.currentThread().setName("POP3 client " + clientSocket.getRemoteSocketAddress());
+				MDC.remove(MDC_COMMAND);
 			}
 		} catch (IOException ioe) {
 			throw new RuntimeException(ioe);
@@ -127,6 +140,7 @@ public class Session implements Runnable {
 			IOUtils.closeQuietly(in);
 			IOUtils.closeQuietly(out);
 			IOUtils.closeQuietly(clientSocket);
+			MDC.clear();
 		}
 	}
 }
