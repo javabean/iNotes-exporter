@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.slf4j.ILoggerFactory;
+import org.slf4j.spi.LocationAwareLogger;
 
 /**
  * @author C&eacute;drik LIME
@@ -17,6 +18,9 @@ public class SimpleLoggerAccess {
 
 	private SimpleLoggerAccess() {
 	}
+
+	private static final int LOG_LEVEL_ALL = LocationAwareLogger.TRACE_INT - 10;//SimpleLogger.LOG_LEVEL_ALL;
+	private static final int LOG_LEVEL_OFF = LocationAwareLogger.ERROR_INT + 10;//SimpleLogger.LOG_LEVEL_OFF;
 
 	/**
 	 * Return an appropriate {@link SimpleLogger} instance by name, or
@@ -59,21 +63,21 @@ public class SimpleLoggerAccess {
 
 	public static int levelNameToInt(String lvl) throws IllegalArgumentException {
 		if ("all".equalsIgnoreCase(lvl)) {
-			return SimpleLogger.LOG_LEVEL_ALL;
+			return LOG_LEVEL_ALL;
 		} else if ("trace".equalsIgnoreCase(lvl)) {
-			return SimpleLogger.LOG_LEVEL_TRACE;
+			return LocationAwareLogger.TRACE_INT;
 		} else if ("debug".equalsIgnoreCase(lvl)) {
-			return SimpleLogger.LOG_LEVEL_DEBUG;
+			return LocationAwareLogger.DEBUG_INT;
 		} else if ("info".equalsIgnoreCase(lvl)) {
-			return SimpleLogger.LOG_LEVEL_INFO;
+			return LocationAwareLogger.INFO_INT;
 		} else if ("warn".equalsIgnoreCase(lvl)) {
-			return SimpleLogger.LOG_LEVEL_WARN;
+			return LocationAwareLogger.WARN_INT;
 		} else if ("error".equalsIgnoreCase(lvl)) {
-			return SimpleLogger.LOG_LEVEL_ERROR;
+			return LocationAwareLogger.ERROR_INT;
 //		} else if("fatal".equalsIgnoreCase(lvl)) {
 //			return SimpleLogger.LOG_LEVEL_FATAL;
 		} else if ("off".equalsIgnoreCase(lvl)) {
-			return SimpleLogger.LOG_LEVEL_OFF;
+			return LOG_LEVEL_OFF;
 		} else {
 			throw new IllegalArgumentException(lvl);
 		}
@@ -84,14 +88,14 @@ public class SimpleLoggerAccess {
 	}
 	public static String getLevelName(int level) throws IllegalArgumentException {
 	    switch(level) {
-	      case SimpleLogger.LOG_LEVEL_ALL: return "ALL";
-	      case SimpleLogger.LOG_LEVEL_TRACE: return "TRACE";
-	      case SimpleLogger.LOG_LEVEL_DEBUG: return "DEBUG";
-	      case SimpleLogger.LOG_LEVEL_INFO:  return "INFO";
-	      case SimpleLogger.LOG_LEVEL_WARN:  return "WARN";
-	      case SimpleLogger.LOG_LEVEL_ERROR: return "ERROR";
+	      case LOG_LEVEL_ALL: return "ALL";
+	      case LocationAwareLogger.TRACE_INT: return "TRACE";
+	      case LocationAwareLogger.DEBUG_INT: return "DEBUG";
+	      case LocationAwareLogger.INFO_INT:  return "INFO";
+	      case LocationAwareLogger.WARN_INT:  return "WARN";
+	      case LocationAwareLogger.ERROR_INT: return "ERROR";
 //	      case SimpleLogger.LOG_LEVEL_FATAL: return "FATAL";
-	      case SimpleLogger.LOG_LEVEL_OFF: return "OFF";
+	      case LOG_LEVEL_OFF: return "OFF";
 	      default: throw new IllegalArgumentException(Integer.toString(level));
 	    }
 	}
