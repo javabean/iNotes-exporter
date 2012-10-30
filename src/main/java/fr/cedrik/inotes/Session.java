@@ -9,6 +9,9 @@ import java.io.InputStreamReader;
 import java.net.HttpCookie;
 import java.net.URI;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -16,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -30,6 +34,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.translate.EntityArrays;
 import org.apache.commons.lang3.text.translate.LookupTranslator;
+import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
@@ -1079,10 +1084,14 @@ public class Session {
 
 
 	private class HttpCleaningLineIterator extends LineIterator implements Iterator<String>, Closeable {
+		private final Logger logger = LoggerFactory.getLogger(HttpCleaningLineIterator.class);
 		private final ClientHttpResponse httpResponse;
+		private final DateFormat LOTUS_NOTES_BROKEN_DATE_FORMAT = new SimpleDateFormat("d-MMM-yyyy HH:mm:ss z", Locale.US);
+		private boolean inHeaders = true;
 		public HttpCleaningLineIterator(final ClientHttpResponse httpResponse) throws IOException {
 			super(new InputStreamReader(httpResponse.getBody(), context.getCharset(httpResponse)));
 			this.httpResponse = httpResponse;
+			LOTUS_NOTES_BROKEN_DATE_FORMAT.setLenient(false);
 		}
 		@Override
 		public String nextLine() {
@@ -1094,6 +1103,28 @@ public class Session {
 			}
 			// convert &quot; -> ", &amp; -> &, &lt; -> <, &gt; -> >
 			line = new LookupTranslator(EntityArrays.BASIC_UNESCAPE()).translate(data);
+			if (StringUtils.isEmpty(line)) {
+				inHeaders = false;
+			}
+			// fix Lotus Notes broken date pattern: 29-Oct-2012 19:23:20 CET	10-Oct-2012 11:25:11 CEDT
+			if (inHeaders && line.startsWith("Date: ")) {
+				String lineToParse = line;
+				try {
+					int hoursToAdd = 0;
+					if (lineToParse.endsWith(" CEDT")) {
+						//CEDT is not recognized by SimpleDateFormat. There are probably others...
+						lineToParse = line.substring(0, line.length() - " CEDT".length()) + " CET";
+						hoursToAdd = -1;
+					}
+					Date date = LOTUS_NOTES_BROKEN_DATE_FORMAT.parse(lineToParse.substring("Date: ".length()).trim());
+					date.setTime(date.getTime() + hoursToAdd * DateUtils.MILLIS_PER_HOUR);
+					String rfcLine = "Date: " + fr.cedrik.inotes.util.DateUtils.RFC2822_DATE_TIME_FORMAT.format(date);
+					logger.debug("Fixing broken Lotus Date header; before: {}\tafter: {}", line, rfcLine);
+					line = rfcLine;
+				} catch (ParseException notAnError) {
+					logger.debug("Date header OK: {}", line);
+				}
+			}
 			return line;
 		}
 		@Override

@@ -7,7 +7,6 @@ Bugs
 Improvements
 ============
 
-* fix that damned damaged Lotus MIME date header!
 * Log4J configuration to send errors by email
 	-> remove LOGGER POP3 command as it is SLF4J-specific (or re-work to use reflexion)
 * POP3: TOP command is incomplete (only TOP n 0 is supported)
@@ -16,13 +15,17 @@ Improvements
 New features
 ============
 
-* POP3: put current client/user in NDC/MDC
+* POP3: use current client/user in NDC/MDC into logs
 * POP3: allow to bind to a specific interface
 * POP3: limit the number of simultaneous connections
 * POP3: additional commands?
 * MBOX: mboxcl and mboxcl2 export
 * MAILDIR: maildir++ quota support
-* calendar/meeting invites (ics in pop3/mbox/...)
-* calendar + todos + journal (CalDAV or ics + built-in http server)
+* --calendar-- + todos + journal (CalDAV or ics + built-in http server)
 * contacts (CardDAV)
 * IMAP4rev1 (rfc 3501)
+
+Not doable
+==========
+
+* calendar/meeting invites (ics in pop3/mbox/...): no UID information available

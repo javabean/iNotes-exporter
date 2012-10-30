@@ -27,6 +27,7 @@ The <action> type attribute can be add,update,fix,remove.
 			<action type="update" dev="clime" >greatly improve metadata parsing speed (XPath -&gt; StAX)</action>
 			<action type="add"    dev="clime" >compress HTTP requests, speeding up network communications</action>
 			<action type="update" dev="clime" >update SLF4J to version 1.7 to enable (simple) file logging. This means some syntax change in simplelogger.properties; beware if upgrading!</action>
+			<action type="fix"    dev="clime" >try to fix incorrect Date: MIME header (sent by no other than Lotus Notes!), that are incorrectly parsed by some email agents</action>
 			<action type="fix"    dev="clime" >[maildir++] fix incorrect nested folders name</action>
 			<action type="fix"    dev="clime" >[maildir][maildir++] exports where always full instead of incremental</action>
 			<action type="fix"    dev="clime" >[maildir] give a meaningful error message (instead of a NPE) when the user gives an incorrect folder id</action>
