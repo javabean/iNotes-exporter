@@ -15,6 +15,8 @@ Configuration
 Personal credentials and preferences: `src/main/resources/iNotes.properties` (can be overriden on command-line)  
 logging: `src/main/resources/simplelogger.properties`
 
+If you need to use an HTTP/SOCKS proxy, use the usual [Java Networking System properties](http://docs.oracle.com/javase/7/docs/api/java/net/doc-files/net-properties.html "JavaDoc: Networking Properties").
+
 Compiling
 ---------
 (after configuration!)
@@ -66,8 +68,9 @@ If running unattended, please have a process monitor the output for all `ERROR`'
 use as pop3 user login: `username@https://webmail.example.com`
 
 Additional (non-standard) POP3 commands:
-* `SHUTDOWN`: to shutdown the POP3 server (set the secret in `iNotes.properties`)
+* `SHUTDOWN <secret>`: to shutdown the POP3 server (set the secret in `iNotes.properties`)
 * `QUOTA`: gives information on quota usage
 * `FOLDER`: list available iNotes folders
 * `FOLDER <id>`: change current folder
-* `LOGGER`: get/set loggers level at runtime
+* `LOGGER`: get loggers levels
+* `LOGGER <logger_id> <level>`: set logger level

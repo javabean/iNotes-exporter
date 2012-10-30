@@ -23,13 +23,14 @@ The <action> type attribute can be add,update,fix,remove.
 		<title>Lotus Domino iNotes exporter: POP3, mbox &amp; maildir</title>
 	</properties>
 	<body>
-		<release version="1.6" date="2012-10-29" description="metadata speed">
+		<release version="1.6" date="2012-10-30" description="speed">
 			<action type="update" dev="clime" >greatly improve metadata parsing speed (XPath -&gt; StAX)</action>
+			<action type="add"    dev="clime" >compress HTTP requests, speeding up network communications</action>
+			<action type="update" dev="clime" >update SLF4J to version 1.7 to enable (simple) file logging. This means some syntax change in simplelogger.properties; beware if upgrading!</action>
 			<action type="fix"    dev="clime" >[maildir++] fix incorrect nested folders name</action>
 			<action type="fix"    dev="clime" >[maildir][maildir++] exports where always full instead of incremental</action>
-			<action type="update" dev="clime" >[maildir] give a meaningful error message (instead of a NPE) when the user gives an incorrect folder id</action>
-			<action type="update" dev="clime" >[pop3] give a meaningful error message when the user gives an incorrect webmail url at login</action>
-			<action type="update" dev="clime" >update SLF4J to version 1.7 to enable (simple) file logging. This means some syntax change in simplelogger.properties; beware if upgrading!</action>
+			<action type="fix"    dev="clime" >[maildir] give a meaningful error message (instead of a NPE) when the user gives an incorrect folder id</action>
+			<action type="fix"    dev="clime" >[pop3] give a meaningful error message when the user gives an incorrect webmail url at login</action>
 		</release>
 		<release version="1.5" date="2012-09-19" description="maildir++ export">
 			<action type="add"    dev="clime" >MailDir++ export</action>

@@ -119,6 +119,7 @@ public class HttpRequestExecutor extends HttpAccessor {
 			}
 		}
 
+		httpRequest = new GZipDecodingClientHttpRequest(httpRequest);
 		return httpRequest;
 	}
 
