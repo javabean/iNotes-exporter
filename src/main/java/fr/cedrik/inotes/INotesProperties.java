@@ -36,6 +36,7 @@ public class INotesProperties extends Properties {
 	private static final String PROXY_PORT     = "proxy.port";//$NON-NLS-1$
 	private static final String NOTES_FOLDER_ID = "notes.folder.id";//$NON-NLS-1$
 	private static final String EXCLUDED_FOLDERS_IDS = "notes.folder.exclude.ids";//$NON-NLS-1$
+	private static final String FIX_DATE_MIME_HEADER = "notes.mime.headers.date.fix";//$NON-NLS-1$
 
 
 	public INotesProperties(String file) {
@@ -150,5 +151,9 @@ public class INotesProperties extends Properties {
 	public List<String> getNotesExcludedFoldersIds() {
 		String idsStr = getProperty(EXCLUDED_FOLDERS_IDS, DEFAULT_EXCLUDED_FOLDERS_IDS);
 		return Arrays.asList(StringUtils.split(idsStr, ','));
+	}
+
+	public boolean isFixLotusNotesDateMIMEHeader() {
+		return Boolean.parseBoolean(getProperty(FIX_DATE_MIME_HEADER, Boolean.TRUE.toString()));
 	}
 }

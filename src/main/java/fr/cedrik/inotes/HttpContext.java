@@ -125,6 +125,10 @@ public class HttpContext {
 		this.mailEditBaseURL = baseURL;
 	}
 
+	public boolean isFixLotusNotesDateMIMEHeader() {
+		return iNotes.isFixLotusNotesDateMIMEHeader();
+	}
+
 	/**
 	 * @see HttpRequestExecutor#createRequest(URL, HttpMethod, Map, Map)
 	 */

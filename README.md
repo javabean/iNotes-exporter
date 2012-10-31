@@ -15,7 +15,7 @@ Configuration
 Personal credentials and preferences: `src/main/resources/iNotes.properties` (can be overriden on command-line)  
 logging: `src/main/resources/simplelogger.properties`
 
-If you need to use an HTTP/SOCKS proxy, use the usual [Java Networking System properties](http://docs.oracle.com/javase/7/docs/api/java/net/doc-files/net-properties.html "JavaDoc: Networking Properties").
+If you need to use an HTTP/SOCKS proxy, you can also use the usual [Java Networking System properties](http://docs.oracle.com/javase/7/docs/api/java/net/doc-files/net-properties.html "JavaDoc: Networking Properties").
 
 Compiling
 ---------
