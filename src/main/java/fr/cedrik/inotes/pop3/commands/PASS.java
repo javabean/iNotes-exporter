@@ -36,10 +36,10 @@ public class PASS extends BasePOP3Command implements POP3Command {
 	@Override
 	public Iterator<String> call(Context context) throws IOException {
 		if (StringUtils.isBlank(context.inputArgs)) {
-			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString());
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("[AUTH] empty passwords are not allowed"));
 		}
 		if (StringUtils.isBlank(context.userName)) {
-			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("must call USER first"));
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("[SYS/TEMP] must call USER first"));
 		}
 		context.userPassword = context.inputArgs;
 		if (context.iNotesSession.login(context.userName, context.userPassword)) {
@@ -57,7 +57,7 @@ public class PASS extends BasePOP3Command implements POP3Command {
 			}
 			return new IteratorChain<String>(ResponseStatus.POSITIVE.toString("welcome, " + context.userName + quotaMessage));
 		} else {
-			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("invalid user or password"));
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("[AUTH] invalid user or password"));
 		}
 	}
 

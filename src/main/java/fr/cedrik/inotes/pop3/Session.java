@@ -90,11 +90,11 @@ public class Session implements Runnable {
 				String requestedCommand = tokenizer.nextToken();
 				POP3Command pop3Command = commands.get(requestedCommand.toUpperCase());
 				if (pop3Command == null) {
-					out.append(ResponseStatus.NEGATIVE.toString(requestedCommand)).append(CR_LF).flush();
+					out.append(ResponseStatus.NEGATIVE.toString("[SYS/TEMP] " + requestedCommand)).append(CR_LF).flush();
 					continue;
 				}
 				if (! pop3Command.isValid(context)) {
-					out.append(ResponseStatus.NEGATIVE.toString("invalid state")).append(CR_LF).flush();
+					out.append(ResponseStatus.NEGATIVE.toString("[SYS/TEMP] invalid state")).append(CR_LF).flush();
 					continue;
 				}
 				if (pop3Command instanceof PASS) {
@@ -108,7 +108,14 @@ public class Session implements Runnable {
 					logger.debug(inputLine);
 				}
 				context.inputArgs = inputLine.substring(requestedCommand.length()).trim();
-				Iterator<String> responseLines = pop3Command.call(context);
+				Iterator<String> responseLines;
+				try {
+					responseLines = pop3Command.call(context);
+				} catch (IOException ioe) {
+					//out.append(ResponseStatus.NEGATIVE.toString("[SYS/TEMP] " + ioe.getMessage()));
+					out.append(ResponseStatus.NEGATIVE.toString("[SYS/PERM] " + ioe.getMessage()));
+					throw ioe;
+				}
 				if (pop3Command instanceof PASS && context.state == State.TRANSACTION) {
 					MDC.put(MDC_USER, context.userName);
 				}

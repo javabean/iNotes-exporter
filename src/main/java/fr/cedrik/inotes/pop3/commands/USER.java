@@ -42,7 +42,7 @@ public class USER extends BasePOP3Command implements POP3Command {
 		}
 		StringTokenizer tokenizer = new StringTokenizer(context.inputArgs, "@", false);
 		if (tokenizer.countTokens() != 2) {
-			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("bad user format; should be user@https://webmail.example.com"));
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("[AUTH] bad user format; should be user@https://webmail.example.com"));
 		}
 		context.userName = tokenizer.nextToken();
 		String serverURL = tokenizer.nextToken();
@@ -50,7 +50,7 @@ public class USER extends BasePOP3Command implements POP3Command {
 			URL url = new URL(serverURL);
 			context.iNotesSession.setServerAddress(url);
 		} catch (MalformedURLException e) {
-			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("bad user format; should be user@https://webmail.example.com"));
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("[AUTH] bad user format; should be user@https://webmail.example.com"));
 		}
 		return new IteratorChain<String>(ResponseStatus.POSITIVE.toString(context.userName + '@' + serverURL));
 	}

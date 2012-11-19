@@ -39,6 +39,8 @@ public class CAPA extends BasePOP3Command implements POP3Command {
 		// hack for additional information
 		result.add("LOGIN-DELAY 30");
 		result.add("IMPLEMENTATION iNotes");
+		result.add("RESP-CODES");
+		result.add("AUTH-RESP-CODE");
 		return result.iterator();
 	}
 
