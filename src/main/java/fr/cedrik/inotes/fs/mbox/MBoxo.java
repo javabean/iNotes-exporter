@@ -36,11 +36,6 @@ public class MBoxo extends BaseMBox {
 	}
 
 	@Override
-	protected void help() {
-		System.out.println("Usage: "+MBoxo.class.getSimpleName()+" <out_file> [oldest message to fetch date: " + ISO8601_DATE_SEMITIME + ']');
-	}
-
-	@Override
 	protected void writeMIME(Writer mbox, BaseINotesMessage message, Iterator<String> mime) throws IOException {
 		writeFromLine(mbox, message);
 		while (mime.hasNext()) {

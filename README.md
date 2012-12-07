@@ -6,7 +6,7 @@ SEO keywords: IBM Lotus Notes Domino iNotes POP3 mbox maildir export
 
 Requirements
 ------------
-* Lotus iNotes credentials (tested with version 8.5.x)  
+* Lotus iNotes credentials (tested with version 8.5.3)  
 * Java 6
 * Maven 3 for compiling
 
@@ -28,13 +28,15 @@ Running
 
 ### mbox/maildir export
 
-	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] [-Dnotes.folder.id=($Inbox)] -jar target/iNotes-exporter-1.6-jar-with-dependencies.jar (mboxrd|maildir) <output_file|output_dir> [yyyy-MM-dd'T'HH:mm]
+	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] [-Dnotes.folder.id=($Inbox)] -jar target/iNotes-exporter-1.6-jar-with-dependencies.jar (mboxrd|maildir) <output_file|output_dir> [start date: yyyy-MM-dd'T'HH:mm [end date: yyyy-MM-dd'T'HH:mm [--delete]]]
 
 where
+* `<output_file>` will be overwritten if no start date is given. Otherwise, the newest email data is appended to it.
 * `yyyy-MM-dd'T'HH:mm` is the date of the oldest message to export
 	* if none provided, and `output_file` does not exists, exports all messages
 	* if none provided, and `output_file` exists, do an incremental export since last time this tool was run
-* `<output_file>` will be overwritten if no start date is given. Otherwise, the newest email data is appended to it.
+* `yyyy-MM-dd'T'HH:mm` is the date of the newest message to export
+* `--delete`: delete messages from the Notes server after exporting
 
 examples:
 * `java -jar target/iNotes-exporter-1.6-jar-with-dependencies.jar mboxrd /tmp/my_mailbox 2012-01-20T20:00`

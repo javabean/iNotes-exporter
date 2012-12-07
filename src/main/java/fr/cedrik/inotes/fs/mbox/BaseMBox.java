@@ -37,6 +37,11 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 	}
 
 	@Override
+	protected void help() {
+		System.out.println("Usage: "+this.getClass().getSimpleName()+" <out_file> [oldest message to fetch date: " + ISO8601_DATE_SEMITIME + " [newest message to fetch date: " + ISO8601_DATE_SEMITIME + " [--delete]]]");
+	}
+
+	@Override
 	protected boolean validateDestinationName(String baseName, String extension) {
 		String fileName = baseName;
 		if (! fileName.endsWith(extension)) {
@@ -52,7 +57,7 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 	}
 
 	@Override
-	protected final Date export(INotesMessagesMetaData<?> messages) throws IOException {
+	protected final Date export(INotesMessagesMetaData<? extends BaseINotesMessage> messages, boolean deleteExportedMessages) throws IOException {
 		Writer mbox = null;
 		FileLock outFileLock = null;
 		Date lastExportedMessageDate = null;
@@ -82,6 +87,9 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 				lastExportedMessageDate = message.getDate();
 			}
 			mbox.flush();
+			if (deleteExportedMessages) {
+				session.deleteMessage(messages.entries);
+			}
 		} finally {
 			if (outFileLock != null) {
 				outFileLock.release();

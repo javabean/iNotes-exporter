@@ -55,7 +55,7 @@ abstract class BaseMailDir extends BaseFsExport implements fr.cedrik.inotes.Main
 	}
 
 	@Override
-	protected final Date export(INotesMessagesMetaData<?> messages) throws IOException {
+	protected final Date export(INotesMessagesMetaData<? extends BaseINotesMessage> messages, boolean deleteExportedMessages) throws IOException {
 		File tmpDir = new File(mailDir, TMP);
 		if (! tmpDir.exists() && ! tmpDir.mkdirs()) {
 			logger.error("Can not create directory: " + tmpDir);
@@ -101,6 +101,9 @@ abstract class BaseMailDir extends BaseFsExport implements fr.cedrik.inotes.Main
 				logger.warn("Can not move file {} to {}", tmpFile, newFile);
 			}
 			lastExportedMessageDate = message.getDate();
+		}
+		if (deleteExportedMessages) {
+			session.deleteMessage(messages.entries);
 		}
 		return lastExportedMessageDate;
 	}

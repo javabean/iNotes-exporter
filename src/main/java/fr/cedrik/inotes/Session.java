@@ -404,19 +404,25 @@ public class Session {
 		if (allMessagesCache != null) {
 			return allMessagesCache;
 		}
-		allMessagesCache = getMessagesMetaData(null, Integer.MAX_VALUE);
+		allMessagesCache = getMessagesMetaData(null, null, Integer.MAX_VALUE);
 		return allMessagesCache;
 	}
 	public INotesMessagesMetaData<MessageMetaData> getMessagesMetaData(int count) throws IOException {
-		return getMessagesMetaData(null, count);
+		return getMessagesMetaData(null, null, count);
 	}
 	public INotesMessagesMetaData<MessageMetaData> getMessagesMetaData(Date oldestMessageToFetch) throws IOException {
-		return getMessagesMetaData(oldestMessageToFetch, Integer.MAX_VALUE);
+		return getMessagesMetaData(oldestMessageToFetch, null, Integer.MAX_VALUE);
 	}
-	protected INotesMessagesMetaData<MessageMetaData> getMessagesMetaData(Date oldestMessageToFetch, int count) throws IOException {
+	public INotesMessagesMetaData<MessageMetaData> getMessagesMetaData(Date oldestMessageToFetch, Date newestMessageToFetch) throws IOException {
+		return getMessagesMetaData(oldestMessageToFetch, newestMessageToFetch, Integer.MAX_VALUE);
+	}
+	protected INotesMessagesMetaData<MessageMetaData> getMessagesMetaData(Date oldestMessageToFetch, Date newestMessageToFetch, int count) throws IOException {
 		checkLoggedIn();
 		if (oldestMessageToFetch == null) {
 			oldestMessageToFetch = new Date(0);
+		}
+		if (newestMessageToFetch == null) {
+			newestMessageToFetch = new Date(Long.MAX_VALUE);
 		}
 		// iNotes limits the number of results to 1000. Need to paginate.
 		int start = 1, currentCount = 0;
@@ -432,11 +438,16 @@ public class Session {
 					BaseINotesMessage message = iterator.next();
 					if (message.getDate().before(oldestMessageToFetch)) {
 						iterator.remove();
+					} else if (message.getDate().after(newestMessageToFetch)) {
+						iterator.remove();
 					}
 				}
 			} else {
 				for (MessageMetaData message : partialMessages.entries) {
 					if (message.getDate().before(oldestMessageToFetch)) {
+						stopLoading = true;
+						break;
+					} else if (message.getDate().after(newestMessageToFetch)) {
 						stopLoading = true;
 						break;
 					}
@@ -587,6 +598,14 @@ public class Session {
 		}
 	}
 
+	/**
+	 * will be done server-side on logout
+	 * @param messages
+	 * @throws IOException
+	 */
+	public void deleteMessage(List<? extends BaseINotesMessage> messages) throws IOException {
+		deleteMessage(messages.toArray(new BaseINotesMessage[messages.size()]));
+	}
 	/**
 	 * will be done server-side on logout
 	 * @param messages
@@ -793,20 +812,26 @@ public class Session {
 		if (allNoticesCache != null) {
 			return allNoticesCache;
 		}
-		allNoticesCache = getMeetingNoticesMetaData(null, Integer.MAX_VALUE);
+		allNoticesCache = getMeetingNoticesMetaData(null, null, Integer.MAX_VALUE);
 		return allNoticesCache;
 	}
 	public INotesMessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaData(int count) throws IOException {
-		return getMeetingNoticesMetaData(null, count);
+		return getMeetingNoticesMetaData(null, null, count);
 	}
 	public INotesMessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaData(Date oldestMessageToFetch) throws IOException {
-		return getMeetingNoticesMetaData(oldestMessageToFetch, Integer.MAX_VALUE);
+		return getMeetingNoticesMetaData(oldestMessageToFetch, null, Integer.MAX_VALUE);
 	}
-	public INotesMessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaData(Date oldestMessageToFetch, int count) throws IOException {
+	public INotesMessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaData(Date oldestMessageToFetch, Date newestMessageToFetch) throws IOException {
+		return getMeetingNoticesMetaData(oldestMessageToFetch, newestMessageToFetch, Integer.MAX_VALUE);
+	}
+	public INotesMessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaData(Date oldestMessageToFetch, Date newestMessageToFetch, int count) throws IOException {
 		checkLoggedIn();
 		cleanup();
 		if (oldestMessageToFetch == null) {
 			oldestMessageToFetch = new Date(0);
+		}
+		if (newestMessageToFetch == null) {
+			newestMessageToFetch = new Date(Long.MAX_VALUE);
 		}
 		String notesFolderIdBackup = context.getNotesFolderId();
 		context.setNotesFolderId(Folder.MEETING_NOTICES);
@@ -824,11 +849,16 @@ public class Session {
 					BaseINotesMessage notice = iterator.next();
 					if (notice.getDate().before(oldestMessageToFetch)) {
 						iterator.remove();
+					} else if (notice.getDate().after(newestMessageToFetch)) {
+						iterator.remove();
 					}
 				}
 			} else {
 				for (MeetingNoticeMetaData notice : partialNotices.entries) {
 					if (notice.getDate().before(oldestMessageToFetch)) {
+						stopLoading = true;
+						break;
+					} else if (notice.getDate().after(newestMessageToFetch)) {
 						stopLoading = true;
 						break;
 					}
@@ -1010,11 +1040,15 @@ public class Session {
 	}
 
 	public INotesMessagesMetaData<? extends BaseINotesMessage> getMessagesAndMeetingNoticesMetaData(Date oldestMessageToFetch) throws IOException {
-		return getMessagesMetaData(oldestMessageToFetch);
+		return getMessagesAndMeetingNoticesMetaData(oldestMessageToFetch, null);
+	}
+
+	public INotesMessagesMetaData<? extends BaseINotesMessage> getMessagesAndMeetingNoticesMetaData(Date oldestMessageToFetch, Date newestMessageToFetch) throws IOException {
+		return getMessagesMetaData(oldestMessageToFetch, newestMessageToFetch);
 		//FIXME uncomment when we find a way to export meeting invites!
 //		if (Folder.INBOX.equals(context.getNotesFolderId()) || Folder.ALL.equals(context.getNotesFolderId())) {
-//			INotesMessagesMetaData<MessageMetaData> messagesMetaData = getMessagesMetaData(oldestMessageToFetch);
-//			INotesMessagesMetaData<MeetingNoticeMetaData> noticesMetaData = getMeetingNoticesMetaData(oldestMessageToFetch);
+//			INotesMessagesMetaData<MessageMetaData> messagesMetaData = getMessagesMetaData(oldestMessageToFetch, newestMessageToFetch);
+//			INotesMessagesMetaData<MeetingNoticeMetaData> noticesMetaData = getMeetingNoticesMetaData(oldestMessageToFetch, newestMessageToFetch);
 //			INotesMessagesMetaData<BaseINotesMessage> result = messagesMetaData.clone();
 //			result.entries.clear();
 //			result.entries.addAll(messagesMetaData.entries);

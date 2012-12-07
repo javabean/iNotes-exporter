@@ -31,7 +31,7 @@ public class MailDir extends BaseMailDir {
 
 	@Override
 	protected void help() {
-		System.out.println("Usage: "+MailDir.class.getSimpleName()+" <out_dir> [oldest message to fetch date: " + ISO8601_DATE_SEMITIME + ']');
+		System.out.println("Usage: "+MailDir.class.getSimpleName()+" <out_dir> [oldest message to fetch date: " + ISO8601_DATE_SEMITIME + " [newest message to fetch date: " + ISO8601_DATE_SEMITIME + " [--delete]]]");
 	}
 
 }
