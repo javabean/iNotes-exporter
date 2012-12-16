@@ -4,10 +4,6 @@
 package fr.cedrik.inotes.fs.maildir;
 
 import java.io.IOException;
-import java.io.Writer;
-import java.util.Iterator;
-
-import fr.cedrik.inotes.MessageMetaData;
 
 /**
  * @author C&eacute;drik LIME
@@ -35,15 +31,7 @@ public class MailDir extends BaseMailDir {
 
 	@Override
 	protected void help() {
-		System.out.println("Usage: "+MailDir.class.getSimpleName()+" <out_file> [oldest message to fetch date: " + ISO8601_DATE_SEMITIME + ']');
-	}
-
-	@Override
-	protected void writeMIME(Writer mbox, MessageMetaData message, Iterator<String> mime) throws IOException {
-		while (mime.hasNext()) {
-			String line = mime.next();
-			mbox.append(line).append('\n');
-		}
+		System.out.println("Usage: "+MailDir.class.getSimpleName()+" <out_dir> [oldest message to fetch date: " + ISO8601_DATE_SEMITIME + " [newest message to fetch date: " + ISO8601_DATE_SEMITIME + " [--delete]]]");
 	}
 
 }

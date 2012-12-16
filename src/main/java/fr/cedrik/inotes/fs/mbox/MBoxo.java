@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
 
-import fr.cedrik.inotes.MessageMetaData;
+import fr.cedrik.inotes.BaseINotesMessage;
 
 /**
  * @author C&eacute;drik LIME
@@ -36,12 +36,7 @@ public class MBoxo extends BaseMBox {
 	}
 
 	@Override
-	protected void help() {
-		System.out.println("Usage: "+MBoxo.class.getSimpleName()+" <out_file> [oldest message to fetch date: " + ISO8601_DATE_SEMITIME + ']');
-	}
-
-	@Override
-	protected void writeMIME(Writer mbox, MessageMetaData message, Iterator<String> mime) throws IOException {
+	protected void writeMIME(Writer mbox, BaseINotesMessage message, Iterator<String> mime) throws IOException {
 		writeFromLine(mbox, message);
 		while (mime.hasNext()) {
 			String line = mime.next();

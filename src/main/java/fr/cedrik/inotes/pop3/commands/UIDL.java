@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import fr.cedrik.inotes.MessageMetaData;
-import fr.cedrik.inotes.MessagesMetaData;
+import fr.cedrik.inotes.BaseINotesMessage;
+import fr.cedrik.inotes.INotesMessagesMetaData;
 import fr.cedrik.inotes.pop3.Context;
 import fr.cedrik.inotes.pop3.POP3Command;
 import fr.cedrik.inotes.pop3.ResponseStatus;
@@ -30,23 +30,23 @@ public class UIDL extends BasePOP3Command implements POP3Command {
 			requestedMessageNumber = Integer.parseInt(context.inputArgs);
 		} catch (NumberFormatException noInput) {
 		}
-		MessagesMetaData messages = context.iNotesSession.getMessagesMetaData();
+		INotesMessagesMetaData<? extends BaseINotesMessage> messages = context.iNotesSession.getMessagesAndMeetingNoticesMetaData();
 		if (requestedMessageNumber > messages.entries.size()) {
 			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("no such message, only " + messages.entries.size() + " messages in maildrop"));
 		}
 		// TODO if present, may NOT refer to a message marked as deleted
-		List<MessageMetaData> maildrop;
+		List<? extends BaseINotesMessage> maildrop;
 		if (requestedMessageNumber > 0) {
-			maildrop = new ArrayList<MessageMetaData>(1);
-			maildrop.add(messages.entries.get(requestedMessageNumber-1));
+			maildrop = new ArrayList<BaseINotesMessage>(1);
+			((List<BaseINotesMessage>)maildrop).add(messages.entries.get(requestedMessageNumber-1));
 		} else {
 			// TODO messages marked as deleted are not listed
 			maildrop = messages.entries;
 		}
-		List<String> response = new ArrayList<String>(maildrop.size());
+		List<String> response = new ArrayList<String>(maildrop.size()+1);
 		response.add(ResponseStatus.POSITIVE.toString("unique-id listing follows: " + maildrop.size() + " message(s)"));
 		int n = 1;
-		for (MessageMetaData message : maildrop) {
+		for (BaseINotesMessage message : maildrop) {
 			response.add(""+n+' '+message.unid);
 			++n;
 		}

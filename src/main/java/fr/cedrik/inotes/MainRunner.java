@@ -49,7 +49,7 @@ public class MainRunner {
 		System.out.println("Usage: " + MainRunner.class.getSimpleName() + " <command>");
 		System.out.println("where <command> is one of:");
 		for (MainRunner.Main main : ServiceLoader.load(Main.class)) {
-			System.out.println(main.getClass().getSimpleName());
+			System.out.println('\t' + main.getClass().getSimpleName());
 		}
 		System.exit(-1);
 	}

@@ -26,20 +26,30 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
+ * WARNING: this class is not thread-safe!
+ *
  * @author C&eacute;drik LIME
+ * @deprecated XPath is simply too slow…
  */
-class XMLConverter {
-	protected static final Logger logger = LoggerFactory.getLogger(XMLConverter.class);
+@Deprecated
+class MessagesXMLConverterXPath {
+	protected static final Logger logger = LoggerFactory.getLogger(MessagesXMLConverterXPath.class);
 
-	public XMLConverter() {
+	public MessagesXMLConverterXPath() {
 	}
 
-	public MessagesMetaData convertXML(InputStream input) throws IOException {
+	protected Document loadXML(InputStream input) throws ParserConfigurationException, SAXException, IOException {
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+		Document doc = dBuilder.parse(input);
+		doc.getDocumentElement().normalize();
+		return doc;
+	}
+
+	public INotesMessagesMetaData<MessageMetaData> convertXML(InputStream input) throws IOException {
 		Document doc;
 		try {
-			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			doc = dBuilder.parse(input);
+			doc = loadXML(input);
 		} catch (ParserConfigurationException e) {
 			logger.error("", e);
 			return null;
@@ -47,8 +57,7 @@ class XMLConverter {
 			logger.error("", e);
 			return null;
 		}
-		doc.getDocumentElement().normalize();
-		MessagesMetaData messages = new MessagesMetaData();
+		INotesMessagesMetaData<MessageMetaData> messages = new INotesMessagesMetaData<MessageMetaData>();
 		try {
 			Number dbsize       = (Number) dbsizeXP.evaluate(doc, XPathConstants.NUMBER);
 			Number sizelimit    = (Number) sizelimitXP.evaluate(doc, XPathConstants.NUMBER);
@@ -77,7 +86,10 @@ class XMLConverter {
 					message.from93      = (String) from93XP.evaluate(node, XPathConstants.STRING);
 					message.from98      = (String) from98XP.evaluate(node, XPathConstants.STRING);
 					message.subject     = (String) subjectXP.evaluate(node, XPathConstants.STRING);
-					message.date        = new SimpleDateFormat("yyyyMMdd'T'HHmmss','SS'Z'").parse((String) dateXP.evaluate(node, XPathConstants.STRING));
+					String dateStr = (String) dateXP.evaluate(node, XPathConstants.STRING);
+					if (StringUtils.isNotEmpty(dateStr)) {
+						message.date        = new SimpleDateFormat("yyyyMMdd'T'HHmmss','SS'Z'").parse(dateStr);
+					}
 					message.size        = ((Number) sizeXP.evaluate(node, XPathConstants.NUMBER)).intValue();
 					message.recipient   = ((Number) recipientXP.evaluate(node, XPathConstants.NUMBER)).intValue();
 					message.attachement = ((Number) attachementXP.evaluate(node, XPathConstants.NUMBER)).intValue();
@@ -127,6 +139,9 @@ class XMLConverter {
 //	private static final XPathExpression userDataXP;
 
 	static {
+//		System.setProperty("com.sun.org.apache.xml.internal.dtm.DTMManager", "com.sun.org.apache.xml.internal.dtm.ref.DTMManagerDefault");
+//		System.setProperty("org.apache.xml.dtm.DTMManager", "org.apache.xml.dtm.ref.DTMManagerDefault");
+
 		try {
 			dbsizeXP       = xpath.compile("/readviewentries/dbquotasize/dbsize");
 			sizelimitXP    = xpath.compile("/readviewentries/dbquotasize/sizelimit");

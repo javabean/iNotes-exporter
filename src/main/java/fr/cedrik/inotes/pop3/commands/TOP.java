@@ -4,16 +4,13 @@
 package fr.cedrik.inotes.pop3.commands;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.apache.commons.io.LineIterator;
-
-import fr.cedrik.inotes.MessageMetaData;
-import fr.cedrik.inotes.MessagesMetaData;
+import fr.cedrik.inotes.BaseINotesMessage;
+import fr.cedrik.inotes.INotesMessagesMetaData;
 import fr.cedrik.inotes.pop3.Context;
 import fr.cedrik.inotes.pop3.POP3Command;
 import fr.cedrik.inotes.pop3.ResponseStatus;
@@ -49,18 +46,22 @@ public class TOP extends BasePOP3Command implements POP3Command {
 			//FIXME
 			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("unimplemented; number of lines must be == 0 for now"));
 		}
-		MessagesMetaData messages = context.iNotesSession.getMessagesMetaData();
+		INotesMessagesMetaData<?> messages = context.iNotesSession.getMessagesAndMeetingNoticesMetaData();
 		if (requestedMessageNumber > messages.entries.size()) {
-			return new LineIterator(new StringReader(ResponseStatus.NEGATIVE.toString("no such message, only " + messages.entries.size() + " messages in maildrop")));
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("no such message, only " + messages.entries.size() + " messages in maildrop"));
 		}
 		// TODO may NOT refer to a message marked as deleted
-		MessageMetaData message = messages.entries.get(requestedMessageNumber - 1);
-		String responseStatus = ResponseStatus.POSITIVE.toString("top " + requestedLinesNumber + " lines of message " + message.unid + " follows");
+		BaseINotesMessage message = messages.entries.get(requestedMessageNumber - 1);
 		Iterator<String> mimeHeaders = context.iNotesSession.getMessageMIMEHeaders(message);
-		List<String> emptytLine = new ArrayList<String>(1);
-		emptytLine.add("");
-		// TODO requestedLinesNumber lines of body
-		return new IteratorChain<String>(responseStatus, mimeHeaders, emptytLine.iterator());
+		if (mimeHeaders == null) {
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("unknown error: can not retrieve message headers"));
+		} else {
+			String responseStatus = ResponseStatus.POSITIVE.toString("top " + requestedLinesNumber + " lines of message " + message.unid + " follows");
+			List<String> emptytLine = new ArrayList<String>(1);
+			emptytLine.add("");
+			// TODO requestedLinesNumber lines of body
+			return new IteratorChain<String>(responseStatus, mimeHeaders, emptytLine.iterator());
+		}
 	}
 
 }

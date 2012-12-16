@@ -10,11 +10,12 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.channels.FileLock;
+import java.util.Date;
 
 import org.apache.commons.io.IOUtils;
 
-import fr.cedrik.inotes.MessageMetaData;
-import fr.cedrik.inotes.MessagesMetaData;
+import fr.cedrik.inotes.BaseINotesMessage;
+import fr.cedrik.inotes.INotesMessagesMetaData;
 import fr.cedrik.inotes.fs.BaseFsExport;
 import fr.cedrik.inotes.util.Charsets;
 import fr.cedrik.inotes.util.DateUtils;
@@ -36,7 +37,12 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 	}
 
 	@Override
-	protected boolean prepareOutFileFields(String baseName, String extension) {
+	protected void help() {
+		System.out.println("Usage: "+this.getClass().getSimpleName()+" <out_file> [oldest message to fetch date: " + ISO8601_DATE_SEMITIME + " [newest message to fetch date: " + ISO8601_DATE_SEMITIME + " [--delete]]]");
+	}
+
+	@Override
+	protected boolean validateDestinationName(String baseName, String extension) {
 		String fileName = baseName;
 		if (! fileName.endsWith(extension)) {
 			fileName += extension;
@@ -51,9 +57,10 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 	}
 
 	@Override
-	protected final void export(MessagesMetaData messages) throws IOException {
+	protected final Date export(INotesMessagesMetaData<? extends BaseINotesMessage> messages, boolean deleteExportedMessages) throws IOException {
 		Writer mbox = null;
 		FileLock outFileLock = null;
+		Date lastExportedMessageDate = null;
 		try {
 			// open out file
 			boolean append = oldestMessageToFetch != null;
@@ -61,15 +68,15 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 			outFileLock = outStream.getChannel().tryLock();
 			if (outFileLock == null) {
 				logger.error("Can not acquire a lock on file " + outFile + ". Aborting.");
-				return;
+				return null;
 			}
 			mbox = new BufferedWriter(new OutputStreamWriter(outStream, Charsets.US_ASCII), 32*1024);
 			// write messages
-			for (MessageMetaData message : messages.entries) {
+			for (BaseINotesMessage message : messages.entries) {
 				IteratorChain<String> mime = session.getMessageMIME(message);
-				if (! mime.hasNext()) {
-					logger.warn("Empty MIME message! ({})", message);
-					continue;
+				if (mime == null || ! mime.hasNext()) {
+					logger.error("Empty MIME message! ({})", message);
+					break;
 				}
 				logger.debug("Writing message {}", message);
 				try {
@@ -77,19 +84,24 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 				} finally {
 					mime.close();
 				}
+				lastExportedMessageDate = message.getDate();
 			}
 			mbox.flush();
+			if (deleteExportedMessages) {
+				session.deleteMessage(messages.entries);
+			}
 		} finally {
 			if (outFileLock != null) {
 				outFileLock.release();
 			}
 			IOUtils.closeQuietly(mbox);
 		}
+		return lastExportedMessageDate;
 	}
 
-	protected void writeFromLine(Writer mbox, MessageMetaData message) throws IOException {
+	protected void writeFromLine(Writer mbox, BaseINotesMessage message) throws IOException {
 		// date should be UTC, but tests show there is no need to convert it
-		mbox.append("From MAILER-DAEMON ").append(DateUtils.MBOX_DATE_TIME_FORMAT.format(message.date)).append('\n');
+		mbox.append("From MAILER-DAEMON ").append(DateUtils.MBOX_DATE_TIME_FORMAT.format(message.getDate())).append('\n');
 	}
 
 }

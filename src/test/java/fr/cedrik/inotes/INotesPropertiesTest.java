@@ -3,7 +3,7 @@
  */
 package fr.cedrik.inotes;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -27,7 +27,7 @@ public class INotesPropertiesTest {
 
 	@Before
 	public void setUp() throws Exception {
-		props = new INotesProperties();
+		props = new INotesProperties(INotesProperties.FILE);
 	}
 
 	@After

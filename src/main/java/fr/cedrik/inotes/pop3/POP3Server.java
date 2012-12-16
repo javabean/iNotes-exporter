@@ -36,8 +36,9 @@ public class POP3Server implements fr.cedrik.inotes.MainRunner.Main {
 	 * @param args
 	 */
 	public static void main(String[] args) throws IOException {
-		ServerSocket serverSocket = new ServerSocket(POP3Properties.getInstance().getServerPort());//FIXME allow to bind to a specific interface
-		logger.info("POP3 server ready");
+		POP3Properties pop3Properties = new POP3Properties(POP3Properties.FILE);
+		ServerSocket serverSocket = new ServerSocket(pop3Properties.getPOP3ServerPort());//FIXME allow to bind to a specific interface
+		logger.info("POP3 server ready, listening on " + serverSocket.toString());
 		while (! shutdown) {
 			Socket clientSocket = serverSocket.accept();
 			logger.info("New client: {}", clientSocket.getRemoteSocketAddress());

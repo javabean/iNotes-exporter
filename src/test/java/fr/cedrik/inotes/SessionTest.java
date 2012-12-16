@@ -22,11 +22,13 @@ import fr.cedrik.inotes.util.IteratorChain;
  * @author C&eacute;drik LIME
  */
 public class SessionTest {
+	private static INotesProperties iNotes;
 	private static Session session;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		session = new Session();
+		iNotes = new INotesProperties(INotesProperties.FILE);
+		session = new Session(iNotes);
 	}
 
 	@AfterClass
@@ -47,11 +49,11 @@ public class SessionTest {
 	 */
 	@Test
 	public void testSessionWorkflow() throws IOException {
-		if (session.login()) {
+		if (session.login(iNotes.getUserName(), iNotes.getUserPassword())) {
 			try {
-				MessagesMetaData messages = session.getMessagesMetaData();
-				assertNotNull("data", messages);
-				assertNotNull("data.entries", messages.entries);
+				INotesMessagesMetaData<MessageMetaData> messages = session.getMessagesMetaData();
+				assertNotNull("messages", messages);
+				assertNotNull("messages.entries", messages.entries);
 				if (! messages.entries.isEmpty()) {
 					checkMessagesOrder(messages.entries);
 					MessageMetaData message = messages.entries.get(0);
@@ -66,6 +68,17 @@ public class SessionTest {
 					assertTrue("Empty MIME", mime.hasNext());
 					mime.close();
 				}
+//				INotesMessagesMetaData<MeetingNoticeMetaData> notices = session.getMeetingNoticesMetaData();
+//				assertNotNull("notices", notices);
+//				assertNotNull("notices.entries", notices.entries);
+//				if (! notices.entries.isEmpty()) {
+//					MeetingNoticeMetaData notice = notices.entries.get(0);
+//					Calendar ics = session.getMeetingNoticeICS(notice);
+//					assertNotNull("ICS Meeting Notice", ics);
+//				}
+				INotesMessagesMetaData<? extends BaseINotesMessage> allMessages = session.getMessagesAndMeetingNoticesMetaData();
+				assertNotNull("allMessages", allMessages);
+				assertNotNull("allMessages.entries", allMessages.entries);
 			} finally {
 				boolean logout = session.logout();
 				assertTrue("logout", logout);
@@ -77,13 +90,13 @@ public class SessionTest {
 	 * Check messages are in ASCending order
 	 * @param messages
 	 */
-	protected void checkMessagesOrder(List<MessageMetaData> messages) {
+	protected void checkMessagesOrder(List<? extends BaseINotesMessage> messages) {
 		Date date = new Date(0);
-		for (MessageMetaData message : messages) {
-			if (date.after(message.date)) {
+		for (BaseINotesMessage message : messages) {
+			if (date.after(message.getDate())) {
 				throw new IllegalArgumentException(message.toString());
 			}
-			date = message.date;
+			date = message.getDate();
 		}
 	}
 }

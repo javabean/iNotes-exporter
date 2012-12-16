@@ -4,12 +4,11 @@
 package fr.cedrik.inotes.pop3.commands;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.Iterator;
 
 import org.apache.commons.lang3.StringUtils;
 
-import fr.cedrik.inotes.MessagesMetaData;
+import fr.cedrik.inotes.INotesMessagesMetaData;
 import fr.cedrik.inotes.pop3.Context;
 import fr.cedrik.inotes.pop3.POP3Command;
 import fr.cedrik.inotes.pop3.ResponseStatus;
@@ -37,17 +36,17 @@ public class PASS extends BasePOP3Command implements POP3Command {
 	@Override
 	public Iterator<String> call(Context context) throws IOException {
 		if (StringUtils.isBlank(context.inputArgs)) {
-			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString());
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("[AUTH] empty passwords are not allowed"));
 		}
 		if (StringUtils.isBlank(context.userName)) {
-			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("must call USER first"));
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("[SYS/TEMP] must call USER first"));
 		}
 		context.userPassword = context.inputArgs;
 		if (context.iNotesSession.login(context.userName, context.userPassword)) {
 			context.state = nextState(context);
 			String quotaMessage = "";
 			{
-				MessagesMetaData messages = context.iNotesSession.getMessagesMetaData(new Date());
+				INotesMessagesMetaData<?> messages = context.iNotesSession.getMessagesMetaData(0);
 				if (messages.ignorequota == 0 && messages.sizelimit > 0) {
 					if (messages.dbsize >= messages.sizelimit || messages.currentusage >= messages.sizelimit) {
 						quotaMessage = ". WARNING WARNING: you have exceeded your quota! Run QUOTA command for more information.";
@@ -58,7 +57,7 @@ public class PASS extends BasePOP3Command implements POP3Command {
 			}
 			return new IteratorChain<String>(ResponseStatus.POSITIVE.toString("welcome, " + context.userName + quotaMessage));
 		} else {
-			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("invalid user or password"));
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("[AUTH] invalid user or password"));
 		}
 	}
 

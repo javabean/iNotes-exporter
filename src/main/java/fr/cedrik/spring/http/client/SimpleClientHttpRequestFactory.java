@@ -18,6 +18,7 @@ import org.springframework.http.client.ClientHttpRequest;
  * @author C&eacute;drik LIME
  */
 public class SimpleClientHttpRequestFactory extends org.springframework.http.client.SimpleClientHttpRequestFactory {
+	private static final String ACCEPT_ENCODING = "Accept-Encoding";//$NON-NLS-1$
 
 	private boolean allowUserInteraction = URLConnection.getDefaultAllowUserInteraction();
 	private boolean useCaches = getDefaultUseCaches();
@@ -52,6 +53,9 @@ public class SimpleClientHttpRequestFactory extends org.springframework.http.cli
 		connection.setUseCaches(useCaches);
 		connection.setIfModifiedSince(ifModifiedSince);
 //		connection.addRequestProperty("Authorization", BASIC_AUTH + Base64.encode("user name" + ':' + "pass phrase"));
+		if (connection.getRequestProperty(ACCEPT_ENCODING) == null) {
+			connection.setRequestProperty(ACCEPT_ENCODING, "deflate, gzip");//$NON-NLS-1$
+		}
 	}
 
 	/**

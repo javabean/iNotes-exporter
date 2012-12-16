@@ -28,8 +28,8 @@ import fr.cedrik.spring.http.client.SimpleClientHttpRequestFactory;
  * @author C&eacute;drik LIME
  */
 public class HttpContext {
-	protected final INotesProperties iNotes = new INotesProperties();
-	protected final HttpRequestExecutor httpRequestExecutor = getHttpRequestExecutor();
+	protected final INotesProperties iNotes;
+	protected final HttpRequestExecutor httpRequestExecutor;
 	protected final CookieManager cookieManager = new CookieManager();
 	protected final HttpHeaders httpHeaders = new HttpHeaders();
 	protected String proxyBaseURL;
@@ -47,8 +47,10 @@ public class HttpContext {
 		//CookieHandler.setDefault(cookieManager);
 	}
 
-	public HttpContext() {
+	public HttpContext(INotesProperties iNotes) {
+		this.iNotes = iNotes;
 		cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
+		httpRequestExecutor = getHttpRequestExecutor();
 	}
 
 	/**
@@ -88,15 +90,15 @@ public class HttpContext {
 		iNotes.setUserPassword(password);
 	}
 
-	public Proxy getProxy() {
-		return iNotes.getProxy();
+	public String getNotesFolderId() {
+		return iNotes.getNotesFolderId();
+	}
+	public void setNotesFolderId(String notesFolderID) {
+		iNotes.setNotesFolderId(notesFolderID);
 	}
 
-	public String getNotesFolderName() {
-		return iNotes.getNotesFolderName();
-	}
-	public void setNotesFolderName(String notesFolderID) {
-		iNotes.setNotesFolderName(notesFolderID);
+	public List<String> getNotesExcludedFoldersIds() {
+		return iNotes.getNotesExcludedFoldersIds();
 	}
 
 	public String getProxyBaseURL() {
@@ -108,7 +110,7 @@ public class HttpContext {
 	}
 
 	public String getFolderBaseURL() {
-		return folderBaseURL + getNotesFolderName() + '/';
+		return folderBaseURL + getNotesFolderId() + '/';
 	}
 
 	public void setFolderBaseURL(String baseURL) {
@@ -121,6 +123,10 @@ public class HttpContext {
 
 	public void setMailEditBaseURL(String baseURL) {
 		this.mailEditBaseURL = baseURL;
+	}
+
+	public boolean isFixLotusNotesDateMIMEHeader() {
+		return iNotes.isFixLotusNotesDateMIMEHeader();
 	}
 
 	/**

@@ -30,7 +30,7 @@ public class CAPA extends BasePOP3Command implements POP3Command {
 	@Override
 	public Iterator<String> call(Context context) throws IOException {
 		List<String> result = new ArrayList<String>(16);
-		result.add(ResponseStatus.POSITIVE.toString("Capability list follows"));
+		result.add(ResponseStatus.POSITIVE.toString("capability list follows"));
 		ServiceLoader<POP3Command> commands = ServiceLoader.load(POP3Command.class);
 		for (POP3Command command : commands) {
 			// FIXME Each capability name MAY be followed by a single space and a space-separated list of parameters.
@@ -39,6 +39,8 @@ public class CAPA extends BasePOP3Command implements POP3Command {
 		// hack for additional information
 		result.add("LOGIN-DELAY 30");
 		result.add("IMPLEMENTATION iNotes");
+		result.add("RESP-CODES");
+		result.add("AUTH-RESP-CODE");
 		return result.iterator();
 	}
 

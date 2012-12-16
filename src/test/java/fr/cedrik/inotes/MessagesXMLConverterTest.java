@@ -3,10 +3,13 @@
  */
 package fr.cedrik.inotes;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import javax.xml.stream.XMLStreamException;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -17,12 +20,12 @@ import org.junit.Test;
 /**
  * @author C&eacute;drik LIME
  */
-public class XMLConverterTest {
-	private static XMLConverter xmlConverter;
+public class MessagesXMLConverterTest {
+	private static MessagesXMLConverter xmlConverter;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		xmlConverter = new XMLConverter();
+		xmlConverter = new MessagesXMLConverter();
 	}
 
 	@AfterClass
@@ -39,17 +42,19 @@ public class XMLConverterTest {
 	}
 
 	/**
-	 * Test method for {@link fr.cedrik.inotes.XMLConverter#convertXML(java.io.InputStream)}.
+	 * Test method for {@link fr.cedrik.inotes.MessagesXMLConverter#convertXML(InputStream, java.nio.charset.Charset)}.
 	 */
 	@Test
-	public void testConvertXML() throws IOException {
-		InputStream is = getClass().getResourceAsStream("/test.xml");
-		MessagesMetaData messages = xmlConverter.convertXML(is);
+	public void testConvertXML() throws IOException, XMLStreamException {
+		InputStream is = getClass().getResourceAsStream("/messages.xml");
+		INotesMessagesMetaData<MessageMetaData> messages = xmlConverter.convertXML(is, null);
+		is.close();
 		assertNotNull("convertXML", messages);
 		for (MessageMetaData message : messages.entries) {
 			assertNotNull("unid", message.unid);
 			assertNotNull("noteid", message.noteid);
-			assertTrue("size", message.size >= 0);
+			assertNotNull("date", message.getDate());
+			assertTrue("size", message.getSize() >= 0);
 		}
 	}
 

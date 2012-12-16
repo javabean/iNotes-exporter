@@ -12,7 +12,7 @@ import java.util.NoSuchElementException;
 
 import org.apache.commons.io.LineIterator;
 
-// Very heavily adapted from commons-chain 3.2.1
+// Very heavily adapted from commons-collections 3.2.1
 /**
  * An IteratorChain is an Iterator that wraps a number of Iterators.
  * <p>

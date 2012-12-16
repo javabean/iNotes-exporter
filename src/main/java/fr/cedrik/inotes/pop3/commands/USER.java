@@ -4,6 +4,8 @@
 package fr.cedrik.inotes.pop3.commands;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 
@@ -40,11 +42,16 @@ public class USER extends BasePOP3Command implements POP3Command {
 		}
 		StringTokenizer tokenizer = new StringTokenizer(context.inputArgs, "@", false);
 		if (tokenizer.countTokens() != 2) {
-			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("bad user format; should be user@https://webmail.example.com"));
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("[AUTH] bad user format; should be user@https://webmail.example.com"));
 		}
 		context.userName = tokenizer.nextToken();
 		String serverURL = tokenizer.nextToken();
-		context.iNotesSession.setServerAddress(serverURL);
+		try {
+			URL url = new URL(serverURL);
+			context.iNotesSession.setServerAddress(url);
+		} catch (MalformedURLException e) {
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("[AUTH] bad user format; should be user@https://webmail.example.com"));
+		}
 		return new IteratorChain<String>(ResponseStatus.POSITIVE.toString(context.userName + '@' + serverURL));
 	}
 

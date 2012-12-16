@@ -15,8 +15,11 @@ import java.util.prefs.Preferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import fr.cedrik.inotes.MessageMetaData;
-import fr.cedrik.inotes.MessagesMetaData;
+import fr.cedrik.inotes.BaseINotesMessage;
+import fr.cedrik.inotes.Folder;
+import fr.cedrik.inotes.FoldersList;
+import fr.cedrik.inotes.INotesMessagesMetaData;
+import fr.cedrik.inotes.INotesProperties;
 import fr.cedrik.inotes.Session;
 import fr.cedrik.inotes.util.DateUtils;
 
@@ -28,9 +31,10 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 
 	protected static final String PREF_LAST_EXPORT_DATE = "lastExportDate";//$NON-NLS-1$
 
-	protected Logger logger = LoggerFactory.getLogger(this.getClass());
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+	protected INotesProperties iNotes;
 	protected Session session;
-	protected Date oldestMessageToFetch;
+	protected Date oldestMessageToFetch, newestMessageToFetch;
 
 	public BaseFsExport() throws IOException {
 	}
@@ -40,49 +44,24 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 			help();
 			System.exit(-1);
 		}
-		if (! prepareOutFileFields(args[0], extension)) {
+		if (! validateDestinationName(args[0], extension)) {
 			return;
 		}
-		if (args.length > 1) {
-			try {
-				this.oldestMessageToFetch = new SimpleDateFormat(ISO8601_DATE_SEMITIME).parse(args[1]);
-			} catch (ParseException ignore) {
-				logger.warn("Bad date format. Please use " + ISO8601_DATE_SEMITIME);
-			}
-		} else if (shouldLoadOldestMessageToFetchFromPreferences()) {
-			// set oldestMessageToFetch if file exists, and there is a Preference
-			Preferences prefs = Preferences.userNodeForPackage(this.getClass());
-			try {
-				if (prefs.nodeExists(this.getClass().getSimpleName())) {
-					long lastExportDate = prefs.node(this.getClass().getSimpleName()).getLong(PREF_LAST_EXPORT_DATE, -1);
-					if (lastExportDate != -1) {
-						this.oldestMessageToFetch = new Date(lastExportDate);
-					}
-				}
-			} catch (BackingStoreException ignore) {
-				logger.warn("Can not load last import date:", ignore);
-			}
-		}
-		if (this.oldestMessageToFetch != null) {
-			logger.info("Incremental import from " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(this.oldestMessageToFetch));
-		} else {
-			logger.info("Full import");
-		}
-		session = new Session();
+		iNotes = new INotesProperties(INotesProperties.FILE);
 		// login
-		if (! session.login()) {
-			logger.error("Can not login!");
+		session = new Session(iNotes);
+		if (! session.login(iNotes.getUserName(), iNotes.getUserPassword())) {
+			logger.error("Can not login user {}!", iNotes.getUserName());
 			return;
 		}
 		try {
-			// meta-data
-			MessagesMetaData messages = session.getMessagesMetaData(oldestMessageToFetch);
-			checkQuota(messages);
-			if (! messages.entries.isEmpty()) {
-				this.export(messages);
-				// set Preference to oldestMessageToFetch
-				setPreferenceToOldestMessageToFetch(messages);
+			// export folders hierarchy
+			FoldersList folders = session.getFolders();
+			Folder folder = folders.getFolderById(iNotes.getNotesFolderId());
+			if (folder == null) {
+				throw new IllegalArgumentException("Can not find folder \"" + iNotes.getNotesFolderId() + "\". Did you input the folder name instead of its id?");
 			}
+			export(folder, args);
 		} finally {
 			session.logout();
 		}
@@ -90,21 +69,100 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 
 	protected abstract void help();
 
-	protected abstract void export(MessagesMetaData messages) throws IOException;
+	protected void export(Folder folder, String[] args) throws IOException {
+		boolean deleteExportedMessages = false;
+		session.setCurrentFolder(folder);
+		this.oldestMessageToFetch = null; // reset
+		if (args.length > 1) {
+			try {
+				this.oldestMessageToFetch = new SimpleDateFormat(ISO8601_DATE_SEMITIME).parse(args[1]);
+			} catch (ParseException ignore) {
+				logger.warn("Bad date format: {} Please use {}", args[1], ISO8601_DATE_SEMITIME);
+			}
+			if (args.length > 2) {
+				try {
+					this.newestMessageToFetch = new SimpleDateFormat(ISO8601_DATE_SEMITIME).parse(args[2]);
+					if (newestMessageToFetch.after(oldestMessageToFetch)) {
+						logger.error("End date must be _after_ start date! Exiting…");
+						return;
+					}
+				} catch (ParseException ignore) {
+					logger.warn("Bad date format: {} Please use {}", args[2], ISO8601_DATE_SEMITIME);
+				}
+			}
+			if (args.length > 3) {
+				if (this.newestMessageToFetch != null && "--delete".equals(args[3])) {
+					logger.warn("Flagging exported messages for deletion");
+					deleteExportedMessages = true;
+				}
+			}
+		} else if (shouldLoadOldestMessageToFetchFromPreferences()) {
+			// set oldestMessageToFetch if file exists, and there is a Preference
+			try {
+				Preferences prefs = getUserNode(false);
+				if (prefs != null) {
+					long lastExportDate = prefs.getLong(PREF_LAST_EXPORT_DATE, -1);
+					if (lastExportDate != -1) {
+						this.oldestMessageToFetch = new Date(lastExportDate);
+						this.newestMessageToFetch = null;
+					}
+				}
+			} catch (BackingStoreException ignore) {
+				logger.warn("Can not load last export date:", ignore);
+			}
+		}
+		if (this.oldestMessageToFetch != null) {
+			String msg = folder.name + ": incremental export from " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(this.oldestMessageToFetch);
+			if (newestMessageToFetch != null) {
+				msg += " to " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(this.newestMessageToFetch);
+			}
+			if (deleteExportedMessages) {
+				msg += " with source deletion";
+			}
+			logger.info(msg);
+		} else {
+			logger.info(folder.name + ": full export");
+		}
+		// messages and meeting notices meta-data
+		INotesMessagesMetaData<? extends BaseINotesMessage> messages = session.getMessagesAndMeetingNoticesMetaData(oldestMessageToFetch, newestMessageToFetch);
+		if (folder.isInbox() || folder.isAllMails()) {
+			checkQuota(messages);
+		}
+		if (! messages.entries.isEmpty()) {
+			Date lastExportedMessageDate = this.export(messages, deleteExportedMessages);
+			if (lastExportedMessageDate != null) {
+				if (oldestMessageToFetch != null) {
+					assert lastExportedMessageDate.after(oldestMessageToFetch);
+				}
+				if (newestMessageToFetch != null) {
+					assert lastExportedMessageDate.before(newestMessageToFetch);
+				}
+				if (newestMessageToFetch == null) {
+					// incremental export: set Preference to oldestMessageToFetch
+					setPreferenceToOldestMessageToFetch(lastExportedMessageDate);
+				}
+			}
+		}
+	}
 
 	/**
-	 * Create objects and store them in fields. Does not physically create files.
+	 * @return last exported message date (can be {@code null})
 	 */
-	protected abstract boolean prepareOutFileFields(String baseName, String extension);
+	protected abstract Date export(INotesMessagesMetaData<? extends BaseINotesMessage> messages, boolean deleteExportedMessages) throws IOException;
+
+	/**
+	 * Create Java objects and store them in fields. Does not physically create files.
+	 */
+	protected abstract boolean validateDestinationName(String baseName, String extension);
 
 	/**
 	 * Usually, check if outFile exists
 	 */
 	protected abstract boolean shouldLoadOldestMessageToFetchFromPreferences();
 
-	protected abstract void writeMIME(Writer mbox, MessageMetaData message, Iterator<String> mime) throws IOException;
+	protected abstract void writeMIME(Writer mbox, BaseINotesMessage message, Iterator<String> mime) throws IOException;
 
-	protected void checkQuota(MessagesMetaData messages) {
+	protected void checkQuota(INotesMessagesMetaData<?> messages) {
 		if (messages.ignorequota == 0 && messages.sizelimit > 0) {
 			String quotaDetails = "dbsize: " + messages.dbsize
 					+ " currentusage: " + messages.currentusage
@@ -119,14 +177,27 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 		}
 	}
 
-	protected void setPreferenceToOldestMessageToFetch(MessagesMetaData messages) {
-		Preferences prefs = Preferences.userNodeForPackage(this.getClass());
-		Date lastExportDate = messages.entries.get(messages.entries.size()-1).date;
-		prefs.node(this.getClass().getSimpleName()).putLong(PREF_LAST_EXPORT_DATE, lastExportDate.getTime()+1);// +1: don't re-import last imported message next time...
+	protected void setPreferenceToOldestMessageToFetch(Date lastExportDate) {
 		try {
+			Preferences prefs = getUserNode(true);
+			logger.debug("Recording last export date: {} for: {}", lastExportDate, prefs);
+			prefs.putLong(PREF_LAST_EXPORT_DATE, lastExportDate.getTime()+1);// +1: don't re-export last exported message next time...
 			prefs.flush();
 		} catch (BackingStoreException ignore) {
-			logger.warn("Can not store last import date: " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(lastExportDate), ignore);
+			logger.warn("Can not store last export date: " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(lastExportDate), ignore);
+		}
+	}
+
+	protected Preferences getUserNode(boolean create) throws BackingStoreException {
+		Preferences prefs = Preferences.userNodeForPackage(this.getClass());
+		String key = this.getClass().getSimpleName() + '/'
+				+ iNotes.getUserName().replace('/', '\\') + '@'
+				+ (iNotes.getServerAddress().replace('/', '\\')) + '/'
+				+ (iNotes.getNotesFolderId().replace('/', '\\'));
+		if (create || prefs.nodeExists(key)) {
+			return prefs.node(key);
+		} else {
+			return null;
 		}
 	}
 }
