@@ -28,7 +28,7 @@ Running
 
 ### mbox/maildir export
 
-	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] [-Dnotes.folder.id=($Inbox)] -jar target/iNotes-exporter-1.6-jar-with-dependencies.jar (mboxrd|maildir) <output_file|output_dir> [start date: yyyy-MM-dd'T'HH:mm [end date: yyyy-MM-dd'T'HH:mm [--delete]]]
+	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] [-Dnotes.folder.id=($Inbox)] -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar (mboxrd|maildir) <output_file|output_dir> [start date: yyyy-MM-dd'T'HH:mm [end date: yyyy-MM-dd'T'HH:mm [--delete]]]
 
 where
 * `<output_file>` will be overwritten if no start date is given. Otherwise, the newest email data is appended to it.
@@ -39,8 +39,8 @@ where
 * `--delete`: delete messages from the Notes server after exporting
 
 examples:
-* `java -jar target/iNotes-exporter-1.6-jar-with-dependencies.jar mboxrd /tmp/my_mailbox 2012-01-20T20:00`
-* `java -jar target/iNotes-exporter-1.6-jar-with-dependencies.jar maildir /tmp/my_mailir 2012-01-20T20:00`
+* `java -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar maildir ~/my_mailir 2012-01-20T20:00`
+* `java -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar mboxrd ~/my_mailbox_archive_2012 2012-01-01T00:00 2013-01-01T00:00 --delete`
 
 If you don't know which mbox format to choose (mboxo, mboxrd, mboxcl, mboxcl2), use mboxrd.
 
@@ -50,14 +50,14 @@ If running unattended, please have a process monitor the output for all `ERROR`'
 
 ### list available iNotes folders
 
-	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] -jar target/iNotes-exporter-1.6-jar-with-dependencies.jar listfolders
+	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar listfolders
 
 ### maildir++ export
 
-	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] -jar target/iNotes-exporter-1.6-jar-with-dependencies.jar maildirpp <output_dir>
+	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar maildirpp <output_dir>
 
 example:
-* `java -jar target/iNotes-exporter-1.6-jar-with-dependencies.jar maildirpp /tmp/my_mailir_plus_plus`
+* `java -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar maildirpp ~/my_mailir_plus_plus`
 
 The (incremental) last export date is stored in the Java Preferences (`~/.java/` for Linux / *BSD, `~/Library/Preferences/fr.cedrik.inotes.plist` for Mac OS X, and the Registry for Windows).
 
@@ -65,9 +65,11 @@ If running unattended, please have a process monitor the output for all `ERROR`'
 
 ### pop3 server
 
-	java [-Dpop3.port=110] [-Dpop3.shutdown=now!] [-Dinotes.server=...] [-Dnotes.folder.id=($Inbox)] -jar target/iNotes-exporter-1.6-jar-with-dependencies.jar pop3server
+	java [-Dpop3.port=110] [-Dpop3.shutdown=now!] [-Dinotes.server=...] [-Dnotes.folder.id=($Inbox)] -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar pop3server
 
 use as pop3 user login: `username@https://webmail.example.com`
+
+This POP3 server has a user and IP lock out mechanism if there are too many failed authentication attempts in a given period of time. It achieves this by recording all failed logins, including those for users that do not exist. To prevent a DOS by deliberating making requests with invalid users (and hence causing this cache to grow) the size of the list of users and IPs that have failed authentication is limited. (Configurable in `iNotes.properties`)
 
 Additional (non-standard) POP3 commands:
 * `SHUTDOWN <secret>`: to shutdown the POP3 server (set the secret in `iNotes.properties`)

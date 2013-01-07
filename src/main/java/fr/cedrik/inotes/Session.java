@@ -131,7 +131,7 @@ public class Session {
 			}
 			try {
 				if (httpResponse.getStatusCode().series().equals(HttpStatus.Series.REDIRECTION)) {
-					logger.info("Authentication successful for user \"" + context.getUserName() + '"');
+					logger.debug("Initial authentication successful for user \"" + context.getUserName() + '"');
 					logger.debug("Redirect: {}", httpResponse.getHeaders().getLocation());
 				} else if (httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
 					// body will contain "Invalid username or password was specified."
@@ -390,6 +390,7 @@ public class Session {
 			}
 		}
 
+		logger.info("Authentication successful for user \"" + context.getUserName() + '"');
 		isLoggedIn = true;
 		return true;
 	}

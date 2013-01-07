@@ -41,8 +41,14 @@ public class PASS extends BasePOP3Command implements POP3Command {
 		if (StringUtils.isBlank(context.userName)) {
 			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("[SYS/TEMP] must call USER first"));
 		}
+		if (context.isLocked()) {
+			logger.warn("An attempt was made to authenticate the locked user \"{}\"", context.userName);
+			context.userName = null;
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("[AUTH] user is locked"));
+		}
 		context.userPassword = context.inputArgs;
 		if (context.iNotesSession.login(context.userName, context.userPassword)) {
+			context.registerAuthSuccess();
 			context.state = nextState(context);
 			String quotaMessage = "";
 			{
@@ -57,6 +63,8 @@ public class PASS extends BasePOP3Command implements POP3Command {
 			}
 			return new IteratorChain<String>(ResponseStatus.POSITIVE.toString("welcome, " + context.userName + quotaMessage));
 		} else {
+			context.registerAuthFailure();
+			context.userPassword = null;
 			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("[AUTH] invalid user or password"));
 		}
 	}

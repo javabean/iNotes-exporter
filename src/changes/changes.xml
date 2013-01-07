@@ -23,7 +23,8 @@ The <action> type attribute can be add,update,fix,remove.
 		<title>Lotus Domino iNotes exporter: POP3, mbox &amp; maildir</title>
 	</properties>
 	<body>
-		<release version="1.6.1" date="" description="">
+		<release version="1.7" date="" description="">
+			<action type="add"    dev="clime" >[pop3] POP3 server will now temporarily ban user names and client IPs on authentication failures</action>
 			<action type="add"    dev="clime" >[mailbox][maildir] exports can now have an upper bound (in addition to the lower bound) date, and can optionally delete exported messages from the iNotes server</action>
 			<action type="add"    dev="clime" >[pop3] add support for rfc3206</action>
 		</release>

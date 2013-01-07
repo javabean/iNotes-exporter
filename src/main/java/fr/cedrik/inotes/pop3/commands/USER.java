@@ -27,7 +27,7 @@ public class USER extends BasePOP3Command implements POP3Command {
 
 	@Override
 	public boolean isValid(Context context) {
-		return context.state == State.AUTHORIZATION && StringUtils.isBlank(context.userName);
+		return context.state == State.AUTHORIZATION || StringUtils.isBlank(context.userName);
 	}
 
 	@Override
@@ -50,7 +50,13 @@ public class USER extends BasePOP3Command implements POP3Command {
 			URL url = new URL(serverURL);
 			context.iNotesSession.setServerAddress(url);
 		} catch (MalformedURLException e) {
+			context.userName = null;
 			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("[AUTH] bad user format; should be user@https://webmail.example.com"));
+		}
+		if (context.isLocked()) {
+			logger.warn("An attempt was made to authenticate the locked user \"{}\"", context.userName);
+			context.userName = null;
+			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("[AUTH] user is locked"));
 		}
 		return new IteratorChain<String>(ResponseStatus.POSITIVE.toString(context.userName + '@' + serverURL));
 	}
