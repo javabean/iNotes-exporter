@@ -82,7 +82,7 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 			if (args.length > 2) {
 				try {
 					this.newestMessageToFetch = new SimpleDateFormat(ISO8601_DATE_SEMITIME).parse(args[2]);
-					if (newestMessageToFetch.after(oldestMessageToFetch)) {
+					if (oldestMessageToFetch.after(newestMessageToFetch)) {
 						logger.error("End date must be _after_ start date! Exiting…");
 						return;
 					}
