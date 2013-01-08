@@ -449,10 +449,11 @@ public class Session {
 						stopLoading = true;
 						break;
 					} else if (message.getDate().after(newestMessageToFetch)) {
-						stopLoading = true;
-						break;
+						stopLoading = false;
+						continue;
+					} else {
+						messages.entries.add(message);
 					}
-					messages.entries.add(message);
 				}
 			}
 			start += META_DATA_LOAD_BATCH_SIZE;
@@ -860,10 +861,11 @@ public class Session {
 						stopLoading = true;
 						break;
 					} else if (notice.getDate().after(newestMessageToFetch)) {
-						stopLoading = true;
-						break;
+						stopLoading = false;
+						continue;
+					} else {
+						notices.entries.add(notice);
 					}
-					notices.entries.add(notice);
 				}
 			}
 			start += META_DATA_LOAD_BATCH_SIZE;
