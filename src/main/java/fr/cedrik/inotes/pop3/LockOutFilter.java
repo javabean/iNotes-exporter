@@ -147,6 +147,8 @@ class LockOutFilter {
 		synchronized (this) {
 			if (!failedUsers.containsKey(username)) {
 				lockRecord = new LockRecord();
+				// Yes those 2 put() are the same. Please leave them alone, as they enable the cache to shrink.
+				failedUsers.put(username, lockRecord);
 				failedUsers.put(username, lockRecord);
 			} else {
 				lockRecord = failedUsers.get(username);
