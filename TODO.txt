@@ -21,6 +21,8 @@ New features
 * POP3: additional commands?
 * MBOX: mboxcl and mboxcl2 export
 * MAILDIR: maildir++ quota support
+* MAILDIR: MH: One file contains one message. Sort order of the folder determines the message ID and name. Recursive folders.
+	http://wiki.dovecot.org/MailboxFormat/MH
 * --calendar-- + todos + journal (CalDAV or ics + built-in http server)
 * contacts (CardDAV)
 * IMAP4rev1 (rfc 3501)
