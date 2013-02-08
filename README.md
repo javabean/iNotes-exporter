@@ -42,7 +42,7 @@ examples:
 * `java -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar maildir ~/my_mailir 2012-01-20T20:00`
 * `java -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar mboxrd ~/my_mailbox_archive_2012 2012-01-01T00:00 2013-01-01T00:00 --delete`
 
-If you don't know which mbox format to choose (mboxo, mboxrd, mboxcl, mboxcl2), use mboxrd.
+If you don't know which mbox format to choose (mboxo, mboxrd, mboxcl, mboxcl2, MMDF, maildir), use mboxrd.
 
 The (incremental) last export date is stored in the Java Preferences (`~/.java/` for Linux / *BSD, `~/Library/Preferences/fr.cedrik.inotes.plist` for Mac OS X, and the Registry for Windows).
 
@@ -58,6 +58,8 @@ If running unattended, please have a process monitor the output for all `ERROR`'
 
 example:
 * `java -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar maildirpp ~/my_mailir_plus_plus`
+
+If you don't know which maildir format to choose (maildir++, MH), use maildir++.
 
 The (incremental) last export date is stored in the Java Preferences (`~/.java/` for Linux / *BSD, `~/Library/Preferences/fr.cedrik.inotes.plist` for Mac OS X, and the Registry for Windows).
 
