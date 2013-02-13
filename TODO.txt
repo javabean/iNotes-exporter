@@ -9,8 +9,7 @@ Improvements
 
 * Log4J configuration to send errors by email
 	-> remove LOGGER POP3 command as it is SLF4J-specific (or re-work to use reflexion)
-* POP3: TOP command is incomplete (only TOP n 0 is supported)
-* POP3: DELE, LIST, RETR, UIDL: rfc says argument may NOT refer to a message marked as deleted
+* POP3: DELE, LIST, RETR, TOP, UIDL: rfc says argument may NOT refer to a message marked as deleted
 
 New features
 ============

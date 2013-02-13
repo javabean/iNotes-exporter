@@ -47,6 +47,14 @@ public class IteratorChain<E> implements Iterator<E>, Closeable {
 	 * used for the remove() operation only
 	 */
 	protected Iterator<E> lastUsedIterator = null;
+	/**
+	 * Maximum number of elements to return (cap)
+	 */
+	protected long maxElementsCap = Long.MAX_VALUE;
+	/**
+	 * Current number of elements served
+	 */
+	protected long count = 0;
 
 	//-----------------------------------------------------------------------
 	/**
@@ -148,6 +156,10 @@ public class IteratorChain<E> implements Iterator<E>, Closeable {
 		}
 	}
 
+	public void setMaxElementsCap(long maxElementsCap) {
+		this.maxElementsCap = maxElementsCap;
+	}
+
 	//-----------------------------------------------------------------------
 
 	/**
@@ -160,7 +172,7 @@ public class IteratorChain<E> implements Iterator<E>, Closeable {
 		updateCurrentIterator();
 		lastUsedIterator = currentIterator;
 
-		return currentIterator.hasNext();
+		return count < maxElementsCap && currentIterator.hasNext();
 	}
 
 	/**
@@ -174,6 +186,10 @@ public class IteratorChain<E> implements Iterator<E>, Closeable {
 		updateCurrentIterator();
 		lastUsedIterator = currentIterator;
 
+		if (count >= maxElementsCap) {
+			throw new NoSuchElementException("Served " + count + " elements already");
+		}
+		++count;
 		return currentIterator.next();
 	}
 
