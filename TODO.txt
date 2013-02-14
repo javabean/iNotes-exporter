@@ -23,6 +23,11 @@ New features
 * --calendar-- + todos + journal (CalDAV or ics + built-in http server)
 * contacts (CardDAV)
 
+Won't do
+========
+* POP3: rfc5034 (SASL) -> POP3S
+* POP3: rfc2595 (STARTTLS extension: STLS command) -> POP3S
+
 Not doable
 ==========
 

@@ -23,7 +23,8 @@ The <action> type attribute can be add,update,fix,remove.
 		<title>Lotus Domino iNotes exporter: POP3, mbox &amp; maildir</title>
 	</properties>
 	<body>
-		<release version="1.7" date="" description="iPhone, delete after export">
+		<release version="1.7" date="2013-02-14" description="security, iPhone, delete after export">
+			<action type="add"    dev="clime" >[pop3] POP3 server will now listen on a SSL/TLS port for an encrypted communication channel (POP3S)</action>
 			<action type="update" dev="clime" >[pop3] implement the "TOP n" command for n > 0. You can now read your mails with the iPhone MUA! :-)</action>
 			<action type="add"    dev="clime" >[pop3] POP3 server will now temporarily ban user names and client IPs on authentication failures</action>
 			<action type="add"    dev="clime" >[pop3] add support for rfc3206</action>

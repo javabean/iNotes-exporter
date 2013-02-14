@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.StringTokenizer;
 
+import javax.net.ssl.SSLSocket;
+
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +41,7 @@ public class Session implements Runnable {
 
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	protected final Socket clientSocket;
+	protected final boolean secure;
 	protected final BufferedReader in;
 	protected final Writer out;
 	protected final Context context ;
@@ -54,6 +57,7 @@ public class Session implements Runnable {
 
 	public Session(Socket clientSocket) throws IOException {
 		this.clientSocket = clientSocket;
+		this.secure = (clientSocket instanceof SSLSocket);
 		// don't inherit from server pop3Properties, as the properties will be changed per session/connected user
 		this.context = new Context(clientSocket.getInetAddress(), new POP3Properties(POP3Properties.FILE));
 		in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), DEFAULT_ENCODING));
@@ -72,9 +76,9 @@ public class Session implements Runnable {
 	@Override
 	public void run() throws RuntimeException {
 		try {
-			Thread.currentThread().setName("POP3 client " + clientSocket.getRemoteSocketAddress());
+			Thread.currentThread().setName("POP3"+ (secure ? "S" : "") + " client " + clientSocket.getRemoteSocketAddress());
 			MDC.put(MDC_IP, clientSocket.getRemoteSocketAddress().toString());
-			out.append(ResponseStatus.POSITIVE.toString("POP3 server ready")).append(CR_LF).flush();
+			out.append(ResponseStatus.POSITIVE.toString("POP3"+ (secure ? "S" : "") + " server ready")).append(CR_LF).flush();
 			context.inputArgs = "";
 			while (context.inputArgs != null) {
 				String inputLine = in.readLine();
@@ -97,13 +101,16 @@ public class Session implements Runnable {
 					out.append(ResponseStatus.NEGATIVE.toString("[SYS/TEMP] invalid state")).append(CR_LF).flush();
 					continue;
 				}
+				if (context.state == State.TRANSACTION) {
+					MDC.put(MDC_USER, context.userName);
+				}
 				if (pop3Command instanceof PASS) {
 					// don't echo password in logs!
-					Thread.currentThread().setName("POP3 client " + clientSocket.getRemoteSocketAddress() + ' ' + requestedCommand);
+					Thread.currentThread().setName("POP3"+ (secure ? "S" : "") + " client " + clientSocket.getRemoteSocketAddress() + ' ' + requestedCommand);
 					MDC.put(MDC_COMMAND, requestedCommand);
 					logger.debug(requestedCommand);
 				} else {
-					Thread.currentThread().setName("POP3 client " + clientSocket.getRemoteSocketAddress() + ' ' + inputLine);
+					Thread.currentThread().setName("POP3"+ (secure ? "S" : "") + " client " + clientSocket.getRemoteSocketAddress() + ' ' + inputLine);
 					MDC.put(MDC_COMMAND, inputLine);
 					logger.debug(inputLine);
 				}
@@ -138,7 +145,7 @@ public class Session implements Runnable {
 					out.append(END_OF_COMMAND_RESULT).append(CR_LF);
 				}
 				out.flush();
-				Thread.currentThread().setName("POP3 client " + clientSocket.getRemoteSocketAddress());
+				Thread.currentThread().setName("POP3"+ (secure ? "S" : "") + " client " + clientSocket.getRemoteSocketAddress());
 				MDC.remove(MDC_COMMAND);
 			}
 		} catch (IOException ioe) {
