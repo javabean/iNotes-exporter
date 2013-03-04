@@ -26,7 +26,20 @@ Compiling
 Running
 -------
 
-### mbox/maildir export
+In addition to exposing a Notes INBOX as a POP3 server, iNotes exporter supports exporting either 1 mailbox or all Notes server emails, to different formats:
+
+* single mailbox
+	* `mbox`: traditional UNIX mailbox format; single file contains multiple messages.  
+		Multiple variants exist:
+		* `mboxo` (deprecated)
+		* `mboxrd`
+		* `MMDF`
+	* `maildir`: one file contains one message
+* multiple mailboxes
+	* `MH` (deprecated)
+	* `maildir++`
+
+### Single mailbox export (`mbox` / `maildir`)
 
 	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] [-Dnotes.folder.id=($Inbox)] -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar (mboxrd|maildir) <output_file|output_dir> [start date: yyyy-MM-dd'T'HH:mm [end date: yyyy-MM-dd'T'HH:mm [--delete]]]
 
@@ -41,8 +54,8 @@ where
 
 examples:
 
-* `java -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar maildir ~/my_mailir 2012-01-20T20:00`
-* `java -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar mboxrd ~/my_mailbox_archive_2012 2012-01-01T00:00 2013-01-01T00:00 --delete`
+* `java -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar maildir ~/Maildir 2012-01-20T20:00`
+* `java -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar mboxrd ~/mailbox_archive_2012 2012-01-01T00:00 2013-01-01T00:00 --delete`
 
 If you don't know which mbox format to choose (mboxo, mboxrd, mboxcl, mboxcl2, MMDF, maildir), use mboxrd.
 
@@ -54,13 +67,13 @@ If running unattended, please have a process monitor the output for all `ERROR`'
 
 	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar listfolders
 
-### maildir++ export
+### All mailboxes export (`maildir++`)
 
 	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar maildirpp <output_dir>
 
 example:
 
-* `java -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar maildirpp ~/my_mailir_plus_plus`
+* `java -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar maildirpp ~/Maildir`
 
 If you don't know which maildir format to choose (maildir++, MH), use maildir++.
 
@@ -68,7 +81,9 @@ The (incremental) last export date is stored in the Java Preferences (`~/.java/`
 
 If running unattended, please have a process monitor the output for all `ERROR`'s that could occur!
 
-### pop3 / pop3s server
+### POP3 / POP3S server
+
+#### POP3
 
 	java [-Dpop3.port=110] [-Dpop3.shutdown=now!] [-Dinotes.server=...] [-Dnotes.folder.id=($Inbox)] -jar target/iNotes-exporter-1.7-jar-with-dependencies.jar pop3server
 
@@ -78,10 +93,10 @@ This POP3 server has a user and IP lock out mechanism if there are too many fail
 
 #### POP3S
 
-POP3 communication is clear-text. For extra security, you can POP3 which is POP3 with an SSL/TLS transport.  
+POP3 communication is clear-text. For extra security, you can add an SSL/TLS transport to POP3.  
 You will need to generate and configure a certificate. For example:
 
-	keytool -genkey -alias pop3s -keyalg RSA -keysize 2048 -validity 3650 -keystore /opt/iNotes-keystore -storepass b92kqmp -keypass b92kqmp -dname "cn=<your_FQN_server_name>, o=cedrik.fr, l=Paris, s=Ile-de-France, c=FR"
+	$JAVA_HOME/bin/keytool -genkey -alias pop3s -keyalg RSA -keysize 2048 -validity 3650 -keystore /opt/iNotes-keystore -storepass b92kqmp -keypass b92kqmp -dname "cn=<your_FQN_server_name>, o=cedrik.fr, l=Paris, s=Ile-de-France, c=FR"
 
 which will then be configured in `iNotes.properties` as:
 
@@ -90,7 +105,7 @@ which will then be configured in `iNotes.properties` as:
 	pop3s.keyStorePassword=b92kqmp
 	pop3s.keyStoreType=jks
 
-As an alternative to configuring POP3S, you can also use [stunnel](http://stunnel.org/).
+As an alternative to configuring POP3S, you can also use [stunnel](http://www.stunnel.org/).
 
 #### Additional (non-standard) POP3 commands
 

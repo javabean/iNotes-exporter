@@ -11,9 +11,9 @@ import java.util.Iterator;
  */
 public interface POP3Command {
 
-	public boolean isValid(Context context);
+	boolean isValid(Context context);
 
-	public State nextState(Context context);
+	State nextState(Context context);
 
-	public Iterator<String> call(Context context) throws IOException;
+	Iterator<String> call(Context context) throws IOException;
 }
