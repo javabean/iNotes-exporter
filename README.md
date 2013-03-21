@@ -39,6 +39,14 @@ In addition to exposing a Notes INBOX as a POP3 server, iNotes exporter supports
 	* `MH` (deprecated)
 	* `maildir++`
 
+### List available iNotes folders
+
+	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] -jar target/iNotes-exporter-1.8-jar-with-dependencies.jar listfolders
+
+### Display iNotes quota
+
+	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] -jar target/iNotes-exporter-1.8-jar-with-dependencies.jar quota
+
 ### Single mailbox export (`mbox` / `maildir`)
 
 	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] [-Dnotes.folder.id=($Inbox)] -jar target/iNotes-exporter-1.8-jar-with-dependencies.jar (mboxrd|maildir) <output_file|output_dir> [start date: yyyy-MM-dd'T'HH:mm [end date: yyyy-MM-dd'T'HH:mm [--delete]]]
@@ -68,10 +76,6 @@ The (incremental) last export date is stored in the Java Preferences (`~/.java/`
 
 If running unattended, please have a process monitor the output for all `ERROR`'s that could occur!
 
-### List available iNotes folders
-
-	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] -jar target/iNotes-exporter-1.8-jar-with-dependencies.jar listfolders
-
 ### All mailboxes export (`maildir++`)
 
 	java [-Dinotes.server=...] [-Dnotes.user=...] [-Dnotes.password=...] -jar target/iNotes-exporter-1.8-jar-with-dependencies.jar maildirpp <output_dir>
@@ -81,7 +85,7 @@ example:
 * `java -jar target/iNotes-exporter-1.8-jar-with-dependencies.jar maildirpp ~/Maildir`
 	* will (incrementally) export all messages to the `~/Maildir` maildir++
 
-If you don't know which maildir format to choose (maildir++, MH), use maildir++.
+If you don't know which maildir format to choose (MH, maildir++), use maildir++.
 
 The (incremental) last export date is stored in the Java Preferences (`~/.java/` for Linux / *BSD, `~/Library/Preferences/fr.cedrik.inotes.plist` for Mac OS X, and the Registry for Windows).
 

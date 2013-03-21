@@ -25,6 +25,7 @@ The <action> type attribute can be add,update,fix,remove.
 	<body>
 		<release version="1.8" date="" description="">
 			<action type="add"    dev="clime" >[mailbox] exports can now write to gzip-compressed files, saving disk space</action>
+			<action type="add"    dev="clime" >can now display iNotes quota information ("quota" command)</action>
 		</release>
 		<release version="1.7" date="2013-02-14" description="security, iPhone, delete after export">
 			<action type="add"    dev="clime" >[pop3] POP3 server will now listen on a SSL/TLS port for an encrypted communication channel (POP3S)</action>

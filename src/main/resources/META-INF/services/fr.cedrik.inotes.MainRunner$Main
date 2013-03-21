@@ -1,13 +1,16 @@
 # POP3 server
 fr.cedrik.inotes.pop3.POP3Server
 
-# mbox / maildir export
+# single mailbox export
 fr.cedrik.inotes.fs.mbox.MMDF
 fr.cedrik.inotes.fs.mbox.MBoxo
 fr.cedrik.inotes.fs.mbox.MBoxrd
-fr.cedrik.inotes.fs.maildir.MH
 fr.cedrik.inotes.fs.maildir.MailDir
+
+# multiple mailboxes export
+fr.cedrik.inotes.fs.maildir.MH
 fr.cedrik.inotes.fs.maildir.MailDirPP
 
 # miscellaneous
 fr.cedrik.inotes.ListFolders
+fr.cedrik.inotes.Quota
