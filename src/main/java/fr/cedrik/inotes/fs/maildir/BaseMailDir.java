@@ -7,6 +7,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.channels.FileLock;
@@ -73,22 +74,29 @@ abstract class BaseMailDir extends BaseFsExport implements fr.cedrik.inotes.Main
 			IteratorChain<String> mime = session.getMessageMIME(message);
 			if (mime == null || ! mime.hasNext()) {
 				logger.error("Empty MIME message! ({})", message);
+				IOUtils.closeQuietly(mime);
 				break;
 			}
 			logger.debug("Writing message {}", message);
 			// open out file
 			File tmpFile = new File(tmpDir, getMailFileName(message));
-			FileOutputStream outStream = new FileOutputStream(tmpFile);
-			FileLock tmpFileLock = outStream.getChannel().tryLock();
+			OutputStream outStream = new FileOutputStream(tmpFile);
+			FileLock tmpFileLock = ((FileOutputStream)outStream).getChannel().tryLock();
 			if (tmpFileLock == null) {
 				logger.error("Can not acquire a lock on file " + tmpFile + ". Aborting.");
+				IOUtils.closeQuietly(outStream);
+				IOUtils.closeQuietly(mime);
 				break;
 			}
+			// Do not allow compression, since the filename lacks size information (,S=<size>),
+//			if (iNotes.isCompressExports()) {
+//				outStream = new GZIPOutputStream(outStream, 8*1024);
+//			}
 			Writer mbox = new BufferedWriter(new OutputStreamWriter(outStream, Charsets.US_ASCII), 32*1024);
 			try {
 				writeMIME(mbox, message, mime);
 			} finally {
-				mime.close();
+				IOUtils.closeQuietly(mime);
 				mbox.flush();
 				tmpFileLock.release();
 				IOUtils.closeQuietly(mbox);

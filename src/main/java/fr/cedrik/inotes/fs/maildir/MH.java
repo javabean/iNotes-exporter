@@ -7,6 +7,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.channels.FileLock;
@@ -125,22 +126,29 @@ public class MH extends BaseFsExport implements fr.cedrik.inotes.MainRunner.Main
 			IteratorChain<String> mime = session.getMessageMIME(message);
 			if (mime == null || ! mime.hasNext()) {
 				logger.error("Empty MIME message! ({})", message);
+				IOUtils.closeQuietly(mime);
 				break;
 			}
 			logger.debug("Writing message {}", message);
 			// open out file
 			File outFile = new File(mailDir, getMailFileName(message));
-			FileOutputStream outStream = new FileOutputStream(outFile);
-			FileLock outFileLock = outStream.getChannel().tryLock();
+			OutputStream outStream = new FileOutputStream(outFile);
+			FileLock outFileLock = ((FileOutputStream)outStream).getChannel().tryLock();
 			if (outFileLock == null) {
 				logger.error("Can not acquire a lock on file " + outFile + ". Aborting.");
+				IOUtils.closeQuietly(outStream);
+				IOUtils.closeQuietly(mime);
 				break;
 			}
+			// TODO Does MH support compressed email files?
+//			if (iNotes.isCompressExports()) {
+//				outStream = new GZIPOutputStream(outStream, 8*1024);
+//			}
 			Writer mbox = new BufferedWriter(new OutputStreamWriter(outStream, Charsets.US_ASCII), 32*1024);
 			try {
 				writeMIME(mbox, message, mime);
 			} finally {
-				mime.close();
+				IOUtils.closeQuietly(mime);
 				mbox.flush();
 				outFileLock.release();
 				IOUtils.closeQuietly(mbox);

@@ -7,12 +7,16 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.channels.FileLock;
 import java.util.Date;
+import java.util.zip.GZIPOutputStream;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import fr.cedrik.inotes.BaseINotesMessage;
 import fr.cedrik.inotes.INotesMessagesMetaData;
@@ -30,6 +34,7 @@ import fr.cedrik.inotes.util.IteratorChain;
  * @author C&eacute;drik LIME
  */
 abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
+	private static final String EXTENSION_GZ = ".gz";//$NON-NLS-1$
 
 	protected File outFile;
 
@@ -43,9 +48,19 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 
 	@Override
 	protected boolean validateDestinationName(String baseName, String extension) {
-		String fileName = baseName;
+		String fileName;
+		boolean compress = StringUtils.endsWithIgnoreCase(baseName, EXTENSION_GZ);
+		if (compress) {
+			// remove ".gz" extension
+			fileName = FilenameUtils.removeExtension(baseName);
+		} else {
+			fileName = baseName;
+		}
 		if (! fileName.endsWith(extension)) {
 			fileName += extension;
+		}
+		if (compress) {
+			fileName += EXTENSION_GZ;
 		}
 		this.outFile = new File(fileName);
 		return true;
@@ -63,12 +78,23 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 		Date lastExportedMessageDate = null;
 		try {
 			// open out file
-			boolean append = oldestMessageToFetch != null;
-			FileOutputStream outStream = new FileOutputStream(outFile, append);
-			outFileLock = outStream.getChannel().tryLock();
+			final boolean append = outFile.exists() && (oldestMessageToFetch != null);
+			OutputStream outStream = new FileOutputStream(outFile, append);
+			outFileLock = ((FileOutputStream)outStream).getChannel().tryLock();
 			if (outFileLock == null) {
 				logger.error("Can not acquire a lock on file " + outFile + ". Aborting.");
+				IOUtils.closeQuietly(outStream);
 				return null;
+			}
+			if (/*iNotes.isCompressExports() || */StringUtils.endsWithIgnoreCase(outFile.getName(), EXTENSION_GZ)) {
+				if (append) {
+					logger.error("Can not append data to a compressed file ({})! Aborting.", outFile.getName());
+					IOUtils.closeQuietly(outStream);
+					return null;
+				} else {
+					outStream = new GZIPOutputStream(outStream, 8*1024);
+//					iNotes.setCompressExports(true);
+				}
 			}
 			mbox = new BufferedWriter(new OutputStreamWriter(outStream, Charsets.US_ASCII), 32*1024);
 			// write messages
@@ -76,13 +102,14 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 				IteratorChain<String> mime = session.getMessageMIME(message);
 				if (mime == null || ! mime.hasNext()) {
 					logger.error("Empty MIME message! ({})", message);
+					IOUtils.closeQuietly(mime);
 					break;
 				}
 				logger.debug("Writing message {}", message);
 				try {
 					writeMIME(mbox, message, mime);
 				} finally {
-					mime.close();
+					IOUtils.closeQuietly(mime);
 				}
 				lastExportedMessageDate = message.getDate();
 			}
