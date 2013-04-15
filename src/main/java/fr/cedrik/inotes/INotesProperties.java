@@ -27,6 +27,7 @@ public class INotesProperties extends Properties {
 	// default values
 	public static final String DEFAULT_NOTES_FOLDER_ID = Folder.INBOX;
 	public static final String DEFAULT_EXCLUDED_FOLDERS_IDS = "($JunkMail),($SoftDeletions),Threads,hive,(Rules),Stationery";//$NON-NLS-1$
+	public static final Boolean DEFAULT_FIX_DATE_MIME_HEADER = Boolean.TRUE;
 	// iNotes.properties keys
 	private static final String SERVER   = "inotes.server";//$NON-NLS-1$
 	private static final String USERNAME = "notes.user";//$NON-NLS-1$
@@ -154,6 +155,7 @@ public class INotesProperties extends Properties {
 	}
 
 	public boolean isFixLotusNotesDateMIMEHeader() {
-		return Boolean.parseBoolean(getProperty(FIX_DATE_MIME_HEADER, Boolean.TRUE.toString()));
+		return Boolean.parseBoolean(getProperty(FIX_DATE_MIME_HEADER, DEFAULT_FIX_DATE_MIME_HEADER.toString()));
 	}
+
 }

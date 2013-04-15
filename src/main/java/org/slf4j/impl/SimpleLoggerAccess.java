@@ -30,16 +30,17 @@ public class SimpleLoggerAccess {
 	 */
 	public static SimpleLogger getLogger(String name) {
 		// protect against concurrent access of the loggerMap
-		synchronized (INSTANCE) {
+//		synchronized (INSTANCE) { // Note: we don't need to synchronise since SLF4J 1.7.5
 			SimpleLogger slogger = (SimpleLogger) INSTANCE.loggerMap.get(name);
 			return slogger;
-		}
+//		}
 	}
 
 	public static Collection<SimpleLogger> getAllLoggers() {
-		synchronized (INSTANCE) {
-			return new ArrayList<SimpleLogger>(INSTANCE.loggerMap.values());
-		}
+		// protect against concurrent access of the loggerMap
+//		synchronized (INSTANCE) { // Note: we don't need to synchronise since SLF4J 1.7.5
+			return new ArrayList<SimpleLogger>(Collection.class.cast(INSTANCE.loggerMap.values()));
+//		}
 	}
 
 

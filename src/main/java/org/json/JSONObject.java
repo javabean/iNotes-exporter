@@ -37,6 +37,8 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A JSONObject is an unordered collection of name/value pairs. Its external
@@ -90,9 +92,21 @@ import java.util.ResourceBundle;
  * </ul>
  *
  * @author JSON.org
- * @version 2012-07-02
+ * @version 2012-12-01
  */
 public class JSONObject {
+    /**
+     * The maximum number of keys in the key pool.
+     */
+     private static final int keyPoolSize = 100;
+
+   /**
+     * Key pooling is like string interning, but without permanently tying up
+     * memory. To help conserve memory, storage of duplicated key strings in
+     * JSONObjects will be avoided by using a key pool to manage unique key
+     * string objects. This is used by JSONObject.put(string, object).
+     */
+     private static Map<String, String> keyPool = new ConcurrentHashMap<String, String>(keyPoolSize);
 
     /**
      * JSONObject.NULL is equivalent to the value that JavaScript calls null,
@@ -702,7 +716,17 @@ public class JSONObject {
      * @return An iterator of the keys.
      */
     public Iterator keys() {
-        return this.map.keySet().iterator();
+        return this.keySet().iterator();
+    }
+
+
+    /**
+     * Get a set of keys of the JSONObject.
+     *
+     * @return A keySet.
+     */
+    public Set keySet() {
+        return this.map.keySet();
     }
 
 
@@ -1099,11 +1123,21 @@ public class JSONObject {
      *  or if the key is null.
      */
     public JSONObject put(String key, Object value) throws JSONException {
+        String pooled;
         if (key == null) {
             throw new JSONException("Null key.");
         }
         if (value != null) {
             testValidity(value);
+            pooled = (String)keyPool.get(key);
+            if (pooled == null) {
+                if (keyPool.size() >= keyPoolSize) {
+                    keyPool = new HashMap(keyPoolSize);
+                }
+                keyPool.put(key, key);
+            } else {
+                key = pooled;
+            }
             this.map.put(key, value);
         } else {
             this.remove(key);
@@ -1216,8 +1250,10 @@ public class JSONObject {
             default:
                 if (c < ' ' || (c >= '\u0080' && c < '\u00a0')
                         || (c >= '\u2000' && c < '\u2100')) {
-                    hhhh = "000" + Integer.toHexString(c);
-                    w.write("\\u" + hhhh.substring(hhhh.length() - 4));
+                    w.write("\\u");
+                    hhhh = Integer.toHexString(c);
+                    w.write("0000", 0, 4 - hhhh.length());
+                    w.write(hhhh);
                 } else {
                     w.write(c);
                 }
@@ -1450,7 +1486,7 @@ public class JSONObject {
                      object instanceof Short  || object instanceof Integer    ||
                      object instanceof Long   || object instanceof Boolean    ||
                      object instanceof Float  || object instanceof Double     ||
-                     object instanceof String || object instanceof Enum) {
+                     object instanceof String) {
                  return object;
              }
 
