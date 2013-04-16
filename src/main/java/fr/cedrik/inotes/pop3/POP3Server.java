@@ -50,7 +50,7 @@ public class POP3Server implements fr.cedrik.inotes.MainRunner.Main {
 		if (pop3Properties.getPOP3ServerPort() >= 0) {
 			//ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(pop3Properties.getPOP3ServerPort());
 			ServerSocket serverSocket = new ServerSocket(pop3Properties.getPOP3ServerPort());//FIXME allow to bind to a specific interface
-			pop3Thread = new ServerAcceptorThread(serverSocket);
+			pop3Thread = new ServerAcceptorThread(serverSocket, pop3Properties);
 			pop3Thread.start();
 		} else {
 			logger.info("No POP3 server port found in configuration!");
@@ -61,7 +61,7 @@ public class POP3Server implements fr.cedrik.inotes.MainRunner.Main {
 					pop3Properties.getPOP3STrustStoreName(), pop3Properties.getPOP3STrustStorePassword(), pop3Properties.getPOP3STrustStoreType());
 			SSLServerSocket serverSSLSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(pop3Properties.getPOP3SServerPort());//FIXME allow to bind to a specific interface
 			serverSSLSocket.setNeedClientAuth(false);
-			pop3sThread = new ServerAcceptorThread(serverSSLSocket);
+			pop3sThread = new ServerAcceptorThread(serverSSLSocket, pop3Properties);
 			pop3sThread.start();
 		} else {
 			logger.info("No POP3S server port or KeyStoreName found in configuration!");
@@ -81,9 +81,11 @@ public class POP3Server implements fr.cedrik.inotes.MainRunner.Main {
 	private static class ServerAcceptorThread extends Thread {
 		private final ServerSocket serverSocket;
 		private final boolean secure;
-		public ServerAcceptorThread(ServerSocket serverSocket) {
+		private final POP3Properties pop3Properties;
+		public ServerAcceptorThread(ServerSocket serverSocket, POP3Properties pop3Properties) {
 			this.serverSocket = serverSocket;
 			this.secure = (serverSocket instanceof SSLServerSocket);
+			this.pop3Properties = pop3Properties;
 		}
 		@Override
 		public void run() {
@@ -98,6 +100,7 @@ public class POP3Server implements fr.cedrik.inotes.MainRunner.Main {
 					}
 					logger.info("New POP3{} client: {}", (secure ? "S" : ""), clientSocket.getRemoteSocketAddress());
 					try {
+						clientSocket.setSoTimeout(pop3Properties.getPOP3soTimeout());
 						Thread clientThread = new Thread(new Session(clientSocket),
 								"POP3"+ (secure ? "S" : "") + " client " + clientSocket.getRemoteSocketAddress());
 						clientThread.setDaemon(false);

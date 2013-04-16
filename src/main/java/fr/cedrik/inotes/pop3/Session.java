@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -80,7 +81,11 @@ public class Session implements Runnable {
 			MDC.put(MDC_IP, clientSocket.getRemoteSocketAddress().toString());
 			out.append(ResponseStatus.POSITIVE.toString("POP3"+ (secure ? "S" : "") + " server ready")).append(CR_LF).flush();
 			context.inputArgs = "";
-			while (context.inputArgs != null) {
+			while (context.inputArgs != null
+					&& ! clientSocket.isClosed()
+					&& clientSocket.isConnected()
+					&& ! clientSocket.isInputShutdown()
+					&& ! clientSocket.isOutputShutdown()) {
 				String inputLine = in.readLine();
 				if (inputLine == null) {
 					// POP3 client has broken the socket connection
@@ -148,6 +153,8 @@ public class Session implements Runnable {
 				Thread.currentThread().setName("POP3"+ (secure ? "S" : "") + " client " + clientSocket.getRemoteSocketAddress());
 				MDC.remove(MDC_COMMAND);
 			}
+		} catch (SocketTimeoutException ste) {
+			logger.info("Closing socket for POP3{} client {}: {}", (secure ? "S" : ""), clientSocket.getRemoteSocketAddress(), ste.getMessage());
 		} catch (IOException ioe) {
 			throw new RuntimeException(ioe);
 		} finally {

@@ -3,6 +3,8 @@
  */
 package fr.cedrik.inotes.pop3;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.util.Properties;
 
 import fr.cedrik.inotes.INotesProperties;
@@ -16,16 +18,18 @@ public class POP3Properties extends INotesProperties {
 	public static final String DEFAULT_S_PORT = "995";//$NON-NLS-1$
 	public static final String DEFAULT_SHARED_SECRET = "";//$NON-NLS-1$
 	public static final String DEFAULT_S_STORETYPE = "PKCS12";//$NON-NLS-1$
+	public static final int    DEFAULT_SO_TIMEOUT_SECONDS = 60;
 	// additional keys
 	private static final String SHUTDOWN_SECRET = "pop3.shutdown";//$NON-NLS-1$
-	private static final String SERVER_PORT = "pop3.port";//$NON-NLS-1$
-	private static final String SERVER_S_PORT = "pop3s.port";//$NON-NLS-1$
-	private static final String SERVER_S_keyStoreName     = "pop3s.keyStoreName";//$NON-NLS-1$
-	private static final String SERVER_S_keyStorePassword = "pop3s.keyStorePassword";//$NON-NLS-1$
-	private static final String SERVER_S_keyStoreType     = "pop3s.keyStoreType";//$NON-NLS-1$
+	private static final String SERVER_PORT     = "pop3.port";//$NON-NLS-1$
+	private static final String SERVER_S_PORT               = "pop3s.port";//$NON-NLS-1$
+	private static final String SERVER_S_keyStoreName       = "pop3s.keyStoreName";//$NON-NLS-1$
+	private static final String SERVER_S_keyStorePassword   = "pop3s.keyStorePassword";//$NON-NLS-1$
+	private static final String SERVER_S_keyStoreType       = "pop3s.keyStoreType";//$NON-NLS-1$
 	private static final String SERVER_S_trustStoreName     = "pop3s.trustStoreName";//$NON-NLS-1$
 	private static final String SERVER_S_trustStorePassword = "pop3s.trustStorePassword";//$NON-NLS-1$
 	private static final String SERVER_S_trustStoreType     = "pop3s.trustStoreType";//$NON-NLS-1$
+	private static final String SO_TIMEOUT      = "pop3.socket.timeout";//$NON-NLS-1$
 
 	/**
 	 *
@@ -81,6 +85,14 @@ public class POP3Properties extends INotesProperties {
 
 	public String getPOP3ShutdownSecret() {
 		return getProperty(SHUTDOWN_SECRET, DEFAULT_SHARED_SECRET);
+	}
+
+	/**
+	 * @see java.net.Socket#getSoTimeout()
+	 */
+	public int getPOP3soTimeout() throws NumberFormatException {
+		int seconds = Integer.parseInt(getProperty(SO_TIMEOUT, Integer.toString(DEFAULT_SO_TIMEOUT_SECONDS)));
+		return (int) SECONDS.toMillis(Math.max(0, seconds));
 	}
 
 }

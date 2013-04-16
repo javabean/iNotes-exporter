@@ -4,7 +4,19 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<!-- Tip: use  mvn help:effective-pom  to see effective pom -->
+	<!--
+		Maven cheat sheet <http://blog.octo.com/maven-mes-plugins-preferes/>
+		mvn help:active-profiles
+		mvn help:effective-pom
+		mvn help:evaluate
+		mvn dependency:tree
+		mvn versions:display-dependency-updates
+		mvn versions:display-plugin-updates
+		mvn versions:update-child-modules
+		mvn versions:set -DnewVersion=VALUE
+
+		mvn -Dmaven.test.skip clean assembly:assembly -DdescriptorId=jar-with-dependencies
+	 -->
 
 	<!-- - - - - - - - - - -->
 	<!-- POM Relationships -->
@@ -75,7 +87,7 @@
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
-			<version>1.1.1</version>
+			<version>1.1.2</version>
 			<scope>provided</scope><!-- prevents any version of commons-logging to be bundled with the final artifact -->
 			<optional>true</optional>
 		</dependency>
@@ -323,7 +335,7 @@
 	</issueManagement-->
 	<ciManagement></ciManagement>
 	<mailingLists></mailingLists>
-	<scm><!-- There's no scm really. I need this to upload to the maven repository. -->
+	<scm>
 		<connection>git://github.com/javabean/iNotes-exporter.git</connection>
 		<developerConnection>git@github.com:javabean/iNotes-exporter.git</developerConnection>
 		<tag>HEAD</tag>
