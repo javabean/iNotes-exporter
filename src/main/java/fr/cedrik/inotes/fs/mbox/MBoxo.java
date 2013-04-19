@@ -44,8 +44,8 @@ public class MBoxo extends BaseMBox {
 				logger.trace("Escaping {}", line);
 				mbox.write('>');
 			}
-			mbox.append(line).append('\n');
+			mbox.append(line).append(newLine());
 		}
-		mbox.write('\n');
+		mbox.write(newLine());
 	}
 }

@@ -126,7 +126,7 @@ abstract class BaseMailDir extends BaseFsExport implements fr.cedrik.inotes.Main
 	protected void writeMIME(Writer mbox, BaseINotesMessage message, Iterator<String> mime) throws IOException {
 		while (mime.hasNext()) {
 			String line = mime.next();
-			mbox.append(line).append('\n');
+			mbox.append(line).append(newLine());
 		}
 	}
 

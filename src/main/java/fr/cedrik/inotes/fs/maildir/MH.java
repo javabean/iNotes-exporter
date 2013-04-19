@@ -175,7 +175,7 @@ public class MH extends BaseFsExport implements fr.cedrik.inotes.MainRunner.Main
 	protected void writeMIME(Writer mbox, BaseINotesMessage message, Iterator<String> mime) throws IOException {
 		while (mime.hasNext()) {
 			String line = mime.next();
-			mbox.append(line).append('\n');
+			mbox.append(line).append(newLine());
 		}
 	}
 

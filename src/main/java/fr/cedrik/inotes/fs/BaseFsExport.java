@@ -200,4 +200,17 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 			return null;
 		}
 	}
+
+	/**
+	 * @return RFC-compliant new-line char
+	 */
+	protected String newLine() {
+		return "\n";
+	}
+	/**
+	 * @return RFC-compliant new-line char
+	 */
+	protected Writer newLine(Writer out) throws IOException {
+		return out.append(newLine());
+	}
 }

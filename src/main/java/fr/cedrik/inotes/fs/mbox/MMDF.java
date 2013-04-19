@@ -38,11 +38,11 @@ public class MMDF extends BaseMBox {
 
 	@Override
 	protected void writeMIME(Writer mbox, BaseINotesMessage message, Iterator<String> mime) throws IOException {
-		mbox.append(SEPARATOR_MARK).append('\n');
+		mbox.append(SEPARATOR_MARK).append(newLine());
 		while (mime.hasNext()) {
 			String line = mime.next();
 			mbox.append(line).append('\n');
 		}
-		mbox.append(SEPARATOR_MARK).append('\n');
+		mbox.append(SEPARATOR_MARK).append(newLine());
 	}
 }

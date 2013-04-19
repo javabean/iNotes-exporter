@@ -45,9 +45,9 @@ public class MBoxrd extends BaseMBox {
 				logger.trace("Escaping {}", from_.group());
 				mbox.write('>');
 			}
-			mbox.append(line).append('\n');
+			mbox.append(line).append(newLine());
 		}
-		mbox.write('\n');
+		mbox.write(newLine());
 	}
 
 	private static final Pattern FROM_ = Pattern.compile("^>*From ");//$NON-NLS-1$
