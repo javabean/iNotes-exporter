@@ -1,7 +1,11 @@
-*~
-.DS_Store
+# build directory and compiled artefacts #
+/target
 *.class
 # Package Files #
 *.jar
 *.war
 *.ear
+# miscellaneous #
+*~
+.DS_Store
+
