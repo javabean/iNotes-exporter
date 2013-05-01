@@ -1,5 +1,5 @@
 # build directory and compiled artefacts #
-/target
+/target/
 *.class
 # Package Files #
 *.jar
