@@ -40,11 +40,15 @@ public class USER extends BasePOP3Command implements POP3Command {
 		if (StringUtils.isBlank(context.inputArgs)) {
 			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString());
 		}
+		// The login should be user@https://webmail.example.com or user@domain.example@https://webmail.example.com
 		StringTokenizer tokenizer = new StringTokenizer(context.inputArgs, "@", false);
-		if (tokenizer.countTokens() != 2) {
+		if (tokenizer.countTokens() != 2 && tokenizer.countTokens() != 3) {
 			return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("[AUTH] bad user format; should be user@https://webmail.example.com"));
 		}
 		context.userName = tokenizer.nextToken();
+		if (tokenizer.countTokens() == 2) {
+			context.userName += "@" + tokenizer.nextToken();
+		}
 		String serverURL = tokenizer.nextToken();
 		try {
 			URL url = new URL(serverURL);
