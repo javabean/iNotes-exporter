@@ -11,12 +11,15 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.channels.FileLock;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.mail.MailParseException;
 
 import fr.cedrik.inotes.BaseINotesMessage;
 import fr.cedrik.inotes.INotesMessagesMetaData;
@@ -98,8 +101,14 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 			}
 			mbox = new BufferedWriter(new OutputStreamWriter(outStream, Charsets.US_ASCII), 32*1024);
 			// write messages
+			List<BaseINotesMessage> writtenMessages = new ArrayList<BaseINotesMessage>();
 			for (BaseINotesMessage message : messages.entries) {
-				IteratorChain<String> mime = session.getMessageMIME(message);
+				IteratorChain<String> mime;
+				try {
+					mime = session.getMessageMIME(message);
+				} catch (MailParseException mpe) {
+					mime = null;
+				}
 				if (mime == null || ! mime.hasNext()) {
 					logger.error("Empty MIME message! ({})", message);
 					IOUtils.closeQuietly(mime);
@@ -108,6 +117,7 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 				logger.debug("Writing message {}", message);
 				try {
 					writeMIME(mbox, message, mime);
+					writtenMessages.add(message);
 				} finally {
 					IOUtils.closeQuietly(mime);
 				}
@@ -115,7 +125,7 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 			}
 			mbox.flush();
 			if (deleteExportedMessages) {
-				session.deleteMessage(messages.entries);
+				session.deleteMessage(writtenMessages);
 			}
 		} finally {
 			if (outFileLock != null) {

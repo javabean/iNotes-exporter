@@ -42,6 +42,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.mail.MailParseException;
 
 import fr.cedrik.inotes.util.IteratorChain;
 
@@ -503,8 +504,9 @@ public class Session {
 	 * @param message
 	 * @return
 	 * @throws IOException
+	 * @throws MailParseException if the content of the email is invalid (i.e. iNotes http session has expired)
 	 */
-	public IteratorChain<String> getMessageMIMEHeaders(MessageMetaData message) throws IOException {
+	public IteratorChain<String> getMessageMIMEHeaders(MessageMetaData message) throws IOException, MailParseException {
 		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
@@ -532,8 +534,9 @@ public class Session {
 	 * @param message
 	 * @return
 	 * @throws IOException
+	 * @throws MailParseException if the content of the email is invalid (i.e. iNotes http session has expired)
 	 */
-	public IteratorChain<String> getMessageMIME(MessageMetaData message) throws IOException {
+	public IteratorChain<String> getMessageMIME(MessageMetaData message) throws IOException, MailParseException {
 		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
@@ -991,8 +994,9 @@ public class Session {
 	 * @param message
 	 * @return
 	 * @throws IOException
+	 * @throws MailParseException if the content of the email is invalid (i.e. iNotes http session has expired)
 	 */
-	public IteratorChain<String> getMessageMIME(BaseINotesMessage message) throws IOException {
+	public IteratorChain<String> getMessageMIME(BaseINotesMessage message) throws IOException, MailParseException {
 		if (message instanceof MessageMetaData) {
 			return getMessageMIME((MessageMetaData)message);
 //		} else if (message instanceof MeetingNoticeMetaData) {
@@ -1008,8 +1012,9 @@ public class Session {
 	 * @param message
 	 * @return
 	 * @throws IOException
+	 * @throws MailParseException if the content of the email is invalid (i.e. iNotes http session has expired)
 	 */
-	public IteratorChain<String> getMessageMIMEHeaders(BaseINotesMessage message) throws IOException {
+	public IteratorChain<String> getMessageMIMEHeaders(BaseINotesMessage message) throws IOException, MailParseException {
 		if (message instanceof MessageMetaData) {
 			return getMessageMIMEHeaders((MessageMetaData)message);
 //		} else if (message instanceof MeetingNoticeMetaData) {
@@ -1126,8 +1131,9 @@ public class Session {
 		private final ClientHttpResponse httpResponse;
 		private final DateFormat LOTUS_NOTES_BROKEN_DATE_FORMAT;
 		private boolean inHeaders = true;
+		private boolean firstHeaderLine = true;
 
-		public HttpCleaningLineIterator(final ClientHttpResponse httpResponse) throws IOException {
+		public HttpCleaningLineIterator(final ClientHttpResponse httpResponse) throws IOException, MailParseException {
 			super(new InputStreamReader(httpResponse.getBody(), context.getCharset(httpResponse)));
 			this.httpResponse = httpResponse;
 			if (context.isFixLotusNotesDateMIMEHeader()) {
@@ -1138,6 +1144,26 @@ public class Session {
 				inHeaders = false;
 				LOTUS_NOTES_BROKEN_DATE_FORMAT = null;
 			}
+			hasNext();// will call isValidLine() to validate first line
+		}
+
+		@Override
+		protected boolean isValidLine(String line) throws MailParseException {
+			if (firstHeaderLine) {
+				firstHeaderLine = false;
+				// check that this is a correct RFC 5322 Header Field line
+				if (! MIME_HEADER.matcher(line).matches()) {
+					close();
+//					throw new IllegalStateException("Bad MIME header: " + line);
+//					throw new java.util.IllegalFormatException("Bad MIME header: " + line);
+//					throw new java.text.ParseException("Bad MIME header: " + line, 0);
+//					throw new java.util.regex.PatternSyntaxException("Bad MIME header", line, 0);
+//					throw new javax.mail.internet.ParseException("Bad MIME header: " + line);
+//					throw new javax.activation.MimeTypeParseException("Bad MIME header: " + line);
+					throw new org.springframework.mail.MailParseException("Bad MIME header: " + line);
+				}
+			}
+			return super.isValidLine(line);
 		}
 
 		@Override
@@ -1185,6 +1211,8 @@ public class Session {
 			httpResponse.close();
 		}
 	}
+
+	static final Pattern MIME_HEADER = Pattern.compile("^[^:]+:.*$");//$NON-NLS-1$
 
 	private static final String GMT_ID = "GMT";// TimeZone.GMT_ID
 	private static final Map<String, Integer> LOTUS_TZ = new HashMap<String, Integer>();

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.mail.MailParseException;
 
 import fr.cedrik.inotes.BaseINotesMessage;
 import fr.cedrik.inotes.INotesMessagesMetaData;
@@ -56,7 +57,12 @@ public class TOP extends BasePOP3Command implements POP3Command {
 		List<String> emptyLine = new ArrayList<String>(1);
 		emptyLine.add("");
 		if (requestedLinesNumber == 0) {
-			Iterator<String> mimeHeaders = context.iNotesSession.getMessageMIMEHeaders(message);
+			Iterator<String> mimeHeaders;
+			try {
+				mimeHeaders = context.iNotesSession.getMessageMIMEHeaders(message);
+			} catch (MailParseException mpe) {
+				mimeHeaders = null;
+			}
 			if (mimeHeaders == null) {
 				return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("unknown error: can not retrieve message headers"));
 			}
@@ -66,7 +72,12 @@ public class TOP extends BasePOP3Command implements POP3Command {
 			// Can not simply count the number of lines in the header to finally fetch the full message body,
 			// as mime headers are slightly different between those (yeah, Notes rocks!)...
 			// We must therefore manually search for header/body separation and count the lines... :-(
-			IteratorChain<String> mimeMessage = context.iNotesSession.getMessageMIME(message);
+			IteratorChain<String> mimeMessage;
+			try {
+				mimeMessage = context.iNotesSession.getMessageMIME(message);
+			} catch (MailParseException mpe) {
+				mimeMessage = null;
+			}
 			if (mimeMessage == null) {
 				return new IteratorChain<String>(ResponseStatus.NEGATIVE.toString("unknown error: can not retrieve message"));
 			}

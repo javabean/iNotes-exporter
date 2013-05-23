@@ -27,6 +27,7 @@ The <action> type attribute can be add,update,fix,remove.
 			<action type="add"    dev="clime" >[mailbox] exports can now write to gzip-compressed files, saving disk space</action>
 			<action type="add"    dev="clime" >can now display iNotes quota information ("quota" command)</action>
 			<action type="update" dev="clime" >[pop3] login can now be user@domain.example@https://webmail.example.com in addition to user@https://webmail.example.com</action>
+			<action type="fix"    dev="clime" >fix for when iNotes' http session unexpectedly expires while exporting mails</action>
 			<action type="fix"    dev="clime" >[pop3] fix a slow memory leak where a very small % of client sockets block on reading despite being closed</action>
 		</release>
 		<release version="1.7" date="2013-02-14" description="security, iPhone, delete after export">
