@@ -26,6 +26,7 @@ The <action> type attribute can be add,update,fix,remove.
 		<release version="1.8" date="" description="">
 			<action type="add"    dev="clime" >[mailbox] exports can now write to gzip-compressed files, saving disk space</action>
 			<action type="add"    dev="clime" >can now display iNotes quota information ("quota" command)</action>
+			<action type="add"    dev="clime" >[pop3s] allow SSL 2-way auth (client auth)</action>
 			<action type="update" dev="clime" >[pop3] login can now be user@domain.example@https://webmail.example.com in addition to user@https://webmail.example.com</action>
 			<action type="fix"    dev="clime" >fix for when iNotes' http session unexpectedly expires while exporting mails</action>
 			<action type="fix"    dev="clime" >[pop3] fix a slow memory leak where a very small % of client sockets block on reading despite being closed</action>
