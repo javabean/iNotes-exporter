@@ -118,7 +118,9 @@ abstract class BaseMailDir extends BaseFsExport implements fr.cedrik.inotes.Main
 			if (! tmpFile.renameTo(newFile)) {
 				logger.warn("Can not move file {} to {}", tmpFile, newFile);
 			}
-			lastExportedMessageDate = message.getDate();
+			if (message.getDate().getTime() > 0) {
+				lastExportedMessageDate = message.getDate();
+			}
 		}
 		if (deleteExportedMessages) {
 			session.deleteMessage(writtenMessages);

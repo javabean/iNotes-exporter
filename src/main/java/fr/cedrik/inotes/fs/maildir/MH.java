@@ -164,7 +164,9 @@ public class MH extends BaseFsExport implements fr.cedrik.inotes.MainRunner.Main
 			}
 			// the modification time of the file is the delivery date of the message.
 			outFile.setLastModified(message.getDate().getTime());
-			lastExportedMessageDate = message.getDate();
+			if (message.getDate().getTime() > 0) {
+				lastExportedMessageDate = message.getDate();
+			}
 		}
 		if (deleteExportedMessages) {
 			session.deleteMessage(writtenMessages);

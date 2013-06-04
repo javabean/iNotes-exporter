@@ -102,7 +102,7 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 				Preferences prefs = getUserNode(false);
 				if (prefs != null) {
 					long lastExportDate = prefs.getLong(PREF_LAST_EXPORT_DATE, -1);
-					if (lastExportDate != -1) {
+					if (lastExportDate > 1) {// Don't incremental-export if last exported message date is null!
 						this.oldestMessageToFetch = new Date(lastExportDate);
 						this.newestMessageToFetch = null;
 					}
@@ -130,12 +130,12 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 		}
 		if (! messages.entries.isEmpty()) {
 			Date lastExportedMessageDate = this.export(messages, deleteExportedMessages);
-			if (lastExportedMessageDate != null) {
+			if (lastExportedMessageDate != null && lastExportedMessageDate.getTime() > 0) {
 				if (oldestMessageToFetch != null) {
-					assert lastExportedMessageDate.after(oldestMessageToFetch);
+					assert lastExportedMessageDate.equals(oldestMessageToFetch) || lastExportedMessageDate.after(oldestMessageToFetch);
 				}
 				if (newestMessageToFetch != null) {
-					assert lastExportedMessageDate.before(newestMessageToFetch);
+					assert lastExportedMessageDate.before(newestMessageToFetch) || lastExportedMessageDate.equals(newestMessageToFetch);
 				}
 				if (newestMessageToFetch == null) {
 					// incremental export: set Preference to oldestMessageToFetch
@@ -180,8 +180,13 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 	protected void setPreferenceToOldestMessageToFetch(Date lastExportDate) {
 		try {
 			Preferences prefs = getUserNode(true);
-			logger.debug("Recording last export date: {} for: {}", lastExportDate, prefs);
-			prefs.putLong(PREF_LAST_EXPORT_DATE, lastExportDate.getTime()+1);// +1: don't re-export last exported message next time...
+			if (lastExportDate != null && lastExportDate.getTime() > 0) {
+				logger.debug("Recording last export date: {} for: {}", lastExportDate, prefs);
+				prefs.putLong(PREF_LAST_EXPORT_DATE, lastExportDate.getTime()+1);// +1: don't re-export last exported message next time...
+			} else {
+				logger.debug("Resetting (null) last export date for: {}", prefs);
+				prefs.remove(PREF_LAST_EXPORT_DATE);
+			}
 			prefs.flush();
 		} catch (BackingStoreException ignore) {
 			logger.warn("Can not store last export date: " + DateUtils.ISO8601_DATE_TIME_FORMAT.format(lastExportDate), ignore);

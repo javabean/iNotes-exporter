@@ -121,7 +121,9 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 				} finally {
 					IOUtils.closeQuietly(mime);
 				}
-				lastExportedMessageDate = message.getDate();
+				if (message.getDate().getTime() > 0) {
+					lastExportedMessageDate = message.getDate();
+				}
 			}
 			mbox.flush();
 			if (deleteExportedMessages) {
