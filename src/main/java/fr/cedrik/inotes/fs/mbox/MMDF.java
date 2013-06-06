@@ -15,6 +15,8 @@ import fr.cedrik.inotes.BaseINotesMessage;
  * @author C&eacute;drik LIME
  */
 public class MMDF extends BaseMBox {
+	public static final String EXTENSION_MMDF = ".mmdf";//$NON-NLS-1$
+
 	private static final String SEPARATOR_MARK = "\0x1\0x1\0x1\0x1";//$NON-NLS-1$ // four characters "^A^A^A^A" (Control-A; ASCII 1)
 
 	public MMDF() throws IOException {
@@ -25,7 +27,7 @@ public class MMDF extends BaseMBox {
 	 * @param args
 	 */
 	public static void main(String[] args) throws IOException {
-		new MMDF().run(args, ".mmdf");
+		new MMDF().run(args, EXTENSION_MMDF);
 	}
 
 	/**
@@ -41,7 +43,7 @@ public class MMDF extends BaseMBox {
 		mbox.append(SEPARATOR_MARK).append(newLine());
 		while (mime.hasNext()) {
 			String line = mime.next();
-			mbox.append(line).append('\n');
+			mbox.append(line).append(newLine());
 		}
 		mbox.append(SEPARATOR_MARK).append(newLine());
 	}

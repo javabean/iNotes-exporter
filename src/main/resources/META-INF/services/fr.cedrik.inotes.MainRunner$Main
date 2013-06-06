@@ -9,6 +9,7 @@ fr.cedrik.inotes.fs.maildir.MailDir
 
 # multiple mailboxes export
 fr.cedrik.inotes.fs.maildir.MH
+fr.cedrik.inotes.fs.maildir.EML
 fr.cedrik.inotes.fs.maildir.MailDirPP
 
 # miscellaneous

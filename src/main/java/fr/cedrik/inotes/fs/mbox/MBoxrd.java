@@ -15,6 +15,7 @@ import fr.cedrik.inotes.BaseINotesMessage;
  * @author C&eacute;drik LIME
  */
 public class MBoxrd extends BaseMBox {
+	public static final String EXTENSION_MBOXRD = ".mboxrd";//$NON-NLS-1$
 
 	public MBoxrd() throws IOException {
 		super();
@@ -24,7 +25,7 @@ public class MBoxrd extends BaseMBox {
 	 * @param args
 	 */
 	public static void main(String[] args) throws IOException {
-		new MBoxrd().run(args, ".mboxrd");
+		new MBoxrd().run(args, EXTENSION_MBOXRD);
 	}
 
 	/**

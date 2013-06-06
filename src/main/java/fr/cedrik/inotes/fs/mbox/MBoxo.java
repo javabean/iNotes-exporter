@@ -15,6 +15,7 @@ import fr.cedrik.inotes.BaseINotesMessage;
  */
 @Deprecated
 public class MBoxo extends BaseMBox {
+	public static final String EXTENSION_MBOXO = ".mboxo";//$NON-NLS-1$
 
 	public MBoxo() throws IOException {
 		super();
@@ -24,7 +25,7 @@ public class MBoxo extends BaseMBox {
 	 * @param args
 	 */
 	public static void main(String[] args) throws IOException {
-		new MBoxo().run(args, ".mboxo");
+		new MBoxo().run(args, EXTENSION_MBOXO);
 	}
 
 	/**

@@ -37,6 +37,7 @@ In addition to exposing a Notes INBOX as a POP3 server, iNotes exporter supports
 	* `maildir`: one file contains one message
 * multiple mailboxes
 	* `MH` (deprecated)
+	* `EML`
 	* `maildir++`
 
 ### List available iNotes folders
@@ -85,7 +86,7 @@ example:
 * `java -jar target/iNotes-exporter-1.8-jar-with-dependencies.jar maildirpp ~/Maildir`
 	* will (incrementally) export all messages to the `~/Maildir` maildir++
 
-If you don't know which maildir format to choose (MH, maildir++), use maildir++.
+If you don't know which maildir format to choose (MH, EML, maildir++), use maildir++.
 
 The (incremental) last export date is stored in the Java Preferences (`~/.java/` for Linux / *BSD, `~/Library/Preferences/fr.cedrik.inotes.plist` for Mac OS X, and the Registry for Windows).
 

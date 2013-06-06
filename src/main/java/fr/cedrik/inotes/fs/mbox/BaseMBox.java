@@ -37,6 +37,9 @@ import fr.cedrik.inotes.util.IteratorChain;
  * @author C&eacute;drik LIME
  */
 abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
+	public static final String MIME_TYPE = "application/mbox";//$NON-NLS-1$ // http://tools.ietf.org/html/rfc4155
+	public static final String EXTENSION_MBOX = ".mbox";//$NON-NLS-1$
+
 	private static final String EXTENSION_GZ = ".gz";//$NON-NLS-1$
 
 	protected File outFile;
@@ -140,7 +143,7 @@ abstract class BaseMBox extends BaseFsExport implements fr.cedrik.inotes.MainRun
 
 	protected void writeFromLine(Writer mbox, BaseINotesMessage message) throws IOException {
 		// date should be UTC, but tests show there is no need to convert it
-		mbox.append("From MAILER-DAEMON ").append(DateUtils.MBOX_DATE_TIME_FORMAT.format(message.getDate())).append('\n');
+		mbox.append("From MAILER-DAEMON ").append(DateUtils.MBOX_DATE_TIME_FORMAT.format(message.getDate())).append(newLine());
 	}
 
 }
