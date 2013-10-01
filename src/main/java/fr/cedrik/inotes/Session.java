@@ -221,7 +221,7 @@ public class Session {
 			params.clear();
 			// need to emulate a real browser, or else we get an "unknown browser" response with no possibility to continue
 			context.getHttpHeaders().set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:24.0) Gecko/20100101 Firefox/24.0");
-//			context.getHttpHeaders().set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/536.29.13 (KHTML, like Gecko) Version/6.0.4 Safari/536.29.13");
+//			context.getHttpHeaders().set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_5) AppleWebKit/536.30.1 (KHTML, like Gecko) Version/6.0.5 Safari/536.30.1");
 			httpRequest = context.createRequest(new URL(redirectURL), HttpMethod.GET, params);
 			httpResponse = httpRequest.execute();
 			trace(httpRequest, httpResponse);
@@ -755,7 +755,7 @@ public class Session {
 		} finally {
 			httpResponse.close();
 		}
-		logger.info("Marked {} messsage(s) as read: {}", mailsToMarkRead.size(), StringUtils.join(mailsToMarkRead, ';'));
+		logger.info("Marked {} messsage(s) as read in folder {}: {}", mailsToMarkRead.size(), context.getNotesFolderId(), StringUtils.join(mailsToMarkRead, ';'));
 		mailsToMarkReadAll.removeAll(mailsToMarkRead);
 		mailsToMarkRead.clear();
 	}
@@ -807,7 +807,7 @@ public class Session {
 		} finally {
 			httpResponse.close();
 		}
-		logger.info("Marked {} messsage(s) as unread: {}", mailsToMarkUnread.size(), StringUtils.join(mailsToMarkUnread, ';'));
+		logger.info("Marked {} messsage(s) as unread in folder {}: {}", mailsToMarkUnread.size(), context.getNotesFolderId(), StringUtils.join(mailsToMarkUnread, ';'));
 		mailsToMarkUnreadAll.removeAll(mailsToMarkUnread);
 		mailsToMarkUnread.clear();
 	}

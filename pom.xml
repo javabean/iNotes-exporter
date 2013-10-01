@@ -56,7 +56,7 @@
 		<!--dependency>
 			<groupId>org.mnode.ical4j</groupId>
 			<artifactId>ical4j</artifactId>
-			<version>1.0.4</version>
+			<version>1.0.5.2</version>
 			<scope>compile</scope>
 		</dependency-->
 		<dependency>
@@ -165,7 +165,7 @@
 			<id>clime</id>
 			<name>Cédrik LIME</name>
 			<email>cedrik_lime@users.sourceforge.net</email>
-			<url>http://messadmin.sourceforge.net</url>
+			<url>http://cedrik.tel</url>
 			<roles>
 				<role>architect</role>
 				<role>developer</role>
@@ -192,7 +192,7 @@
 		<maven.compiler.source>1.6</maven.compiler.source>
 		<maven.compiler.target>1.6</maven.compiler.target>
 		<slf4j.version>1.7.5</slf4j.version>
-		<spring.version>3.2.3.RELEASE</spring.version>
+		<spring.version>3.2.4.RELEASE</spring.version>
 	</properties>
 
 	<build>

@@ -23,7 +23,7 @@ The <action> type attribute can be add,update,fix,remove.
 		<title>Lotus Domino iNotes exporter: POP3, mbox &amp; maildir</title>
 	</properties>
 	<body>
-		<release version="1.8" date="" description="">
+		<release version="1.8" date="2013-06-06" description="">
 			<action type="add"    dev="clime" >[mailbox] exports can now write to gzip-compressed files, saving disk space</action>
 			<action type="add"    dev="clime" >can now display iNotes quota information ("quota" command)</action>
 			<action type="add"    dev="clime" >[maildir] add support for the EML format (same as MH, but with CR+LF EOLs)</action>

@@ -6,7 +6,7 @@ SEO keywords: IBM Lotus Notes Domino iNotes POP3 mbox maildir export
 
 Requirements
 ------------
-* Lotus iNotes credentials (tested with version 8.5.3)  
+* Lotus iNotes (the Lotus Notes webmail) credentials (tested with version 8.5.3)
 * Java 6
 * Maven 3 for compiling
 
@@ -120,7 +120,7 @@ As an alternative to configuring POP3S, you can also use [stunnel](http://www.st
 
 #### Additional (non-standard) POP3 commands
 
-The following POP3 commands are not RFC standard, but can help managing your iNotes account:
+The following POP3 commands are not RFC standard, but can help manage your iNotes account:
 
 * `SHUTDOWN <secret>`: to shutdown the POP3 server (set the secret in `iNotes.properties`)
 * `QUOTA`: gives information on quota usage
