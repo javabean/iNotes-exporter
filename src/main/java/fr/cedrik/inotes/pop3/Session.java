@@ -161,6 +161,11 @@ public class Session implements Runnable {
 			IOUtils.closeQuietly(in);
 			IOUtils.closeQuietly(out);
 			IOUtils.closeQuietly(clientSocket);
+			try {
+				context.iNotesSession.logout();
+			} catch (IOException ignore) {
+				logger.info("{} while logging out POP3{} client {}: {}", ignore.getClass().getName(), (secure ? "S" : ""), clientSocket.getRemoteSocketAddress(), ignore.getMessage());
+			}
 			MDC.clear();
 		}
 	}
