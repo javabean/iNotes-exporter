@@ -118,6 +118,8 @@ which will then be configured in `iNotes.properties` as:
 
 As an alternative to configuring POP3S, you can also use [stunnel](http://www.stunnel.org/).
 
+Note: to disable the POP3 connector and only keep the secure POP3S version, set `pop3.port=-1`.
+
 #### Additional (non-standard) POP3 commands
 
 The following POP3 commands are not RFC standard, but can help manage your iNotes account:
