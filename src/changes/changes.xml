@@ -23,7 +23,7 @@ The <action> type attribute can be add,update,fix,remove.
 		<title>Lotus Domino iNotes exporter: POP3, mbox &amp; maildir</title>
 	</properties>
 	<body>
-		<release version="1.8" date="2013-10-25" description="">
+		<release version="1.8" date="2014-01-21" description="">
 			<action type="add"    dev="clime" >[mailbox] exports can now write to gzip-compressed files, saving disk space</action>
 			<action type="add"    dev="clime" >can now display iNotes quota information ("quota" command)</action>
 			<action type="add"    dev="clime" >[maildir] add support for the EML format (same as MH, but with CR+LF EOLs)</action>
@@ -33,6 +33,7 @@ The <action> type attribute can be add,update,fix,remove.
 			<action type="fix"    dev="clime" >[pop3] fix a slow memory leak where a very small % of client sockets block on reading despite being closed</action>
 			<action type="fix"    dev="clime" >[pop3] ensure iNotes session is always closed even is client pulls the socket abruptly</action>
 			<action type="fix"    dev="clime" >[mailbox][maildir] force a full (non-incremental) export if recorded last exported message date is null or 0</action>
+			<action type="fix"    dev="clime" >[maildir] fix parsing of internal XML date TZ, that led to an incorrect file date (which poses problems with DoveCot)</action>
 		</release>
 		<release version="1.7" date="2013-02-14" description="security, iPhone, delete after export">
 			<action type="add"    dev="clime" >[pop3] POP3 server will now listen on a SSL/TLS port for an encrypted communication channel (POP3S)</action>

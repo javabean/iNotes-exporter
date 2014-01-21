@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.FactoryConfigurationError;
@@ -23,6 +22,8 @@ import javax.xml.stream.events.XMLEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import fr.cedrik.inotes.util.DateUtils;
 
 /**
  * @author C&eacute;drik LIME
@@ -140,7 +141,7 @@ class MeetingNoticesXMLConverter {
 //						message.xxx = value;
 					if ("$144".equals(name)) { // meeting date
 						if (StringUtils.isNotBlank(value)) {
-							notice.meetingDate = new SimpleDateFormat("yyyyMMdd'T'HHmmss','SS'Z'").parse(value);
+							notice.meetingDate = DateUtils.parseLotusXMLDate(value);
 						}
 //					} else if ("SametimeInfo".equals(name)) { // availability
 //						message.availability = value;
@@ -148,7 +149,7 @@ class MeetingNoticesXMLConverter {
 						notice.from = value;
 					} else if ("$3".equals(name)) { // date
 						if (StringUtils.isNotBlank(value)) {
-							notice.date = new SimpleDateFormat("yyyyMMdd'T'HHmmss','SS'Z'").parse(value);
+							notice.date = DateUtils.parseLotusXMLDate(value);
 						}
 					} else if ("$147".equals(name)) { // subject
 						notice.subject = value;

@@ -6,7 +6,6 @@ package fr.cedrik.inotes;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -24,6 +23,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import fr.cedrik.inotes.util.DateUtils;
 
 /**
  * WARNING: this class is not thread-safe!
@@ -88,7 +89,7 @@ class MessagesXMLConverterXPath {
 					message.subject     = (String) subjectXP.evaluate(node, XPathConstants.STRING);
 					String dateStr = (String) dateXP.evaluate(node, XPathConstants.STRING);
 					if (StringUtils.isNotEmpty(dateStr)) {
-						message.date        = new SimpleDateFormat("yyyyMMdd'T'HHmmss','SS'Z'").parse(dateStr);
+						message.date        = DateUtils.parseLotusXMLDate(dateStr);
 					}
 					message.size        = ((Number) sizeXP.evaluate(node, XPathConstants.NUMBER)).intValue();
 					message.recipient   = ((Number) recipientXP.evaluate(node, XPathConstants.NUMBER)).intValue();

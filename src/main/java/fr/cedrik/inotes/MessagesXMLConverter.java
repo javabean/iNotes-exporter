@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.FactoryConfigurationError;
@@ -23,6 +22,8 @@ import javax.xml.stream.events.XMLEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import fr.cedrik.inotes.util.DateUtils;
 
 /**
  * @author C&eacute;drik LIME
@@ -187,7 +188,7 @@ class MessagesXMLConverter {
 						message.subject = value;
 					} else if ("$70".equals(name)) { // date
 						if (StringUtils.isNotBlank(value)) {
-							message.date = new SimpleDateFormat("yyyyMMdd'T'HHmmss','SS'Z'").parse(value);
+							message.date = DateUtils.parseLotusXMLDate(value);
 						}
 					} else if ("$106".equals(name)) { // size
 						if (StringUtils.isNotBlank(value)) {

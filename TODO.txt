@@ -24,6 +24,8 @@ New features
 * MAILDIR: maildir++ quota support?
 * --calendar-- + todos + journal (CalDAV or ics + built-in http server)
 * contacts (CardDAV)
+* SMTP server (to keep copies of sent mails on server)
+* convert to Spring Boot? <http://projects.spring.io/spring-boot/>
 
 Won't do
 ========
