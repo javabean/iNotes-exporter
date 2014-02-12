@@ -44,6 +44,6 @@ public class MessageMetaData extends BaseINotesMessage {
 		return this.getClass().getSimpleName() + '[' + "unid:" + this.unid
 				+ ", date:" + (this.date != null ? DateUtils.ISO8601_DATE_TIME_FORMAT.format(this.date) : String.valueOf(this.date))
 				+ ", size:" + this.size
-				+ ", unread: " + this.unread + ']';
+				+ ", unread:" + this.unread + ']';
 	}
 }

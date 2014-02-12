@@ -17,10 +17,10 @@ import java.util.Map;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMessage;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.support.HttpAccessor;
 
 import fr.cedrik.inotes.util.Charsets;
@@ -183,13 +183,13 @@ public class HttpRequestExecutor extends HttpAccessor {
 
 	private static final Charset DEFAULT_HTTP_ENCODING = Charsets.ISO_8859_1;
 	/**
-	 * @param httpResponse
+	 * @param httpMessage
 	 * @return encoding of HTTP response body
 	 */
-	public Charset getCharset(ClientHttpResponse httpResponse) {
+	public Charset getCharset(HttpMessage httpMessage) {
 		Charset encoding = DEFAULT_HTTP_ENCODING;
-		if (httpResponse.getHeaders().getContentType() != null) {
-			Charset charSet = httpResponse.getHeaders().getContentType().getCharSet();
+		if (httpMessage.getHeaders().getContentType() != null) {
+			Charset charSet = httpMessage.getHeaders().getContentType().getCharSet();
 			if (charSet != null) {
 				encoding = charSet;
 			}

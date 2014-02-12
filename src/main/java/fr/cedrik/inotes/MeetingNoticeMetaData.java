@@ -33,6 +33,6 @@ public class MeetingNoticeMetaData extends BaseINotesMessage {
 		return this.getClass().getSimpleName() + '[' + "unid:" + this.unid
 				+ ", meetingDate:" + (this.meetingDate != null ? DateUtils.ISO8601_DATE_TIME_FORMAT.format(this.meetingDate) : String.valueOf(this.meetingDate))
 				+ ", from:" + this.from
-				+ ", subject: " + this.subject + ']';
+				+ ", subject:" + this.subject + ']';
 	}
 }
