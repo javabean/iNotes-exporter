@@ -29,6 +29,7 @@ The <action> type attribute can be add,update,fix,remove.
 			<action type="add"    dev="clime" >[maildir] add support for the EML format (same as MH, but with CR+LF EOLs)</action>
 			<action type="add"    dev="clime" >[pop3s] allow SSL 2-way auth (client auth)</action>
 			<action type="update" dev="clime" >[pop3] login can now be user@domain.example@https://webmail.example.com in addition to user@https://webmail.example.com</action>
+			<action type="update" dev="clime" >[pop3s] allow different passwords for pop3s certificate store and key</action>
 			<action type="fix"    dev="clime" >fix for when iNotes' http session unexpectedly expires while exporting mails</action>
 			<action type="fix"    dev="clime" >[pop3] fix a slow memory leak where a very small % of client sockets block on reading despite being closed</action>
 			<action type="fix"    dev="clime" >[pop3] ensure iNotes session is always closed even is client pulls the socket abruptly</action>

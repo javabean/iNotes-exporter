@@ -26,6 +26,7 @@ public class POP3Properties extends INotesProperties {
 	private static final String SERVER_S_keyStoreName       = "pop3s.keyStoreName";//$NON-NLS-1$
 	private static final String SERVER_S_keyStorePassword   = "pop3s.keyStorePassword";//$NON-NLS-1$
 	private static final String SERVER_S_keyStoreType       = "pop3s.keyStoreType";//$NON-NLS-1$
+	private static final String SERVER_S_keyPassword        = "pop3s.keyPassword";//$NON-NLS-1$
 	private static final String SERVER_S_trustStoreName     = "pop3s.trustStoreName";//$NON-NLS-1$
 	private static final String SERVER_S_trustStorePassword = "pop3s.trustStorePassword";//$NON-NLS-1$
 	private static final String SERVER_S_trustStoreType     = "pop3s.trustStoreType";//$NON-NLS-1$
@@ -71,6 +72,10 @@ public class POP3Properties extends INotesProperties {
 		return getProperty(SERVER_S_keyStoreType, DEFAULT_S_STORETYPE);
 	}
 
+	public String getPOP3SKeyPassword() {
+		return getProperty(SERVER_S_keyPassword);
+	}
+	
 	public String getPOP3STrustStoreName() {
 		return getProperty(SERVER_S_trustStoreName);
 	}

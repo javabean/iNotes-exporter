@@ -57,7 +57,7 @@ public class POP3Server implements fr.cedrik.inotes.MainRunner.Main {
 		}
 		if (pop3Properties.getPOP3SServerPort() >= 0 && StringUtils.isNotBlank(pop3Properties.getPOP3SKeyStoreName())) {
 			SSLServerSocketFactory sslServerSocketFactory = SSLSockets.getSSLServerSocketFactory(
-					pop3Properties.getPOP3SKeyStoreName(), pop3Properties.getPOP3SKeyStorePassword(), pop3Properties.getPOP3SKeyStoreType(),
+					pop3Properties.getPOP3SKeyStoreName(), pop3Properties.getPOP3SKeyStorePassword(), pop3Properties.getPOP3SKeyStoreType(), pop3Properties.getPOP3SKeyPassword(),
 					pop3Properties.getPOP3STrustStoreName(), pop3Properties.getPOP3STrustStorePassword(), pop3Properties.getPOP3STrustStoreType());
 			SSLServerSocket serverSSLSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(pop3Properties.getPOP3SServerPort());//FIXME allow to bind to a specific interface
 			serverSSLSocket.setNeedClientAuth(StringUtils.isNotBlank(pop3Properties.getPOP3STrustStoreName()));

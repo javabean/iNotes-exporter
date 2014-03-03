@@ -107,7 +107,7 @@ This POP3 server has a user and IP lock out mechanism if there are too many fail
 POP3 communication is clear-text. For extra security, you can add an SSL/TLS transport to POP3.  
 You will need to generate and configure a certificate. For example:
 
-	$JAVA_HOME/bin/keytool -genkey -alias pop3s -keyalg RSA -keysize 2048 -validity 3650 -keystore /opt/iNotes-keystore -storepass b92kqmp -keypass b92kqmp -dname "cn=<your_FQN_server_name>, o=cedrik.fr, l=Paris, s=Ile-de-France, c=FR"
+	$JAVA_HOME/bin/keytool -genkey -alias pop3s -keyalg RSA -keysize 2048 -validity 3650 -keystore /opt/iNotes-keystore -storepass b92kqmp -keypass changeit -dname "cn=<your_FQN_server_name>, o=cedrik.fr, l=Paris, s=Ile-de-France, c=FR"
 
 which will then be configured in `iNotes.properties` as:
 
@@ -115,6 +115,7 @@ which will then be configured in `iNotes.properties` as:
 	pop3s.keyStoreName=/opt/iNotes-keystore
 	pop3s.keyStorePassword=b92kqmp
 	pop3s.keyStoreType=jks
+	pop3s.keyPassword=changeit
 
 As an alternative to configuring POP3S, you can also use [stunnel](http://www.stunnel.org/).
 
