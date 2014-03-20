@@ -6,8 +6,6 @@ package fr.cedrik.inotes.fs.maildir;
 import java.io.File;
 import java.io.IOException;
 
-import fr.cedrik.inotes.BaseINotesMessage;
-
 /**
  * EML == <a href="http://tools.ietf.org/html/rfc5322">RFC 5322</a> format == maildir / MH single email
  * (MSG is a binary format)
@@ -16,10 +14,6 @@ import fr.cedrik.inotes.BaseINotesMessage;
  */
 public class EML extends MH implements fr.cedrik.inotes.MainRunner.Main {
 	public static final String MIME_TYPE = "message/rfc822";//$NON-NLS-1$
-
-	public static final String EXTENSION_EML = ".eml";//$NON-NLS-1$
-
-	protected File baseMailDir;
 
 	public EML() throws IOException {
 		super();
@@ -45,18 +39,15 @@ public class EML extends MH implements fr.cedrik.inotes.MainRunner.Main {
 		System.out.println("Usage: "+EML.class.getSimpleName()+" <out_dir>");
 	}
 
-
 	@Override
-	protected String getMailFileName(BaseINotesMessage message) {
-		long id = message.getDate().getTime();
-		while (new File(mailDir, String.valueOf(id) + EXTENSION_EML).exists()) {
-			++id;
+	protected boolean prepareDestinationObjects(String baseName, String extension) {
+		String dirName = baseName;
+		try {
+			this.writer = new EMLWriter(new File(dirName));
+		} catch (IOException e) {
+			return false;
 		}
-		return String.valueOf(id) + EXTENSION_EML;
+		return true;
 	}
 
-	@Override
-	protected String newLine() {
-		return "\r\n";//$NON-NLS-1$
-	}
 }

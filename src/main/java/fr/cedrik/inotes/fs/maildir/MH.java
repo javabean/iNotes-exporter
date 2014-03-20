@@ -3,40 +3,19 @@
  */
 package fr.cedrik.inotes.fs.maildir;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.channels.FileLock;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-import org.springframework.mail.MailParseException;
 
 import com.sun.mail.imap.protocol.BASE64MailboxEncoder;
 
-import fr.cedrik.inotes.BaseINotesMessage;
 import fr.cedrik.inotes.Folder;
 import fr.cedrik.inotes.FoldersList;
-import fr.cedrik.inotes.INotesMessagesMetaData;
-import fr.cedrik.inotes.INotesProperties;
-import fr.cedrik.inotes.Session;
-import fr.cedrik.inotes.fs.BaseFsExport;
-import fr.cedrik.inotes.util.Charsets;
-import fr.cedrik.inotes.util.IteratorChain;
 
 /**
  * @author C&eacute;drik LIME
  */
-public class MH extends BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
-
-	protected File baseMailDir;
+public class MH extends MailDirPP implements fr.cedrik.inotes.MainRunner.Main {
 
 	public MH() throws IOException {
 		super();
@@ -63,133 +42,17 @@ public class MH extends BaseFsExport implements fr.cedrik.inotes.MainRunner.Main
 	}
 
 	@Override
-	protected void run(String[] args, String extension) throws IOException {
-		if (args.length != 1) {
-			help();
-			System.exit(-1);
-		}
-		if (! validateDestinationName(args[0], extension)) {
-			return;
-		}
-		assert mailDir != null;
-		baseMailDir = mailDir;
-		iNotes = new INotesProperties(INotesProperties.FILE);
-		iNotes.setNotesFolderId(Folder.INBOX);
-		session = new Session(iNotes);
-		// login
-		if (! session.login(iNotes.getUserName(), iNotes.getUserPassword())) {
-			logger.error("Can not login user {}!", iNotes.getUserName());
-			return;
-		}
-		try {
-			// export folders hierarchy
-			FoldersList folders = session.getFolders();
-			//FIXME check no 2 folders have the same .name hierarchy
-			for (Folder folder : folders) {
-				if (folder.name.startsWith(".")) {
-					throw new IllegalArgumentException("Folder can not start with a '.': " + folder);
-				}
-				if (folder.isAllMails()) {
-					continue;
-				}
-				if (! validateDestinationName(computeMaildirFolderName(folder, folders), extension)) {
-					continue;
-				}
-				export(folder, args);
-			}
-		} finally {
-			session.logout();
-		}
-	}
-
-	protected File mailDir;
-
-	@Override
-	protected boolean validateDestinationName(String baseName, String extension) {
+	protected boolean prepareDestinationObjects(String baseName, String extension) {
 		String dirName = baseName;
-		this.mailDir = new File(dirName);
-		if ((this.mailDir.exists() && ! this.mailDir.isDirectory()) || (! this.mailDir.exists() && ! this.mailDir.mkdirs())) {
-			logger.error("Not a directory, or can not create directory: " + mailDir);
+		try {
+			this.writer = new MHWriter(new File(dirName));
+		} catch (IOException e) {
 			return false;
 		}
 		return true;
 	}
 
 	@Override
-	protected boolean shouldLoadOldestMessageToFetchFromPreferences() {
-		return mailDir.exists() && mailDir.list().length != 0;
-	}
-
-	@Override
-	protected final Date export(INotesMessagesMetaData<? extends BaseINotesMessage> messages, boolean deleteExportedMessages) throws IOException {
-		Date lastExportedMessageDate = null;
-		// write messages
-		List<BaseINotesMessage> writtenMessages = new ArrayList<BaseINotesMessage>();
-		for (BaseINotesMessage message : messages.entries) {
-			IteratorChain<String> mime;
-			try {
-				mime = session.getMessageMIME(message);
-			} catch (MailParseException mpe) {
-				mime = null;
-			}
-			if (mime == null || ! mime.hasNext()) {
-				logger.error("Empty MIME message! ({})", message);
-				IOUtils.closeQuietly(mime);
-				break;
-			}
-			logger.debug("Writing message {}", message);
-			// open out file
-			File outFile = new File(mailDir, getMailFileName(message));
-			OutputStream outStream = new FileOutputStream(outFile);
-			FileLock outFileLock = ((FileOutputStream)outStream).getChannel().tryLock();
-			if (outFileLock == null) {
-				logger.error("Can not acquire a lock on file " + outFile + ". Aborting.");
-				IOUtils.closeQuietly(outStream);
-				IOUtils.closeQuietly(mime);
-				break;
-			}
-			// TODO Does MH support compressed email files?
-//			if (iNotes.isCompressExports()) {
-//				outStream = new GZIPOutputStream(outStream, 8*1024);
-//			}
-			Writer mbox = new BufferedWriter(new OutputStreamWriter(outStream, Charsets.US_ASCII), 32*1024);
-			try {
-				writeMIME(mbox, message, mime);
-				writtenMessages.add(message);
-			} finally {
-				IOUtils.closeQuietly(mime);
-				mbox.flush();
-				outFileLock.release();
-				IOUtils.closeQuietly(mbox);
-			}
-			// the modification time of the file is the delivery date of the message.
-			outFile.setLastModified(message.getDate().getTime());
-			if (message.getDate().getTime() > 0) {
-				lastExportedMessageDate = message.getDate();
-			}
-		}
-		if (deleteExportedMessages) {
-			session.deleteMessage(writtenMessages);
-		}
-		return lastExportedMessageDate;
-	}
-
-	protected String getMailFileName(BaseINotesMessage message) {
-		long id = message.getDate().getTime();
-		while (new File(mailDir, String.valueOf(id)).exists()) {
-			++id;
-		}
-		return String.valueOf(id);
-	}
-
-	@Override
-	protected void writeMIME(Writer mbox, BaseINotesMessage message, Iterator<String> mime) throws IOException {
-		while (mime.hasNext()) {
-			String line = mime.next();
-			mbox.append(line).append(newLine());
-		}
-	}
-
 	protected String computeMaildirFolderName(Folder folder, FoldersList folders) {
 		if (folder.isInbox()) {
 			return baseMailDir.getPath();
@@ -209,6 +72,7 @@ public class MH extends BaseFsExport implements fr.cedrik.inotes.MainRunner.Main
 	/**
 	 * @see RFC2060 5.1.3.  Mailbox International Naming Convention  + special treatment for '/'
 	 */
+	@Override
 	protected String encodeFolderName(String folderName) {
 		return BASE64MailboxEncoder.encode(folderName).replace("/", "&AC8-");
 	}

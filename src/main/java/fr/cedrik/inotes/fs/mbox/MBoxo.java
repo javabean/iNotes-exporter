@@ -4,10 +4,6 @@
 package fr.cedrik.inotes.fs.mbox;
 
 import java.io.IOException;
-import java.io.Writer;
-import java.util.Iterator;
-
-import fr.cedrik.inotes.BaseINotesMessage;
 
 /**
  * @author C&eacute;drik LIME
@@ -37,16 +33,8 @@ public class MBoxo extends BaseMBox {
 	}
 
 	@Override
-	protected void writeMIME(Writer mbox, BaseINotesMessage message, Iterator<String> mime) throws IOException {
-		writeFromLine(mbox, message);
-		while (mime.hasNext()) {
-			String line = mime.next();
-			if (line.startsWith("From ")) {
-				logger.trace("Escaping {}", line);
-				mbox.write('>');
-			}
-			mbox.append(line).append(newLine());
-		}
-		mbox.write(newLine());
+	protected boolean prepareDestinationObjects(String baseName, String extension) {
+		this.writer = new MBoxoWriter(baseName, extension);
+		return super.prepareDestinationObjects(baseName, extension);
 	}
 }

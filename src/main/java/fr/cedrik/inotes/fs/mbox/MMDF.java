@@ -4,10 +4,6 @@
 package fr.cedrik.inotes.fs.mbox;
 
 import java.io.IOException;
-import java.io.Writer;
-import java.util.Iterator;
-
-import fr.cedrik.inotes.BaseINotesMessage;
 
 /**
  * MMDF - Multi-channel Memorandum Distribution Facility mailbox format
@@ -16,8 +12,6 @@ import fr.cedrik.inotes.BaseINotesMessage;
  */
 public class MMDF extends BaseMBox {
 	public static final String EXTENSION_MMDF = ".mmdf";//$NON-NLS-1$
-
-	private static final String SEPARATOR_MARK = "\0x1\0x1\0x1\0x1";//$NON-NLS-1$ // four characters "^A^A^A^A" (Control-A; ASCII 1)
 
 	public MMDF() throws IOException {
 		super();
@@ -39,12 +33,9 @@ public class MMDF extends BaseMBox {
 	}
 
 	@Override
-	protected void writeMIME(Writer mbox, BaseINotesMessage message, Iterator<String> mime) throws IOException {
-		mbox.append(SEPARATOR_MARK).append(newLine());
-		while (mime.hasNext()) {
-			String line = mime.next();
-			mbox.append(line).append(newLine());
-		}
-		mbox.append(SEPARATOR_MARK).append(newLine());
+	protected boolean prepareDestinationObjects(String baseName, String extension) {
+		this.writer = new MMDFWriter(baseName, extension);
+		return super.prepareDestinationObjects(baseName, extension);
 	}
+
 }

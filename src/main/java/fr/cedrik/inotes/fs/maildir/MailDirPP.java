@@ -45,16 +45,21 @@ public class MailDirPP extends BaseMailDir {
 	}
 
 	@Override
+	protected boolean prepareDestinationObjects(String baseName, String extension) {
+		return super.prepareDestinationObjects(baseName, extension);
+	}
+
+	@Override
 	protected void run(String[] args, String extension) throws IOException {
 		if (args.length != 1) {
 			help();
 			System.exit(-1);
 		}
-		if (! validateDestinationName(args[0], extension)) {
+		if (! prepareDestinationObjects(args[0], extension)) {
 			return;
 		}
-		assert mailDir != null;
-		baseMailDir = mailDir;
+		baseMailDir = new File(args[0]);
+		assert writer != null;
 		iNotes = new INotesProperties(INotesProperties.FILE);
 		iNotes.setNotesFolderId(Folder.INBOX);
 		session = new Session(iNotes);
@@ -74,7 +79,7 @@ public class MailDirPP extends BaseMailDir {
 				if (folder.isAllMails()) {
 					continue;
 				}
-				if (! validateDestinationName(computeMaildirFolderName(folder, folders), extension)) {
+				if (! prepareDestinationObjects(computeMaildirFolderName(folder, folders), extension)) {
 					continue;
 				}
 				export(folder, args);

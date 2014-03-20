@@ -4,16 +4,18 @@
 package fr.cedrik.inotes.fs;
 
 import java.io.IOException;
-import java.io.Writer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
+import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.mail.MailParseException;
 
 import fr.cedrik.inotes.BaseINotesMessage;
 import fr.cedrik.inotes.Folder;
@@ -22,6 +24,7 @@ import fr.cedrik.inotes.INotesMessagesMetaData;
 import fr.cedrik.inotes.INotesProperties;
 import fr.cedrik.inotes.Session;
 import fr.cedrik.inotes.util.DateUtils;
+import fr.cedrik.inotes.util.IteratorChain;
 
 /**
  * @author C&eacute;drik LIME
@@ -35,6 +38,7 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 	protected INotesProperties iNotes;
 	protected Session session;
 	protected Date oldestMessageToFetch, newestMessageToFetch;
+	protected BaseFileWriter writer;
 
 	public BaseFsExport() throws IOException {
 	}
@@ -44,7 +48,7 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 			help();
 			System.exit(-1);
 		}
-		if (! validateDestinationName(args[0], extension)) {
+		if (! prepareDestinationObjects(args[0], extension)) {
 			return;
 		}
 		iNotes = new INotesProperties(INotesProperties.FILE);
@@ -129,7 +133,8 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 			checkQuota(messages);
 		}
 		if (! messages.entries.isEmpty()) {
-			Date lastExportedMessageDate = this.export(messages, deleteExportedMessages);
+			final boolean append = writer.exists() && (oldestMessageToFetch != null);
+			Date lastExportedMessageDate = this.export(messages, append, deleteExportedMessages);
 			if (lastExportedMessageDate != null && lastExportedMessageDate.getTime() > 0) {
 				if (oldestMessageToFetch != null) {
 					assert lastExportedMessageDate.equals(oldestMessageToFetch) || lastExportedMessageDate.after(oldestMessageToFetch);
@@ -148,19 +153,55 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 	/**
 	 * @return last exported message date (can be {@code null})
 	 */
-	protected abstract Date export(INotesMessagesMetaData<? extends BaseINotesMessage> messages, boolean deleteExportedMessages) throws IOException;
+	protected final Date export(INotesMessagesMetaData<? extends BaseINotesMessage> messages, boolean append, boolean deleteExportedMessages) throws IOException {
+		Date lastExportedMessageDate = null;
+		try {
+			writer.openFolder(append);
+			// write messages
+			List<BaseINotesMessage> writtenMessages = new ArrayList<BaseINotesMessage>();
+			for (BaseINotesMessage message : messages.entries) {
+				IteratorChain<String> mime;
+				try {
+					mime = session.getMessageMIME(message);
+				} catch (MailParseException mpe) {
+					mime = null;
+				}
+				if (mime == null || ! mime.hasNext()) {
+					logger.error("Empty MIME message! ({})", message);
+					IOUtils.closeQuietly(mime);
+					break;
+				}
+				try {
+					writer.openFile(message, append);
+					writer.write(message, mime);
+					writtenMessages.add(message);
+				} finally {
+					IOUtils.closeQuietly(mime);
+					writer.closeFile(message);
+				}
+				if (message.getDate().getTime() > 0) {
+					lastExportedMessageDate = message.getDate();
+				}
+			}
+			writer.flush();
+			if (deleteExportedMessages) {
+				session.deleteMessage(writtenMessages);
+			}
+		} finally {
+			writer.closeFolder();
+		}
+		return lastExportedMessageDate;
+	}
 
 	/**
 	 * Create Java objects and store them in fields. Does not physically create files.
 	 */
-	protected abstract boolean validateDestinationName(String baseName, String extension);
+	protected abstract boolean prepareDestinationObjects(String baseName, String extension);
 
 	/**
 	 * Usually, check if outFile exists
 	 */
 	protected abstract boolean shouldLoadOldestMessageToFetchFromPreferences();
-
-	protected abstract void writeMIME(Writer mbox, BaseINotesMessage message, Iterator<String> mime) throws IOException;
 
 	protected void checkQuota(INotesMessagesMetaData<?> messages) {
 		if (messages.ignorequota == 0 && messages.sizelimit > 0) {
@@ -206,16 +247,4 @@ public abstract class BaseFsExport implements fr.cedrik.inotes.MainRunner.Main {
 		}
 	}
 
-	/**
-	 * @return RFC-compliant new-line char
-	 */
-	protected String newLine() {
-		return "\n";
-	}
-	/**
-	 * @return RFC-compliant new-line char
-	 */
-	protected Writer newLine(Writer out) throws IOException {
-		return out.append(newLine());
-	}
 }

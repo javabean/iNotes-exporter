@@ -103,18 +103,24 @@
 			<scope>compile</scope>
 		</dependency>
 		<!-- Provided dependencies -->
+		<dependency><!-- not needed on Java 6, but transitive deps loads it anyway... -->
+			<groupId>javax.activation</groupId>
+			<artifactId>activation</artifactId>
+			<version>1.1.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency><!-- included in Java SE 6; avoid adding as dependency -->
+			<groupId>javax.annotation</groupId>
+			<artifactId>jsr250-api</artifactId>
+			<version>1.0</version>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
 			<version>1.1.2</version>
 			<scope>provided</scope><!-- prevents any version of commons-logging to be bundled with the final artifact -->
 			<optional>true</optional>
-		</dependency>
-		<dependency><!-- not needed on Java 6, but transitive deps loads it anyway... -->
-			<groupId>javax.activation</groupId>
-			<artifactId>activation</artifactId>
-			<version>1.1.1</version>
-			<scope>provided</scope>
 		</dependency>
 		<!-- Run-time dependencies -->
 		<dependency>
