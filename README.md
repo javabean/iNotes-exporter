@@ -3,7 +3,7 @@ iNotes-exporter
 
 This project reads a Lotus Domino iNotes 8.5 webmail and exports the data as POP3(S), mbox and/or maildir.  
 SEO keywords: IBM Lotus Notes Domino iNotes POP3 mbox maildir export  
-This is a command-line application. For a web front-end, see [iNotes-exporter-web](https://github.com/javabean/iNotes-exporter-web).
+This is a command-line application. For a web front-end, see [iNotes-exporter-web](https://github.com/javabean/iNotes-exporter-web). For exporting local email .nsf files, see [NSF-exporter](https://github.com/javabean/NSF-exporter).
 
 Requirements
 ------------
