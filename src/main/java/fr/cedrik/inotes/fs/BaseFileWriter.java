@@ -87,8 +87,11 @@ public abstract class BaseFileWriter {
 		}
 		if (outFileLock != null) {
 			outFileLock.release();
+			outFileLock = null;
 		}
 		IOUtils.closeQuietly(outWriter);
+		outWriter = null;
+		// Do not set outFile to null, as it may be used by sub-classes!
 	}
 
 	protected abstract void writeMIME(Writer mbox, BaseINotesMessage message, Iterator<String> mime) throws IOException;//FIXME replace BaseINotesMessage with "extraHeaders"?
