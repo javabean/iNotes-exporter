@@ -23,7 +23,7 @@ import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.support.HttpAccessor;
 
-import fr.cedrik.inotes.util.Charsets;
+import fr.cedrik.util.Charsets;
 
 
 /**

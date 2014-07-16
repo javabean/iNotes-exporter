@@ -5,7 +5,7 @@ package fr.cedrik.inotes;
 
 import java.util.Date;
 
-import fr.cedrik.inotes.util.DateUtils;
+import fr.cedrik.util.DateUtils;
 
 /**
  * @author C&eacute;drik LIME
@@ -30,7 +30,7 @@ public class MeetingNoticeMetaData extends BaseINotesMessage {
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + '[' + "unid:" + this.unid
+		return this.getClass().getSimpleName() + '[' + "unid:" + this.getId()
 				+ ", meetingDate:" + (this.meetingDate != null ? DateUtils.ISO8601_DATE_TIME_FORMAT.format(this.meetingDate) : String.valueOf(this.meetingDate))
 				+ ", from:" + this.from
 				+ ", subject:" + this.subject + ']';

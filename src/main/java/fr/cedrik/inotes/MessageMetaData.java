@@ -5,7 +5,7 @@ package fr.cedrik.inotes;
 
 import java.util.Date;
 
-import fr.cedrik.inotes.util.DateUtils;
+import fr.cedrik.util.DateUtils;
 
 /**
  * @author C&eacute;drik LIME
@@ -41,7 +41,7 @@ public class MessageMetaData extends BaseINotesMessage {
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + '[' + "unid:" + this.unid
+		return this.getClass().getSimpleName() + '[' + "unid:" + this.getId()
 				+ ", date:" + (this.date != null ? DateUtils.ISO8601_DATE_TIME_FORMAT.format(this.date) : String.valueOf(this.date))
 				+ ", size:" + this.size
 				+ ", unread:" + this.unread + ']';

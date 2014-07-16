@@ -16,7 +16,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.cedrik.inotes.util.IteratorChain;
+import fr.cedrik.email.MessagesMetaData;
+import fr.cedrik.email.spi.Message;
+import fr.cedrik.util.IteratorChain;
 
 /**
  * @author C&eacute;drik LIME
@@ -51,7 +53,7 @@ public class SessionTest {
 	public void testSessionWorkflow() throws IOException {
 		if (session.login(iNotes.getUserName(), iNotes.getUserPassword())) {
 			try {
-				INotesMessagesMetaData<MessageMetaData> messages = session.getMessagesMetaData();
+				MessagesMetaData<MessageMetaData> messages = session.getMessagesMetaData();
 				assertNotNull("messages", messages);
 				assertNotNull("messages.entries", messages.entries);
 				if (! messages.entries.isEmpty()) {
@@ -76,7 +78,7 @@ public class SessionTest {
 //					Calendar ics = session.getMeetingNoticeICS(notice);
 //					assertNotNull("ICS Meeting Notice", ics);
 //				}
-				INotesMessagesMetaData<? extends BaseINotesMessage> allMessages = session.getMessagesAndMeetingNoticesMetaData();
+				MessagesMetaData<? extends Message> allMessages = session.getMessagesAndMeetingNoticesMetaData();
 				assertNotNull("allMessages", allMessages);
 				assertNotNull("allMessages.entries", allMessages.entries);
 			} finally {

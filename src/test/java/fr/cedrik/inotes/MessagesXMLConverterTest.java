@@ -17,6 +17,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import fr.cedrik.email.MessagesMetaData;
+
 /**
  * @author C&eacute;drik LIME
  */
@@ -47,7 +49,7 @@ public class MessagesXMLConverterTest {
 	@Test
 	public void testConvertXML() throws IOException, XMLStreamException {
 		InputStream is = getClass().getResourceAsStream("/messages.xml");
-		INotesMessagesMetaData<MessageMetaData> messages = xmlConverter.convertXML(is, null);
+		MessagesMetaData<MessageMetaData> messages = xmlConverter.convertXML(is, null);
 		is.close();
 		assertNotNull("convertXML", messages);
 		for (MessageMetaData message : messages.entries) {

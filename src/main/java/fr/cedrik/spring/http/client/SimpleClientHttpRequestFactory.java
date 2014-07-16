@@ -23,6 +23,7 @@ public class SimpleClientHttpRequestFactory extends org.springframework.http.cli
 	private boolean allowUserInteraction = URLConnection.getDefaultAllowUserInteraction();
 	private boolean useCaches = getDefaultUseCaches();
 	private long ifModifiedSince = 0;
+	private boolean instanceFollowRedirects = HttpURLConnection.getFollowRedirects();
 
 	private static boolean getDefaultUseCaches() {
 		try {
@@ -52,6 +53,7 @@ public class SimpleClientHttpRequestFactory extends org.springframework.http.cli
 		super.prepareConnection(connection, httpMethod);
 		connection.setUseCaches(useCaches);
 		connection.setIfModifiedSince(ifModifiedSince);
+		connection.setInstanceFollowRedirects(instanceFollowRedirects);
 //		connection.addRequestProperty("Authorization", BASIC_AUTH + Base64.encode("user name" + ':' + "pass phrase"));
 		if (connection.getRequestProperty(ACCEPT_ENCODING) == null) {
 			connection.setRequestProperty(ACCEPT_ENCODING, "deflate, gzip");//$NON-NLS-1$
@@ -82,4 +84,11 @@ public class SimpleClientHttpRequestFactory extends org.springframework.http.cli
 		this.ifModifiedSince = ifModifiedSince;
 	}
 
+	/**
+	 * @param instanceFollowRedirects a {@code boolean} indicating whether or not to follow HTTP redirects.
+	 * @see java.net.HttpURLConnection#setInstanceFollowRedirects(boolean)
+	 */
+	public void setInstanceFollowRedirects(boolean instanceFollowRedirects) {
+		this.instanceFollowRedirects = instanceFollowRedirects;
+	}
 }

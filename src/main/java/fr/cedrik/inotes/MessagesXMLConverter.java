@@ -23,7 +23,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import fr.cedrik.inotes.util.DateUtils;
+import fr.cedrik.email.MessagesMetaData;
+import fr.cedrik.util.DateUtils;
 
 /**
  * @author C&eacute;drik LIME
@@ -61,10 +62,10 @@ class MessagesXMLConverter {
 		return reader;
 	}
 
-	public INotesMessagesMetaData<MessageMetaData> convertXML(InputStream input, Charset charset) throws IOException, XMLStreamException {
+	public MessagesMetaData<MessageMetaData> convertXML(InputStream input, Charset charset) throws IOException, XMLStreamException {
 		XMLEventReader reader = getXMLEventReader(input, charset);
 
-		INotesMessagesMetaData<MessageMetaData> messages = new INotesMessagesMetaData<MessageMetaData>();
+		MessagesMetaData<MessageMetaData> messages = new MessagesMetaData<MessageMetaData>();
 		while (reader.hasNext()) {
 			XMLEvent next = reader.nextEvent();
 			if (next.isStartElement()) {
@@ -74,7 +75,7 @@ class MessagesXMLConverter {
 					try {
 						MessageMetaData message = new MessageMetaData();
 						loadViewEntry(message, start, reader);
-						if (StringUtils.isBlank(message.unid)) {
+						if (StringUtils.isBlank(message.getId())) {
 							logger.error("Error while parsing XML viewentry: empty unid!");
 							return null;
 						}
@@ -96,7 +97,7 @@ class MessagesXMLConverter {
 		return messages;
 	}
 
-	protected void loadDbQuotaSize(INotesMessagesMetaData<?> messages, XMLEventReader reader) throws XMLStreamException {
+	protected void loadDbQuotaSize(MessagesMetaData<?> messages, XMLEventReader reader) throws XMLStreamException {
 		while (reader.hasNext()) {
 			XMLEvent next = reader.nextEvent();
 			if (next.isStartElement()) {
@@ -123,7 +124,7 @@ class MessagesXMLConverter {
 		}
 	}
 
-	protected void loadUnreadInfo(INotesMessagesMetaData<?> messages, XMLEventReader reader) throws XMLStreamException {
+	protected void loadUnreadInfo(MessagesMetaData<?> messages, XMLEventReader reader) throws XMLStreamException {
 		while (reader.hasNext()) {
 			XMLEvent next = reader.nextEvent();
 			if (next.isStartElement()) {

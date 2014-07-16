@@ -6,7 +6,7 @@ package fr.cedrik.inotes;
 /**
  * @author C&eacute;drik LIME
  */
-public class Folder {
+public class Folder implements fr.cedrik.email.spi.Folder {
 	// Special folders ids
 	public static final String INBOX          = "($Inbox)";//$NON-NLS-1$
 	public static final String DRAFTS         = "($Drafts)";//$NON-NLS-1$
@@ -26,10 +26,21 @@ public class Folder {
 	public Folder() {
 	}
 
+	@Override
+	public String getId() {
+		return id;
+	}
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
 	public boolean isInbox() {
 		return INBOX.equals(id);
 	}
 
+	@Override
 	public boolean isAllMails() {
 		return ALL.equals(id);
 	}

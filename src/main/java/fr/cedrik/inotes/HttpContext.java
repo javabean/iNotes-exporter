@@ -65,6 +65,7 @@ public class HttpContext {
 			httpRequestFactory.setProxy(proxy);
 			httpRequestFactory.setAllowUserInteraction(false);
 			httpRequestFactory.setUseCaches(false);
+			httpRequestFactory.setInstanceFollowRedirects(false);
 			httpRequestFactory.setConnectTimeout(10000);
 			httpRequestFactory.setReadTimeout(30000);
 			http.setRequestFactory(httpRequestFactory);
@@ -90,15 +91,15 @@ public class HttpContext {
 		iNotes.setUserPassword(password);
 	}
 
-	public String getNotesFolderId() {
-		return iNotes.getNotesFolderId();
+	public String getCurrentFolderId() {
+		return iNotes.getCurrentFolderId();
 	}
-	public void setNotesFolderId(String notesFolderID) {
-		iNotes.setNotesFolderId(notesFolderID);
+	public void setCurrentFolderId(String notesFolderID) {
+		iNotes.setCurrentFolderId(notesFolderID);
 	}
 
-	public List<String> getNotesExcludedFoldersIds() {
-		return iNotes.getNotesExcludedFoldersIds();
+	public List<String> getExcludedFoldersIds() {
+		return iNotes.getExcludedFoldersIds();
 	}
 
 	public String getProxyBaseURL() {
@@ -110,7 +111,7 @@ public class HttpContext {
 	}
 
 	public String getFolderBaseURL() {
-		return folderBaseURL + getNotesFolderId() + '/';
+		return folderBaseURL + getCurrentFolderId() + '/';
 	}
 
 	public void setFolderBaseURL(String baseURL) {

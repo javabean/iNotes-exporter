@@ -12,11 +12,12 @@ Improvements
 * Log4J configuration to send errors by email
 	-> remove LOGGER POP3 command as it is SLF4J-specific (or re-work to use reflexion)
 * POP3: DELE, LIST, RETR, TOP, UIDL: rfc says argument may NOT refer to a message marked as deleted
+	this is not enforced in code
 
 New features
 ============
 
-* find a way to retrieve encrypted messages (beware this requires a non-expired password!)
+* [Lotus Notes] find a way to retrieve encrypted messages (beware this requires a non-expired password!)
 * POP3: use current client/user in NDC/MDC into logs
 * POP3: allow to bind to a specific interface
 * POP3: limit the number of simultaneous connections
@@ -44,5 +45,5 @@ Won't do
 Not doable
 ==========
 
-* calendar/meeting invites (ics in pop3/mbox/...): no UID information available
-* IMAP4rev1 (rfc 3501): mismatch between some imap core commands and available webmail operations
+* [Lotus Notes] calendar/meeting invites (ics in pop3/mbox/...): no UID information available
+* [Lotus Notes] IMAP4rev1 (rfc 3501): mismatch between some imap core commands and available webmail operations

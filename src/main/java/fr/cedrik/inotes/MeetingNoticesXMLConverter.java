@@ -23,7 +23,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import fr.cedrik.inotes.util.DateUtils;
+import fr.cedrik.email.MessagesMetaData;
+import fr.cedrik.util.DateUtils;
 
 /**
  * @author C&eacute;drik LIME
@@ -61,10 +62,10 @@ class MeetingNoticesXMLConverter {
 		return reader;
 	}
 
-	public INotesMessagesMetaData<MeetingNoticeMetaData> convertXML(InputStream input, Charset charset) throws IOException, XMLStreamException {
+	public MessagesMetaData<MeetingNoticeMetaData> convertXML(InputStream input, Charset charset) throws IOException, XMLStreamException {
 		XMLEventReader reader = getXMLEventReader(input, charset);
 
-		INotesMessagesMetaData<MeetingNoticeMetaData> notices = new INotesMessagesMetaData<MeetingNoticeMetaData>();
+		MessagesMetaData<MeetingNoticeMetaData> notices = new MessagesMetaData<MeetingNoticeMetaData>();
 		while (reader.hasNext()) {
 			XMLEvent next = reader.nextEvent();
 			if (next.isStartElement()) {
@@ -74,7 +75,7 @@ class MeetingNoticesXMLConverter {
 					try {
 						MeetingNoticeMetaData notice = new MeetingNoticeMetaData();
 						loadViewEntry(notice, start, reader);
-						if (StringUtils.isBlank(notice.unid)) {
+						if (StringUtils.isBlank(notice.getId())) {
 							logger.error("Error while parsing XML viewentry: empty unid!");
 							return null;
 						}
@@ -94,7 +95,7 @@ class MeetingNoticesXMLConverter {
 		return notices;
 	}
 
-	protected void loadDbQuotaSize(INotesMessagesMetaData<?> notices, XMLEventReader reader) throws XMLStreamException {
+	protected void loadDbQuotaSize(MessagesMetaData<?> notices, XMLEventReader reader) throws XMLStreamException {
 		while (reader.hasNext()) {
 			XMLEvent next = reader.nextEvent();
 			if (next.isStartElement()) {

@@ -242,7 +242,7 @@
 						<addMavenDescriptor>false</addMavenDescriptor>
 						<!--manifestFile>META-INF/MANIFEST.MF</manifestFile-->
 						<manifest>
-							<mainClass>fr.cedrik.inotes.MainRunner</mainClass>
+							<mainClass>fr.cedrik.email.MainRunner</mainClass>
 							<!--packageName>com.mycompany.app</packageName-->
 							<addClasspath>false</addClasspath>
 							<!--addExtensions/-->
@@ -268,7 +268,7 @@
 						<addMavenDescriptor>false</addMavenDescriptor>
 						<!--manifestFile>META-INF/MANIFEST.MF</manifestFile-->
 						<manifest>
-							<mainClass>fr.cedrik.inotes.MainRunner</mainClass>
+							<mainClass>fr.cedrik.email.MainRunner</mainClass>
 							<!--packageName>com.mycompany.app</packageName-->
 							<addClasspath>false</addClasspath>
 							<!--addExtensions/-->

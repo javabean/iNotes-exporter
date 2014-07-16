@@ -10,6 +10,7 @@ import java.net.HttpCookie;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -38,12 +39,15 @@ import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.mail.MailParseException;
 
-import fr.cedrik.inotes.util.IteratorChain;
+import fr.cedrik.email.FoldersList;
+import fr.cedrik.email.MessagesMetaData;
+import fr.cedrik.email.spi.Message;
+import fr.cedrik.util.IteratorChain;
 
 /**
  * @author C&eacute;drik LIME
  */
-public class Session {
+public class Session implements fr.cedrik.email.spi.Session {
 	private static final int META_DATA_LOAD_BATCH_SIZE = 500;
 
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -54,8 +58,8 @@ public class Session {
 	protected final Set<String> mailsToMarkUnreadAll = new HashSet<String>();
 	protected final Set<String> mailsToMarkReadAll = new HashSet<String>();
 	protected final Set<String> noticesToDelete = new HashSet<String>();
-	protected INotesMessagesMetaData<MessageMetaData> allMessagesCache = null;
-	protected INotesMessagesMetaData<MeetingNoticeMetaData> allNoticesCache = null;
+	protected MessagesMetaData<MessageMetaData> allMessagesCache = null;
+	protected MessagesMetaData<MeetingNoticeMetaData> allNoticesCache = null;
 	protected boolean isLoggedIn = false;
 	protected FoldersList folders = new FoldersList();
 
@@ -79,6 +83,12 @@ public class Session {
 		}
 	}
 
+	@Override
+	public String getServerAddress() {
+		return context.iNotes.getServerAddress();
+	}
+
+	@Override
 	public void setServerAddress(URL url) {
 		if (isLoggedIn) {
 			throw new IllegalStateException();
@@ -86,6 +96,7 @@ public class Session {
 		context.iNotes.setServerAddress(url);
 	}
 
+	@Override
 	public FoldersList getFolders() {
 		if (! isLoggedIn) {
 			throw new IllegalStateException();
@@ -93,15 +104,17 @@ public class Session {
 		return folders;
 	}
 
-	public void setCurrentFolder(Folder folder) throws IOException {
+	@Override
+	public void setCurrentFolder(fr.cedrik.email.spi.Folder folder) throws IOException {
 		if (isLoggedIn) {
 			cleanup();
 		}
-		context.setNotesFolderId(folder.id);
+		context.setCurrentFolderId(folder.getId());
 		allMessagesCache = null;
 		allNoticesCache = null;
 	}
 
+	@Override
 	public boolean login(String userName, String password) throws IOException {
 		context.setUserName(userName);
 		context.setUserPassword(password);
@@ -330,7 +343,7 @@ public class Session {
 				Pattern jsArray = Pattern.compile("new Array\\(\"([.0-9]*?)\",(\\d+),'(.*?)','.*?','(.*?)',\".*?\"\\)", Pattern.CASE_INSENSITIVE);
 				Matcher jsArrayMatcher = jsArray.matcher(responseBody);
 				assert jsArrayMatcher.groupCount() == 4 ; jsArrayMatcher.groupCount();
-				List<String> excludedFoldersIds = context.getNotesExcludedFoldersIds();
+				List<String> excludedFoldersIds = context.getExcludedFoldersIds();
 				while (jsArrayMatcher.find()) {
 					String levelTree   = jsArrayMatcher.group(1);
 					int levelNumber    = Integer.parseInt(jsArrayMatcher.group(2));
@@ -396,23 +409,27 @@ public class Session {
 		}
 	}
 
-	public INotesMessagesMetaData<MessageMetaData> getMessagesMetaData() throws IOException {
+	@Override
+	public MessagesMetaData<MessageMetaData> getMessagesMetaData() throws IOException {
 		if (allMessagesCache != null) {
 			return allMessagesCache;
 		}
 		allMessagesCache = getMessagesMetaData(null, null, Integer.MAX_VALUE);
 		return allMessagesCache;
 	}
-	public INotesMessagesMetaData<MessageMetaData> getMessagesMetaData(int count) throws IOException {
+	@Override
+	public MessagesMetaData<MessageMetaData> getMessagesMetaData(int count) throws IOException {
 		return getMessagesMetaData(null, null, count);
 	}
-	public INotesMessagesMetaData<MessageMetaData> getMessagesMetaData(Date oldestMessageToFetch) throws IOException {
+	@Override
+	public MessagesMetaData<MessageMetaData> getMessagesMetaData(Date oldestMessageToFetch) throws IOException {
 		return getMessagesMetaData(oldestMessageToFetch, null, Integer.MAX_VALUE);
 	}
-	public INotesMessagesMetaData<MessageMetaData> getMessagesMetaData(Date oldestMessageToFetch, Date newestMessageToFetch) throws IOException {
+	@Override
+	public MessagesMetaData<MessageMetaData> getMessagesMetaData(Date oldestMessageToFetch, Date newestMessageToFetch) throws IOException {
 		return getMessagesMetaData(oldestMessageToFetch, newestMessageToFetch, Integer.MAX_VALUE);
 	}
-	protected INotesMessagesMetaData<MessageMetaData> getMessagesMetaData(Date oldestMessageToFetch, Date newestMessageToFetch, int count) throws IOException {
+	protected MessagesMetaData<MessageMetaData> getMessagesMetaData(Date oldestMessageToFetch, Date newestMessageToFetch, int count) throws IOException {
 		checkLoggedIn();
 		if (oldestMessageToFetch == null) {
 			oldestMessageToFetch = new Date(0);
@@ -422,7 +439,7 @@ public class Session {
 		}
 		// iNotes limits the number of results to 1000. Need to paginate.
 		int start = 1, currentCount = 0;
-		INotesMessagesMetaData<MessageMetaData> messages = null, partialMessages;
+		MessagesMetaData<MessageMetaData> messages = null, partialMessages;
 		boolean stopLoading = false;
 		do {
 			partialMessages = getMessagesMetaDataNoSort(start, Math.min(count - currentCount, META_DATA_LOAD_BATCH_SIZE));
@@ -462,7 +479,7 @@ public class Session {
 	/**
 	 * @return set of messages meta-data, in iNotes order (most recent first)
 	 */
-	protected INotesMessagesMetaData<MessageMetaData> getMessagesMetaDataNoSort(int start, int count) throws IOException {
+	protected MessagesMetaData<MessageMetaData> getMessagesMetaDataNoSort(int start, int count) throws IOException {
 		checkLoggedIn();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
@@ -472,7 +489,7 @@ public class Session {
 		params.put("Start", Integer.toString(start));
 		params.put("Count", Integer.toString(count));
 		params.put("resortdescending", "5");
-		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getProxyBaseURL()+"&PresetFields=DBQuotaInfo;1,FolderName;"+context.getNotesFolderId()+",UnreadCountInfo;1,s_UsingHttps;1,hc;$98,noPI;1"), HttpMethod.GET, params);
+		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getProxyBaseURL()+"&PresetFields=DBQuotaInfo;1,FolderName;"+context.getCurrentFolderId()+",UnreadCountInfo;1,s_UsingHttps;1,hc;$98,noPI;1"), HttpMethod.GET, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
 //		traceBody(httpResponse);// DEBUG
@@ -481,7 +498,7 @@ public class Session {
 			httpResponse.close();
 			return null;
 		}
-		INotesMessagesMetaData<MessageMetaData> messages;
+		MessagesMetaData<MessageMetaData> messages;
 		try {
 			messages = new MessagesXMLConverter().convertXML(httpResponse.getBody(), context.getCharset(httpResponse));
 		} catch (XMLStreamException e) {
@@ -505,7 +522,7 @@ public class Session {
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
 		params.put("Form", "l_MailMessageHeader");
-		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getFolderBaseURL()+message.unid+"/?OpenDocument"), HttpMethod.GET, params);
+		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getFolderBaseURL()+message.getId()+"/?OpenDocument"), HttpMethod.GET, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
 		if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
@@ -517,7 +534,7 @@ public class Session {
 		//httpResponse.close();// done in HttpLineIterator#close()
 		if (message.unread) {
 			// exporting (read MIME) marks mail as read. Need to get the read/unread information and set it back!
-			mailsToMarkUnread.add(message.unid);
+			mailsToMarkUnread.add(message.getId());
 		}
 		return new IteratorChain<String>(getINotesData(message).iterator(), responseLines);
 	}
@@ -536,7 +553,7 @@ public class Session {
 		params.put("charset", CharEncoding.UTF_8);
 		params.put("Form", "l_MailMessageHeader");
 //		params.put("PresetFields", "FullMessage;1");
-		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getFolderBaseURL()+message.unid+"/?OpenDocument&PresetFields=FullMessage;1"), HttpMethod.GET, params);
+		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getFolderBaseURL()+message.getId()+"/?OpenDocument&PresetFields=FullMessage;1"), HttpMethod.GET, params);
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
 		if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
@@ -548,7 +565,7 @@ public class Session {
 		//httpResponse.close();// done in HttpLineIterator#close()
 		if (message.unread) {
 			// exporting (read MIME) marks mail as read. Need to get the read/unread information and set it back!
-			mailsToMarkUnread.add(message.unid);
+			mailsToMarkUnread.add(message.getId());
 		}
 		return new IteratorChain<String>(getINotesData(message).iterator(), responseLines);
 	}
@@ -558,7 +575,7 @@ public class Session {
 		iNotes.add("X-iNotes-unid: " + message.unid);
 		iNotes.add("X-iNotes-noteid: " + message.noteid);
 		iNotes.add("X-iNotes-unread: " + message.unread);
-		iNotes.add("X-iNotes-date: " + fr.cedrik.inotes.util.DateUtils.RFC2822_DATE_TIME_FORMAT.format(message.date));
+		iNotes.add("X-iNotes-date: " + fr.cedrik.util.DateUtils.RFC2822_DATE_TIME_FORMAT.format(message.date));
 		iNotes.add("X-iNotes-size: " + message.size);
 		return Collections.unmodifiableList(iNotes);
 	}
@@ -567,7 +584,7 @@ public class Session {
 		List<String> iNotes = new ArrayList<String>(5);
 		iNotes.add("X-iNotes-unid: " + message.unid);
 		iNotes.add("X-iNotes-noteid: " + message.noteid);
-		iNotes.add("X-iNotes-date: " + fr.cedrik.inotes.util.DateUtils.RFC2822_DATE_TIME_FORMAT.format(message.date));
+		iNotes.add("X-iNotes-date: " + fr.cedrik.util.DateUtils.RFC2822_DATE_TIME_FORMAT.format(message.date));
 		return Collections.unmodifiableList(iNotes);
 	}
 
@@ -579,9 +596,9 @@ public class Session {
 	public void deleteMessage(MessageMetaData... messages) throws IOException {
 		checkLoggedIn();
 		for (MessageMetaData message : messages) {
-			mailsToDelete.add(message.unid);
-			mailsToMarkRead.remove(message.unid);
-			mailsToMarkUnread.remove(message.unid);
+			mailsToDelete.add(message.getId());
+			mailsToMarkRead.remove(message.getId());
+			mailsToMarkUnread.remove(message.getId());
 		}
 	}
 
@@ -593,7 +610,7 @@ public class Session {
 	public void deleteMessage(MeetingNoticeMetaData... messages) throws IOException {
 		checkLoggedIn();
 		for (MeetingNoticeMetaData message : messages) {
-			noticesToDelete.add(message.unid);
+			noticesToDelete.add(message.getId());
 		}
 	}
 
@@ -602,17 +619,19 @@ public class Session {
 	 * @param messages
 	 * @throws IOException
 	 */
-	public void deleteMessage(List<? extends BaseINotesMessage> messages) throws IOException {
-		deleteMessage(messages.toArray(new BaseINotesMessage[messages.size()]));
+	@Override
+	public void deleteMessage(Collection<? extends Message> messages) throws IOException {
+		deleteMessage(messages.toArray(new Message[messages.size()]));
 	}
 	/**
 	 * will be done server-side on logout
 	 * @param messages
 	 * @throws IOException
 	 */
-	public void deleteMessage(BaseINotesMessage... messages) throws IOException {
+	@Override
+	public void deleteMessage(Message... messages) throws IOException {
 		checkLoggedIn();
-		for (BaseINotesMessage message : messages) {
+		for (Message message : messages) {
 			if (message instanceof MessageMetaData) {
 				deleteMessage((MessageMetaData) message);
 			} else if (message instanceof MeetingNoticeMetaData) {
@@ -623,6 +642,7 @@ public class Session {
 		}
 	}
 
+	@Override
 	public void undeleteAllMessages() {
 		checkLoggedIn();
 		mailsToDelete.clear();
@@ -644,7 +664,7 @@ public class Session {
 		params.put("h_SetReturnURL", "[[./&Form=s_CallBlankScript]]");
 		params.put("h_AllDocs", "");
 		params.put("h_FolderStorage", "");
-		params.put("s_ViewName", context.getNotesFolderId());
+		params.put("s_ViewName", context.getCurrentFolderId());
 		params.put("h_SetCommand", "h_DeletePages");
 		params.put("h_SetEditNextScene", "l_HaikuErrorStatusJSON");
 		params.put("h_SetDeleteList", StringUtils.join(mailsToDelete, ';'));
@@ -711,11 +731,12 @@ public class Session {
 	public void markMessagesRead(MessageMetaData... messages) throws IOException {
 		checkLoggedIn();
 		for (MessageMetaData message : messages) {
-			mailsToMarkUnreadAll.remove(message.unid);
-			mailsToMarkReadAll.add(message.unid);
-			if (! mailsToDelete.contains(message.unid)) {
-				mailsToMarkUnread.remove(message.unid);
-				mailsToMarkRead.add(message.unid);
+			String id = message.getId();
+			mailsToMarkUnreadAll.remove(id);
+			mailsToMarkReadAll.add(id);
+			if (! mailsToDelete.contains(id)) {
+				mailsToMarkUnread.remove(id);
+				mailsToMarkRead.add(id);
 			}
 		}
 	}
@@ -727,7 +748,7 @@ public class Session {
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("Form", "l_HaikuErrorStatusJSON");
 		params.put("ui", "dwa_form");
-		params.put("s_ViewName", context.getNotesFolderId());
+		params.put("s_ViewName", context.getCurrentFolderId());
 		params.put("h_AllDocs", "");
 		params.put("h_SetCommand", "h_ShimmerMarkRead");
 		params.put("h_SetReturnURL", "[[./&Form=s_CallBlankScript]]");
@@ -749,7 +770,7 @@ public class Session {
 		} finally {
 			httpResponse.close();
 		}
-		logger.info("Marked {} messsage(s) as read in folder {}: {}", mailsToMarkRead.size(), context.getNotesFolderId(), StringUtils.join(mailsToMarkRead, ';'));
+		logger.info("Marked {} messsage(s) as read in folder {}: {}", mailsToMarkRead.size(), context.getCurrentFolderId(), StringUtils.join(mailsToMarkRead, ';'));
 		mailsToMarkReadAll.removeAll(mailsToMarkRead);
 		mailsToMarkRead.clear();
 	}
@@ -762,11 +783,12 @@ public class Session {
 	public void markMessagesUnread(MessageMetaData... messages) throws IOException {
 		checkLoggedIn();
 		for (MessageMetaData message : messages) {
-			mailsToMarkReadAll.remove(message.unid);
-			mailsToMarkUnreadAll.add(message.unid);
-			if (! mailsToDelete.contains(message.unid)) {
-				mailsToMarkRead.remove(message.unid);
-				mailsToMarkUnread.add(message.unid);
+			String id = message.getId();
+			mailsToMarkReadAll.remove(id);
+			mailsToMarkUnreadAll.add(id);
+			if (! mailsToDelete.contains(id)) {
+				mailsToMarkRead.remove(id);
+				mailsToMarkUnread.add(id);
 			}
 		}
 	}
@@ -779,7 +801,7 @@ public class Session {
 		params.put("Form", "l_HaikuErrorStatusJSON");
 		params.put("ui", "dwa_form");
 //		params.put("PresetFields", "s_NoMarkRead;1");
-		params.put("s_ViewName", context.getNotesFolderId());
+		params.put("s_ViewName", context.getCurrentFolderId());
 		params.put("h_AllDocs", "");
 		params.put("h_SetCommand", "h_ShimmerMarkUnread");
 		params.put("h_SetReturnURL", "[[./&Form=s_CallBlankScript]]");
@@ -801,29 +823,29 @@ public class Session {
 		} finally {
 			httpResponse.close();
 		}
-		logger.info("Marked {} messsage(s) as unread in folder {}: {}", mailsToMarkUnread.size(), context.getNotesFolderId(), StringUtils.join(mailsToMarkUnread, ';'));
+		logger.info("Marked {} messsage(s) as unread in folder {}: {}", mailsToMarkUnread.size(), context.getCurrentFolderId(), StringUtils.join(mailsToMarkUnread, ';'));
 		mailsToMarkUnreadAll.removeAll(mailsToMarkUnread);
 		mailsToMarkUnread.clear();
 	}
 
 
-	public INotesMessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaData() throws IOException {
+	public MessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaData() throws IOException {
 		if (allNoticesCache != null) {
 			return allNoticesCache;
 		}
 		allNoticesCache = getMeetingNoticesMetaData(null, null, Integer.MAX_VALUE);
 		return allNoticesCache;
 	}
-	public INotesMessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaData(int count) throws IOException {
+	public MessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaData(int count) throws IOException {
 		return getMeetingNoticesMetaData(null, null, count);
 	}
-	public INotesMessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaData(Date oldestMessageToFetch) throws IOException {
+	public MessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaData(Date oldestMessageToFetch) throws IOException {
 		return getMeetingNoticesMetaData(oldestMessageToFetch, null, Integer.MAX_VALUE);
 	}
-	public INotesMessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaData(Date oldestMessageToFetch, Date newestMessageToFetch) throws IOException {
+	public MessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaData(Date oldestMessageToFetch, Date newestMessageToFetch) throws IOException {
 		return getMeetingNoticesMetaData(oldestMessageToFetch, newestMessageToFetch, Integer.MAX_VALUE);
 	}
-	public INotesMessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaData(Date oldestMessageToFetch, Date newestMessageToFetch, int count) throws IOException {
+	public MessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaData(Date oldestMessageToFetch, Date newestMessageToFetch, int count) throws IOException {
 		checkLoggedIn();
 		cleanup();
 		if (oldestMessageToFetch == null) {
@@ -832,11 +854,11 @@ public class Session {
 		if (newestMessageToFetch == null) {
 			newestMessageToFetch = new Date(Long.MAX_VALUE);
 		}
-		String notesFolderIdBackup = context.getNotesFolderId();
-		context.setNotesFolderId(Folder.MEETING_NOTICES);
+		String notesFolderIdBackup = context.getCurrentFolderId();
+		context.setCurrentFolderId(Folder.MEETING_NOTICES);
 		// iNotes limits the number of results to 1000. Need to paginate.
 		int start = 1, currentCount = 0;
-		INotesMessagesMetaData<MeetingNoticeMetaData> notices = null, partialNotices;
+		MessagesMetaData<MeetingNoticeMetaData> notices = null, partialNotices;
 		boolean stopLoading = false;
 		do {
 			partialNotices = getMeetingNoticesMetaDataNoSort(start, Math.min(count - currentCount, META_DATA_LOAD_BATCH_SIZE));
@@ -868,7 +890,7 @@ public class Session {
 			start += META_DATA_LOAD_BATCH_SIZE;
 			currentCount = notices.entries.size();
 		} while (! stopLoading && partialNotices.entries.size() >= Math.min(count - currentCount, META_DATA_LOAD_BATCH_SIZE) && currentCount < count);
-		context.setNotesFolderId(notesFolderIdBackup);
+		context.setCurrentFolderId(notesFolderIdBackup);
 		Collections.reverse(notices.entries);
 		logger.trace("Loaded {} meeting notices metadata", Integer.valueOf(notices.entries.size()));
 		return notices;
@@ -877,10 +899,10 @@ public class Session {
 	/**
 	 * @return set of meeting notices meta-data, in iNotes order
 	 */
-	protected INotesMessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaDataNoSort(int start, int count) throws IOException {
+	protected MessagesMetaData<MeetingNoticeMetaData> getMeetingNoticesMetaDataNoSort(int start, int count) throws IOException {
 		checkLoggedIn();
-		String notesFolderIdBackup = context.getNotesFolderId();
-		context.setNotesFolderId(Folder.MEETING_NOTICES);
+		String notesFolderIdBackup = context.getCurrentFolderId();
+		context.setCurrentFolderId(Folder.MEETING_NOTICES);
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charset", CharEncoding.UTF_8);
 		params.put("Form", "s_ReadViewEntries");
@@ -892,13 +914,13 @@ public class Session {
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
 //		traceBody(httpResponse);// DEBUG
-		context.setNotesFolderId(notesFolderIdBackup);
+		context.setCurrentFolderId(notesFolderIdBackup);
 		if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
 			logger.error("Unknown server response while fetching metting notices meta-data for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
 			httpResponse.close();
 			return null;
 		}
-		INotesMessagesMetaData<MeetingNoticeMetaData> notices;
+		MessagesMetaData<MeetingNoticeMetaData> notices;
 		try {
 			notices = new MeetingNoticesXMLConverter().convertXML(httpResponse.getBody(), context.getCharset(httpResponse));
 		} catch (XMLStreamException e) {
@@ -916,7 +938,7 @@ public class Session {
 //		Map<String, Object> params = new HashMap<String, Object>();
 //		params.put("charset", CharEncoding.UTF_8);
 //		params.put("Form", "l_JSVars");
-//		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getFolderBaseURL()+meetingNotice.unid+"/?OpenDocument"+"&PresetFields=s_HandleAttachmentNames;1,s_HandleMime;1,s_OpenUI;1,s_HideRemoteImage;1"), HttpMethod.GET, params);
+//		ClientHttpRequest httpRequest = context.createRequest(new URL(context.getFolderBaseURL()+meetingNotice.getId()+"/?OpenDocument"+"&PresetFields=s_HandleAttachmentNames;1,s_HandleMime;1,s_OpenUI;1,s_HideRemoteImage;1"), HttpMethod.GET, params);
 //		ClientHttpResponse httpResponse = httpRequest.execute();
 //		trace(httpRequest, httpResponse);
 //		context.setNotesFolderId(notesFolderIdBackup);
@@ -990,7 +1012,8 @@ public class Session {
 	 * @throws IOException
 	 * @throws MailParseException if the content of the email is invalid (i.e. iNotes http session has expired)
 	 */
-	public IteratorChain<String> getMessageMIME(BaseINotesMessage message) throws IOException, MailParseException {
+	@Override
+	public IteratorChain<String> getMessageMIME(Message message) throws IOException, MailParseException {
 		if (message instanceof MessageMetaData) {
 			return getMessageMIME((MessageMetaData)message);
 //		} else if (message instanceof MeetingNoticeMetaData) {
@@ -1008,7 +1031,8 @@ public class Session {
 	 * @throws IOException
 	 * @throws MailParseException if the content of the email is invalid (i.e. iNotes http session has expired)
 	 */
-	public IteratorChain<String> getMessageMIMEHeaders(BaseINotesMessage message) throws IOException, MailParseException {
+	@Override
+	public IteratorChain<String> getMessageMIMEHeaders(Message message) throws IOException, MailParseException {
 		if (message instanceof MessageMetaData) {
 			return getMessageMIMEHeaders((MessageMetaData)message);
 //		} else if (message instanceof MeetingNoticeMetaData) {
@@ -1019,19 +1043,19 @@ public class Session {
 	}
 
 
-	public INotesMessagesMetaData<? extends BaseINotesMessage> getMessagesAndMeetingNoticesMetaData() throws IOException {
+	public MessagesMetaData<? extends Message> getMessagesAndMeetingNoticesMetaData() throws IOException {
 		return getMessagesMetaData();
 		//FIXME uncomment when we find a way to export meeting invites!
 //		if (Folder.INBOX.equals(context.getNotesFolderId()) || Folder.ALL.equals(context.getNotesFolderId())) {
-//			INotesMessagesMetaData<MessageMetaData> messagesMetaData = getMessagesMetaData();
-//			INotesMessagesMetaData<MeetingNoticeMetaData> noticesMetaData = getMeetingNoticesMetaData();
-//			INotesMessagesMetaData<BaseINotesMessage> result = messagesMetaData.clone();
+//			MessagesMetaData<MessageMetaData> messagesMetaData = getMessagesMetaData();
+//			MessagesMetaData<MeetingNoticeMetaData> noticesMetaData = getMeetingNoticesMetaData();
+//			MessagesMetaData<Message> result = messagesMetaData.clone();
 //			result.entries.clear();
 //			result.entries.addAll(messagesMetaData.entries);
 //			result.entries.addAll(noticesMetaData.entries);
-//			Collections.sort(result.entries, new Comparator<BaseINotesMessage>() {
+//			Collections.sort(result.entries, new Comparator<Message>() {
 //				@Override
-//				public int compare(BaseINotesMessage o1, BaseINotesMessage o2) {
+//				public int compare(Message o1, Message o2) {
 //					return o1.getDate().compareTo(o2.getDate());
 //				}
 //			});
@@ -1041,23 +1065,23 @@ public class Session {
 //		}
 	}
 
-	public INotesMessagesMetaData<? extends BaseINotesMessage> getMessagesAndMeetingNoticesMetaData(Date oldestMessageToFetch) throws IOException {
+	public MessagesMetaData<? extends BaseINotesMessage> getMessagesAndMeetingNoticesMetaData(Date oldestMessageToFetch) throws IOException {
 		return getMessagesAndMeetingNoticesMetaData(oldestMessageToFetch, null);
 	}
 
-	public INotesMessagesMetaData<? extends BaseINotesMessage> getMessagesAndMeetingNoticesMetaData(Date oldestMessageToFetch, Date newestMessageToFetch) throws IOException {
+	public MessagesMetaData<? extends BaseINotesMessage> getMessagesAndMeetingNoticesMetaData(Date oldestMessageToFetch, Date newestMessageToFetch) throws IOException {
 		return getMessagesMetaData(oldestMessageToFetch, newestMessageToFetch);
 		//FIXME uncomment when we find a way to export meeting invites!
 //		if (Folder.INBOX.equals(context.getNotesFolderId()) || Folder.ALL.equals(context.getNotesFolderId())) {
-//			INotesMessagesMetaData<MessageMetaData> messagesMetaData = getMessagesMetaData(oldestMessageToFetch, newestMessageToFetch);
-//			INotesMessagesMetaData<MeetingNoticeMetaData> noticesMetaData = getMeetingNoticesMetaData(oldestMessageToFetch, newestMessageToFetch);
-//			INotesMessagesMetaData<BaseINotesMessage> result = messagesMetaData.clone();
+//			MessagesMetaData<MessageMetaData> messagesMetaData = getMessagesMetaData(oldestMessageToFetch, newestMessageToFetch);
+//			MessagesMetaData<MeetingNoticeMetaData> noticesMetaData = getMeetingNoticesMetaData(oldestMessageToFetch, newestMessageToFetch);
+//			MessagesMetaData<Message> result = messagesMetaData.clone();
 //			result.entries.clear();
 //			result.entries.addAll(messagesMetaData.entries);
 //			result.entries.addAll(noticesMetaData.entries);
-//			Collections.sort(result.entries, new Comparator<BaseINotesMessage>() {
+//			Collections.sort(result.entries, new Comparator<Message>() {
 //				@Override
-//				public int compare(BaseINotesMessage o1, BaseINotesMessage o2) {
+//				public int compare(Message o1, Message o2) {
 //					return o1.getDate().compareTo(o2.getDate());
 //				}
 //			});
@@ -1080,6 +1104,7 @@ public class Session {
 		doDeleteNotices();
 	}
 
+	@Override
 	public boolean logout() throws IOException {
 		if (! isLoggedIn) {
 			return true;
@@ -1171,7 +1196,7 @@ public class Session {
 			}
 			// fix Lotus Notes broken date pattern: 29-Oct-2012 19:23:20 CET	10-Oct-2012 11:25:11 CEDT
 			if (inHeaders) {
-				line = fr.cedrik.inotes.util.DateUtils.fixLotusMIMEDateHeader(line);
+				line = fr.cedrik.util.DateUtils.fixLotusMIMEDateHeader(line);
 			}
 			return line;
 		}

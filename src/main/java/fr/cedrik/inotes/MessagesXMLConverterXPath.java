@@ -24,7 +24,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import fr.cedrik.inotes.util.DateUtils;
+import fr.cedrik.email.MessagesMetaData;
+import fr.cedrik.util.DateUtils;
 
 /**
  * WARNING: this class is not thread-safe!
@@ -47,7 +48,7 @@ class MessagesXMLConverterXPath {
 		return doc;
 	}
 
-	public INotesMessagesMetaData<MessageMetaData> convertXML(InputStream input) throws IOException {
+	public MessagesMetaData<MessageMetaData> convertXML(InputStream input) throws IOException {
 		Document doc;
 		try {
 			doc = loadXML(input);
@@ -58,7 +59,7 @@ class MessagesXMLConverterXPath {
 			logger.error("", e);
 			return null;
 		}
-		INotesMessagesMetaData<MessageMetaData> messages = new INotesMessagesMetaData<MessageMetaData>();
+		MessagesMetaData<MessageMetaData> messages = new MessagesMetaData<MessageMetaData>();
 		try {
 			Number dbsize       = (Number) dbsizeXP.evaluate(doc, XPathConstants.NUMBER);
 			Number sizelimit    = (Number) sizelimitXP.evaluate(doc, XPathConstants.NUMBER);
@@ -95,7 +96,7 @@ class MessagesXMLConverterXPath {
 					message.recipient   = ((Number) recipientXP.evaluate(node, XPathConstants.NUMBER)).intValue();
 					message.attachement = ((Number) attachementXP.evaluate(node, XPathConstants.NUMBER)).intValue();
 					message.answerFlag  = ((Number) answerFlagXP.evaluate(node, XPathConstants.NUMBER)).intValue();
-					if (StringUtils.isBlank(message.unid)) {
+					if (StringUtils.isBlank(message.getId())) {
 						logger.error("Error while parsing XML viewentry: empty unid! {}", node);
 						continue;
 					}

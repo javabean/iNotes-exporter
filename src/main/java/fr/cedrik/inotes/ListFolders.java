@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author C&eacute;drik LIME
  */
-public class ListFolders implements fr.cedrik.inotes.MainRunner.Main {
+public class ListFolders implements fr.cedrik.email.MainRunner.Main {
 	private static final Logger logger = LoggerFactory.getLogger(ListFolders.class);
 
 	public ListFolders() {

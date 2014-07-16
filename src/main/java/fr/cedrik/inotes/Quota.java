@@ -8,10 +8,12 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.cedrik.email.MessagesMetaData;
+
 /**
  * @author C&eacute;drik LIME
  */
-public class Quota implements fr.cedrik.inotes.MainRunner.Main {
+public class Quota implements fr.cedrik.email.MainRunner.Main {
 	private static final Logger logger = LoggerFactory.getLogger(Quota.class);
 
 	public Quota() {
@@ -37,7 +39,7 @@ public class Quota implements fr.cedrik.inotes.MainRunner.Main {
 			return;
 		}
 		try {
-			INotesMessagesMetaData<?> messages = session.getMessagesMetaData(0);
+			MessagesMetaData<?> messages = session.getMessagesMetaData(0);
 			/*
 			<dbquotasize>
 				<dbsize>121938</dbsize>
