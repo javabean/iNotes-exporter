@@ -12,14 +12,20 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -128,6 +134,9 @@ public class SSLSockets {
 			} catch (FileNotFoundException fnfe) {
 				if (Thread.currentThread().getContextClassLoader() != null) {
 					is = Thread.currentThread().getContextClassLoader().getResourceAsStream(storeName);
+					if (is == null) {
+						throw fnfe;
+					}
 				} else {
 					throw fnfe;
 				}
@@ -140,4 +149,47 @@ public class SSLSockets {
 		}
 		return store;
 	}
+
+	/**
+	 * all-trusting trust manager, used for debugging purposes (e.g. connecting to a secure socket via a proxy); hence the {@code @Deprecated}.<br />
+	 * Note that for non-debugging purposes, you should very much get the remote public certificate, and load it via {@link #getSSLSocketFactory(String, String, String, String, String, String, String)}!
+	 */
+	@Deprecated
+	public static final SSLSocketFactory trustingSSLSocketFactory;
+	static {
+		try {
+			// Create a trust manager that does not validate certificate chains
+			TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+				@Override
+				public X509Certificate[] getAcceptedIssuers() {
+					return null;
+				}
+				@Override
+				public void checkClientTrusted(X509Certificate[] certs, String authType) {
+				}
+				@Override
+				public void checkServerTrusted(X509Certificate[] certs,String authType) {
+				}
+			} };
+			SSLContext sc = SSLContext.getInstance("TLS");//$NON-NLS-1$
+			sc.init(null, trustAllCerts, new SecureRandom());
+			trustingSSLSocketFactory = sc.getSocketFactory();
+		} catch (KeyManagementException e) {
+			throw new RuntimeException("Can not initialize trustingSSLSocketFactory", e);
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException("Can not initialize trustingSSLSocketFactory", e);
+		}
+	}
+
+	/**
+	 * all-trusting host name verifier, used for debugging purposes (e.g. connecting to a secure socket via a proxy); hence the {@code @Deprecated}
+	 */
+	@Deprecated
+	public static final HostnameVerifier allHostsValid = new HostnameVerifier() {
+		@Override
+		public boolean verify(String hostname, SSLSession session) {
+			return true;
+		}
+	};
+
 }

@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.net.CookieHandler;
 import java.net.CookiePolicy;
 import java.net.CookieStore;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -22,7 +24,8 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import fr.cedrik.inotes.util.CookieManager;
 import fr.cedrik.spring.http.client.HttpRequestExecutor;
-import fr.cedrik.spring.http.client.SimpleClientHttpRequestFactory;
+import fr.cedrik.spring.http.client.SSLSimpleClientHttpRequestFactory;
+import fr.cedrik.util.SSLSockets;
 
 /**
  * @author C&eacute;drik LIME
@@ -60,7 +63,7 @@ public class HttpContext {
 	private HttpRequestExecutor getHttpRequestExecutor() {
 		HttpRequestExecutor http = new HttpRequestExecutor();
 		{
-			SimpleClientHttpRequestFactory httpRequestFactory = new SimpleClientHttpRequestFactory();
+			SSLSimpleClientHttpRequestFactory httpRequestFactory = new SSLSimpleClientHttpRequestFactory();
 			Proxy proxy = iNotes.getProxy();
 			httpRequestFactory.setProxy(proxy);
 			httpRequestFactory.setAllowUserInteraction(false);
@@ -68,6 +71,15 @@ public class HttpContext {
 			httpRequestFactory.setInstanceFollowRedirects(false);
 			httpRequestFactory.setConnectTimeout(10000);
 			httpRequestFactory.setReadTimeout(30000);
+			// special handling for debugging: proxy running on same computer
+			try {
+				if (proxy.type() == Proxy.Type.HTTP && ((InetSocketAddress)proxy.address()).getAddress().equals(InetAddress.getLocalHost())) {
+					httpRequestFactory.setSocketFactory(SSLSockets.trustingSSLSocketFactory);
+					httpRequestFactory.setHostnameVerifier(SSLSockets.allHostsValid);
+				}
+			} catch (Exception ignore) {
+			}
+
 			http.setRequestFactory(httpRequestFactory);
 		}
 		return http;
