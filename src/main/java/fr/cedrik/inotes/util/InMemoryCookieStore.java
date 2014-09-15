@@ -1,11 +1,11 @@
-//Source: JDK 7u51
+//Source: JDK 8u20
 //Changes:
 // * @Override
 //OpenJDK 6's CookieManager.java is way behind Oracle's JDK6, and does not work for us.
 //This is an "upgrade" for OpenJDK 6 users.
 
 /*
- * Copyright (c) 2005, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -220,9 +220,12 @@ class InMemoryCookieStore implements CookieStore {
     public boolean removeAll() {
         lock.lock();
         try {
+        	domainIndex.clear();
+        	uriIndex.clear();
+            if (cookieJar.isEmpty()) {
+                return false;
+            }
             cookieJar.clear();
-            domainIndex.clear();
-            uriIndex.clear();
         } finally {
             lock.unlock();
         }
@@ -348,8 +351,9 @@ class InMemoryCookieStore implements CookieStore {
                             if (!ck.hasExpired()) {
                                 // don't add twice
                                 if ((secureLink || !ck.getSecure()) &&
-                                        !cookies.contains(ck))
+                                        !cookies.contains(ck)) {
                                     cookies.add(ck);
+                                }
                             } else {
                                 it.remove();
                                 cookieJar.remove(ck);

@@ -1,4 +1,4 @@
-//Source: JDK 7u51
+//Source: JDK 8u20
 //Changes:
 // * logger
 // * cookie.isHttpOnly()
@@ -6,7 +6,7 @@
 //This is an "upgrade" for OpenJDK 6 users.
 
 /*
- * Copyright (c) 2005, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -148,7 +148,7 @@ public class CookieManager extends CookieHandler
      *
      * <p>This constructor will create new cookie manager with default
      * cookie store and accept policy. The effect is same as
-     * <tt>CookieManager(null, null)</tt>.
+     * {@code CookieManager(null, null)}.
      */
     public CookieManager() {
         this(null, null);
@@ -158,12 +158,12 @@ public class CookieManager extends CookieHandler
     /**
      * Create a new cookie manager with specified cookie store and cookie policy.
      *
-     * @param store     a <tt>CookieStore</tt> to be used by cookie manager.
-     *                  if <tt>null</tt>, cookie manager will use a default one,
-     *                  which is an in-memory CookieStore implmentation.
-     * @param cookiePolicy      a <tt>CookiePolicy</tt> instance
+     * @param store     a {@code CookieStore} to be used by cookie manager.
+     *                  if {@code null}, cookie manager will use a default one,
+     *                  which is an in-memory CookieStore implementation.
+     * @param cookiePolicy      a {@code CookiePolicy} instance
      *                          to be used by cookie manager as policy callback.
-     *                          if <tt>null</tt>, ACCEPT_ORIGINAL_SERVER will
+     *                          if {@code null}, ACCEPT_ORIGINAL_SERVER will
      *                          be used.
      */
     public CookieManager(CookieStore store,
@@ -187,15 +187,17 @@ public class CookieManager extends CookieHandler
     /**
      * To set the cookie policy of this cookie manager.
      *
-     * <p> A instance of <tt>CookieManager</tt> will have
+     * <p> A instance of {@code CookieManager} will have
      * cookie policy ACCEPT_ORIGINAL_SERVER by default. Users always
      * can call this method to set another cookie policy.
      *
-     * @param cookiePolicy      the cookie policy. Can be <tt>null</tt>, which
+     * @param cookiePolicy      the cookie policy. Can be {@code null}, which
      *                          has no effects on current cookie policy.
      */
     public void setCookiePolicy(CookiePolicy cookiePolicy) {
-        if (cookiePolicy != null) policyCallback = cookiePolicy;
+        if (cookiePolicy != null) {
+            policyCallback = cookiePolicy;
+        }
     }
 
 
@@ -209,6 +211,7 @@ public class CookieManager extends CookieHandler
     }
 
 
+    @Override
     public Map<String, List<String>>
         get(URI uri, Map<String, List<String>> requestHeaders)
         throws IOException
@@ -221,8 +224,9 @@ public class CookieManager extends CookieHandler
         Map<String, List<String>> cookieMap =
                         new java.util.HashMap<String, List<String>>();
         // if there's no default CookieStore, no way for us to get any cookie
-        if (cookieJar == null)
+        if (cookieJar == null) {
             return Collections.unmodifiableMap(cookieMap);
+        }
 
         boolean secureLink = "https".equalsIgnoreCase(uri.getScheme());
         List<HttpCookie> cookies = new java.util.ArrayList<HttpCookie>();
@@ -267,6 +271,7 @@ public class CookieManager extends CookieHandler
     }
 
 
+    @Override
     public void
         put(URI uri, Map<String, List<String>> responseHeaders)
         throws IOException
@@ -278,8 +283,9 @@ public class CookieManager extends CookieHandler
 
 
         // if there's no default CookieStore, no need to remember any cookie
-        if (cookieJar == null)
+        if (cookieJar == null) {
             return;
+        }
 
         for (String headerKey : responseHeaders.keySet()) {
             // RFC 2965 3.2.2, key must be 'Set-Cookie2'
@@ -300,7 +306,7 @@ public class CookieManager extends CookieHandler
                         cookies = HttpCookie.parse(headerValue);
                     } catch (IllegalArgumentException e) {
                         // Bogus header, make an empty list and log the error
-                        cookies = java.util.Collections.EMPTY_LIST;
+                        cookies = java.util.Collections.emptyList();
                         if (logger.isWarnEnabled()) {
                             logger.warn("Invalid cookie for {}: {}", uri, headerValue);
                         }
@@ -326,7 +332,11 @@ public class CookieManager extends CookieHandler
                         // there is no dot at the beginning of effective request-host,
                         // the default Domain can only domain-match itself.)
                         if (cookie.getDomain() == null) {
-                            cookie.setDomain(uri.getHost());
+                            String host = uri.getHost();
+                            if (host != null && !host.contains(".")) {
+								host += ".local";
+							}
+                            cookie.setDomain(host);
                         }
                         String ports = cookie.getPortlist();
                         if (ports != null) {
@@ -407,12 +417,15 @@ public class CookieManager extends CookieHandler
      * path-matches algorithm, as defined by RFC 2965
      */
     private boolean pathMatches(String path, String pathToMatchWith) {
-        if (path == pathToMatchWith)
+        if (path == pathToMatchWith) {
             return true;
-        if (path == null || pathToMatchWith == null)
+        }
+        if (path == null || pathToMatchWith == null) {
             return false;
-        if (path.startsWith(pathToMatchWith))
+        }
+        if (path.startsWith(pathToMatchWith)) {
             return true;
+        }
 
         return false;
     }
@@ -442,21 +455,31 @@ public class CookieManager extends CookieHandler
 
 
     static class CookiePathComparator implements Comparator<HttpCookie> {
+        @Override
         public int compare(HttpCookie c1, HttpCookie c2) {
-            if (c1 == c2) return 0;
-            if (c1 == null) return -1;
-            if (c2 == null) return 1;
+            if (c1 == c2) {
+                return 0;
+            }
+            if (c1 == null) {
+                return -1;
+            }
+            if (c2 == null) {
+                return 1;
+            }
 
             // path rule only applies to the cookies with same name
-            if (!c1.getName().equals(c2.getName())) return 0;
+            if (!c1.getName().equals(c2.getName())) {
+                return 0;
+            }
 
             // those with more specific Path attributes precede those with less specific
-            if (c1.getPath().startsWith(c2.getPath()))
+            if (c1.getPath().startsWith(c2.getPath())) {
                 return -1;
-            else if (c2.getPath().startsWith(c1.getPath()))
+            } else if (c2.getPath().startsWith(c1.getPath())) {
                 return 1;
-            else
+            } else {
                 return 0;
+            }
         }
     }
 }
