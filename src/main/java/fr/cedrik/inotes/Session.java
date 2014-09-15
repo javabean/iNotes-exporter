@@ -73,7 +73,7 @@ public class Session implements fr.cedrik.email.spi.Session {
 
 	protected void trace(ClientHttpRequest httpRequest, ClientHttpResponse httpResponse) throws IOException {
 		if (logger.isDebugEnabled()) {
-			logger.debug(httpRequest.getMethod().toString() + ' ' + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText() + ' ' + httpRequest.getURI());
+			logger.debug(httpRequest.getMethod().toString() + ' ' + httpResponse.getRawStatusCode() + ' ' + httpResponse.getStatusText() + ' ' + httpRequest.getURI());
 		}
 	}
 	private void traceBody(ClientHttpResponse httpResponse) throws IOException {
@@ -146,7 +146,7 @@ public class Session implements fr.cedrik.email.spi.Session {
 					logger.warn("ERROR while authenticating user \""+context.getUserName()+"\". Please check your parameters in " + INotesProperties.FILE);
 					return false;
 				} else {
-					logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+					logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getRawStatusCode() + ' ' + httpResponse.getStatusText());
 					return false;
 				}
 			} finally {
@@ -164,7 +164,7 @@ public class Session implements fr.cedrik.email.spi.Session {
 			responseBody = IOUtils.toString(httpResponse.getBody(), context.getCharset(httpResponse));
 			try {
 				if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-					logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+					logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getRawStatusCode() + ' ' + httpResponse.getStatusText());
 					return false;
 				}
 			} finally {
@@ -237,7 +237,7 @@ public class Session implements fr.cedrik.email.spi.Session {
 			// Apparently we don't need to parse the embeded JS to set the "Shimmer" cookie.
 			try {
 				if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-					logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+					logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getRawStatusCode() + ' ' + httpResponse.getStatusText());
 					return false;
 				}
 			} finally {
@@ -284,7 +284,7 @@ public class Session implements fr.cedrik.email.spi.Session {
 				responseBody = IOUtils.toString(httpResponse.getBody(), context.getCharset(httpResponse));
 				try {
 					if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-						logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+						logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getRawStatusCode() + ' ' + httpResponse.getStatusText());
 						return false;
 					}
 				} finally {
@@ -328,7 +328,7 @@ public class Session implements fr.cedrik.email.spi.Session {
 				responseBody = IOUtils.toString(httpResponse.getBody(), context.getCharset(httpResponse));
 				try {
 					if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-						logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+						logger.error("Unknown server response while authenticating user \""+context.getUserName()+"\": " + httpResponse.getRawStatusCode() + ' ' + httpResponse.getStatusText());
 						return false;
 					}
 				} finally {
@@ -494,7 +494,7 @@ public class Session implements fr.cedrik.email.spi.Session {
 		trace(httpRequest, httpResponse);
 //		traceBody(httpResponse);// DEBUG
 		if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-			logger.error("Unknown server response while fetching messages meta-data for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+			logger.error("Unknown server response while fetching messages meta-data for user \""+context.getUserName()+"\": " + httpResponse.getRawStatusCode() + ' ' + httpResponse.getStatusText());
 			httpResponse.close();
 			return null;
 		}
@@ -526,7 +526,7 @@ public class Session implements fr.cedrik.email.spi.Session {
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
 		if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-			logger.error("Unknown server response while fetching message MIME headers for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+			logger.error("Unknown server response while fetching message MIME headers for user \""+context.getUserName()+"\": " + httpResponse.getRawStatusCode() + ' ' + httpResponse.getStatusText());
 			httpResponse.close();
 			return null;
 		}
@@ -557,7 +557,7 @@ public class Session implements fr.cedrik.email.spi.Session {
 		ClientHttpResponse httpResponse = httpRequest.execute();
 		trace(httpRequest, httpResponse);
 		if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-			logger.error("Unknown server response while fetching message MIME for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+			logger.error("Unknown server response while fetching message MIME for user \""+context.getUserName()+"\": " + httpResponse.getRawStatusCode() + ' ' + httpResponse.getStatusText());
 			httpResponse.close();
 			return null;
 		}
@@ -677,7 +677,7 @@ public class Session implements fr.cedrik.email.spi.Session {
 		}
 		try {
 			if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-				logger.error("Unknown server response while deleting messages for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+				logger.error("Unknown server response while deleting messages for user \""+context.getUserName()+"\": " + httpResponse.getRawStatusCode() + ' ' + httpResponse.getStatusText());
 				return;
 			}
 		} finally {
@@ -713,7 +713,7 @@ public class Session implements fr.cedrik.email.spi.Session {
 		}
 		try {
 			if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-				logger.error("Unknown server response while removing notices from view for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+				logger.error("Unknown server response while removing notices from view for user \""+context.getUserName()+"\": " + httpResponse.getRawStatusCode() + ' ' + httpResponse.getStatusText());
 				return;
 			}
 		} finally {
@@ -764,7 +764,7 @@ public class Session implements fr.cedrik.email.spi.Session {
 		}
 		try {
 			if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-				logger.error("Unknown server response while marking messages read for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+				logger.error("Unknown server response while marking messages read for user \""+context.getUserName()+"\": " + httpResponse.getRawStatusCode() + ' ' + httpResponse.getStatusText());
 				return;
 			}
 		} finally {
@@ -817,7 +817,7 @@ public class Session implements fr.cedrik.email.spi.Session {
 		}
 		try {
 			if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-				logger.error("Unknown server response while marking messages unread for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+				logger.error("Unknown server response while marking messages unread for user \""+context.getUserName()+"\": " + httpResponse.getRawStatusCode() + ' ' + httpResponse.getStatusText());
 				return;
 			}
 		} finally {
@@ -916,7 +916,7 @@ public class Session implements fr.cedrik.email.spi.Session {
 //		traceBody(httpResponse);// DEBUG
 		context.setCurrentFolderId(notesFolderIdBackup);
 		if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-			logger.error("Unknown server response while fetching metting notices meta-data for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+			logger.error("Unknown server response while fetching metting notices meta-data for user \""+context.getUserName()+"\": " + httpResponse.getRawStatusCode() + ' ' + httpResponse.getStatusText());
 			httpResponse.close();
 			return null;
 		}
@@ -943,7 +943,7 @@ public class Session implements fr.cedrik.email.spi.Session {
 //		trace(httpRequest, httpResponse);
 //		context.setNotesFolderId(notesFolderIdBackup);
 //		if (! httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
-//			logger.error("Unknown server response while fetching Meeting Notice for user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+//			logger.error("Unknown server response while fetching Meeting Notice for user \""+context.getUserName()+"\": " + httpResponse.getRawStatusCode() + ' ' + httpResponse.getStatusText());
 //			httpResponse.close();
 //			return null;
 //		}
@@ -1125,7 +1125,7 @@ public class Session implements fr.cedrik.email.spi.Session {
 			if (httpResponse.getStatusCode().series().equals(HttpStatus.Series.SUCCESSFUL)) {
 				logger.info("Logout successful for user \"" + context.getUserName() + '"');
 			} else {
-				logger.warn("ERROR while logging out user \""+context.getUserName()+"\": " + httpResponse.getStatusCode() + ' ' + httpResponse.getStatusText());
+				logger.warn("ERROR while logging out user \""+context.getUserName()+"\": " + httpResponse.getRawStatusCode() + ' ' + httpResponse.getStatusText());
 				return false;
 			}
 		} finally {
