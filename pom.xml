@@ -15,7 +15,7 @@
 		mvn versions:update-child-modules
 		mvn versions:set -DnewVersion=VALUE
 
-		mvn -Dmaven.test.skip clean assembly:assembly -DdescriptorId=jar-with-dependencies
+		mvn -Dmaven.test.skip clean assembly:single -DdescriptorId=jar-with-dependencies
 	 -->
 
 	<!-- - - - - - - - - - -->
@@ -118,7 +118,7 @@
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
-			<version>1.1.2</version>
+			<version>1.2</version>
 			<scope>provided</scope><!-- prevents any version of commons-logging to be bundled with the final artifact -->
 			<optional>true</optional>
 		</dependency>
@@ -238,7 +238,7 @@
 				<configuration>
 					<archive>
 						<compress>true</compress>
-						<index>true</index>
+						<index>false</index><!-- This is no Applet nor WebStart -->
 						<addMavenDescriptor>false</addMavenDescriptor>
 						<!--manifestFile>META-INF/MANIFEST.MF</manifestFile-->
 						<manifest>
@@ -262,9 +262,13 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<!--finalName>${project.build.finalName}</finalName-->
 					<archive>
 						<compress>true</compress>
-						<index>true</index>
+						<index>false</index><!-- This is no Applet nor WebStart -->
 						<addMavenDescriptor>false</addMavenDescriptor>
 						<!--manifestFile>META-INF/MANIFEST.MF</manifestFile-->
 						<manifest>
@@ -307,15 +311,6 @@
 						<inherited/>
 					</execution>
 				</executions>
-			</plugin-->
-			<!--plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<descriptor>src/main/assembly/dep.xml</descriptor>
-					<!- -finalName>final_name</finalName- ->
-					<!- -outputDirectory>output/directory</outputDirectory- ->
-					<!- -workDirectory>target/assembly/work</workDirectory- ->
-				</configuration>
 			</plugin-->
 			<!--plugin>
 				<groupId>org.apache.maven.plugins</groupId>

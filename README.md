@@ -22,7 +22,7 @@ Compiling
 ---------
 (after configuration!)
 
-	mvn -Dmaven.test.skip clean assembly:assembly -DdescriptorId=jar-with-dependencies
+	mvn -Dmaven.test.skip clean assembly:single
 
 Running
 -------
